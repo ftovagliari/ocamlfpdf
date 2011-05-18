@@ -22,14 +22,12 @@
 
 open Printf
 
-(* òùàòùàùà *)
- 
 let rec fixpoint f v =
   let v' = f v in
   if v = v' then v else fixpoint f v'
 
 let rec fib = function
-  | 0 -> 0 
+  | 0 -> 0
   | 1 -> 1
   | n -> fib (n - 1) + fib (n - 2)
 

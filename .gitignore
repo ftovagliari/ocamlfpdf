@@ -9,4 +9,3 @@ tmp
 *.lib
 *.a
 .oebuild
-OCaml-FPDF.xml
