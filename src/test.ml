@@ -192,8 +192,8 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** PDFTable *)
       PDF.add_page doc;
-      let x = margin +. (width_avail -. width) /. 2. in
-      let y = margin +. height_header +. spacing in
+      let x = (width_avail -. width) /. 2. in
+      let y = height_header +. spacing in
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
       let cell_func ~index ~row ~col =

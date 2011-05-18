@@ -9,3 +9,5 @@ tmp
 *.lib
 *.a
 .oebuild
+*.exe.pdf
+doc

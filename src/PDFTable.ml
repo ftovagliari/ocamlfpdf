@@ -41,7 +41,7 @@ and image = {
 
 and column = {
   mutable col_width : float; (* Percent *)
-  col_title : string;
+  mutable col_title : string;
 }
 
 type 'a column_id = 'a
@@ -80,10 +80,12 @@ let print
       prop_fg_color = None;
     })) doc =
   let set_default_draw_color doc = PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
-  let margin_top, _, margin_bottom, _ = PDF.margins doc in
+  let margin_top, _, margin_bottom, margin_left = PDF.margins doc in
   let add_page () =
     PDF.add_page doc;
     PDF.set_line_width 0.1 doc;
+    let mt, mr, mb, ml = PDF.margins doc in
+    mt, ml
   in
   let perc =
     let sum_perc = ref 0.0 in fun x ->
@@ -95,8 +97,8 @@ let print
   List.iter (fun (_, col) -> col.col_width <- (perc col.col_width)) columns;
   let x0 = x in
   let y0 = y in
-  let x = ref x0 in
-  let y = ref y0 in
+  let x = ref (margin_left +. x0) in
+  let y = ref (margin_top +. y0) in
   (* Titles of the columns *)
   let print_title ~x ~y ?align (_, col) =
     let width = col.col_width in
@@ -129,7 +131,7 @@ let print
       PDF.multi_cell ~width ~line_height ~border:[] ~padding:0.5 ~align:`Center ~text:caption doc;
       y := !y +. line_height +. space;
   end;
-  let top, left = ref !y, ref x0 in
+  let top, left = ref !y, ref (margin_left +. x0) in
   print_titles ~x ~y ();
   (* Vertical lines between columns *)
   let print_vertical_lines ~left ~top ~bottom () =
@@ -185,8 +187,8 @@ let print
       List.iter (fun f -> f ()) !cont;
       cont := [];
       print_vertical_lines ~left:!left ~top:!top ~bottom:!y ();
-      add_page();
-      PDF.set ~x:x0 doc;
+      let margin_top, margin_left = add_page() in
+      PDF.set ~x:(margin_left +. x0) ~y:(margin_top +. y0) doc;
       left := PDF.x doc;
       top := PDF.y doc;
       x := PDF.x doc;

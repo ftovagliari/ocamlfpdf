@@ -11,7 +11,9 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="427" active="true">test.ml</filename>
+    <filename offset="8044" active="false">test.ml</filename>
+    <filename offset="6613" active="false">PDFTable.ml</filename>
+    <filename offset="1214" active="true">PDFTable.mli</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -86,14 +88,14 @@
           <name>ocamldoc</name>
           <always_run>true</always_run>
           <env replace="false"/>
-          <dir>C:\Objective Caml\devel\OCaml-FPDF\src</dir>
+          <dir>C:\Objective Caml\devel\ocamlfpdf\src</dir>
           <cmd>ocamldoc</cmd>
           <args>
             <arg>-d</arg>
             <arg>../doc</arg>
             <arg>*.mli</arg>
             <arg>-t</arg>
-            <arg>&quot;OCaml-FPDF&quot;</arg>
+            <arg>&quot;ocamlfpdf&quot;</arg>
             <arg>-html</arg>
           </args>
           <phase>After_compile</phase>
@@ -183,7 +185,7 @@
           <name>ocamldoc</name>
           <always_run>false</always_run>
           <env replace="false"/>
-          <dir>C:\Objective Caml\devel\OCaml-FPDF\src</dir>
+          <dir>C:\Objective Caml\devel\ocamlfpdf\src</dir>
           <cmd>ocamldoc</cmd>
           <args>
             <arg>-d</arg>
@@ -191,7 +193,7 @@
             <arg>-html</arg>
             <arg>*.mli</arg>
             <arg>-t</arg>
-            <arg>&quot;OCaml-FPDF&quot;</arg>
+            <arg>&quot;ocamlfpdf&quot;</arg>
           </args>
           <phase>After_compile</phase>
         </task>
