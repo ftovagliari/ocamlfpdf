@@ -15,7 +15,7 @@ type 'a column_id = 'a
 
 (** Table layout with automatic page break.
   @param x Abscissa of the upper-left corner relative to the page's left margin.
-  @param y Ordinate of the upper-left corner relative to top page's top margin.
+  @param y Ordinate of the upper-left corner relative to the page's top margin.
   @param width Total width of the table
   @param page_height Available height of the page body.
   @param line_height Height of the line of text.
