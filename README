@@ -1,0 +1,38 @@
+
+
+
+   OCaml-FPDF is an OCaml translation of the FPDF library (www.fpdf.org),
+   with additions.
+
+
+COPYRIGHT:
+
+  This software is distributed under the GNU LESSER GENERAL PUBLIC LICENSE
+  Version 2.1. See the enclosed file LICENSE for more details.
+
+
+DEPENDENCIES:
+
+  * Objective Caml 3.11;
+  * Xml-light.
+
+
+AUTHOR:
+
+  You can report bugs or give feedbacks by e-mail to
+  Francesco Tovagliari <ftovagliari@gmail.com>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
