@@ -203,7 +203,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
   width0 +. 2. *. (padding +. border_width), (!y -. y0) +. line_height +. 2. *. padding +. border_width
 
 (** print *)
-let print ~x ~y ~width ~line_height ~markup (*?(align=`Left)*) ?(padding=0.) ?bgcolor ?border_width ?border_color ?(border_radius=0.) doc =
+let print ~x ~y ~width ~line_height ~markup (*?(align=`Left)*) ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
   let width, height = print' ~x ~y ~width ~line_height ~markup (*~align*) ~padding ~print:false ?border_width doc in
   let old_bgcolor = PDF.fill_color doc in
   let old_draw_color = PDF.draw_color doc in

@@ -1,7 +1,7 @@
 <!-- OCamlEditor XML Project -->
 <project>
-  <ocaml_home></ocaml_home>
-  <ocamllib>C:\Objective Caml\lib</ocamllib>
+  <ocaml_home>/usr/local</ocaml_home>
+  <ocamllib>/usr/local/lib/ocaml</ocamllib>
   <encoding>UTF-8</encoding>
   <name>ocamlfpdf</name>
   <author>Francesco Tovagliari</author>
@@ -11,10 +11,9 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="8044" active="false">test.ml</filename>
+    <filename offset="7877" active="true">test.ml</filename>
     <filename offset="4924" active="false">PDFTable.ml</filename>
     <filename offset="799" active="false">PDFTable.mli</filename>
-    <filename offset="3174" active="true">C:\Objective Caml\devel\ocamlfpdf\README</filename>
   </open_files>
   <runtime>
     <configuration>
