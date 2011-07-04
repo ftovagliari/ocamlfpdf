@@ -297,6 +297,8 @@ let get_current_page doc =
     List.nth doc.pages (len - doc.page - 1)
   with Failure "nth" -> failwith ("get_current_page (" ^ (string_of_int doc.page) ^ ")")
 
+let page_no doc = doc.page
+
 let get_page n doc =
   try
     let len = List.length doc.pages in
@@ -328,7 +330,7 @@ let find_image name doc =
   in
   find 1 doc.images
 
-let print_buffer doc = 
+let print_buffer doc =
   let current = (get_current_page doc).pg_buffer in
   Printf.ksprintf begin fun str ->
     Buffer.add_string current str

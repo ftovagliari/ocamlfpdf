@@ -71,7 +71,7 @@ val title : document -> string
 val set_author : string -> document -> unit
 val set_title : string -> document -> unit
 
-(** {2 Page properties } *)
+(** {2 Page } *)
 
 val page_width : document -> float
 val page_height : document -> float
@@ -83,8 +83,10 @@ val set_margins :
   left:float ->
   ?right:float -> top:float -> ?bottom:float -> document -> unit
 
-(** {2 Page header and footer } *)
+(** Returns the current page number. *)
+val page_no : document -> int
 
+(** Page header and footer *)
 val set_header_func : (unit -> unit) -> document -> unit
 val set_footer_func : (unit -> unit) -> document -> unit
 
