@@ -10,4 +10,5 @@ tmp
 *.a
 .oebuild
 *.exe.pdf
-doc
+Thumbs.db
+*~

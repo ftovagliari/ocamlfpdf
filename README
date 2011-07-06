@@ -14,7 +14,37 @@ COPYRIGHT:
 DEPENDENCIES:
 
   * Objective Caml 3.11;
+  * Cryptokit-1.3;
   * Xml-light.
+
+
+HOW TO COMPILE:
+
+    cd src
+    make
+
+  Create the documentation in doc/ with
+
+    make doc
+
+  and the test program with
+
+    make test
+
+  Install (as root) with:
+
+    make install
+
+  By default, the library will be installed in the `ocamlc -where`/fpdf
+  directory. You can change it by editing the Makefile.
+
+
+HOW TO USE:
+
+  Compile your program as follow:
+
+  ocamlc -o ??? -I +fpdf -I +xml-light str.cma unix.cma \
+    nums.cma cryptokit.cma xml-light.cma fpdf.cma ???.ml
 
 
 AUTHOR:
