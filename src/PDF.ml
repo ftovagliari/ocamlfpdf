@@ -292,10 +292,10 @@ let scale doc = doc.k
 let n_pages doc = List.length doc.pages
 
 let get_current_page doc =
+  let len = List.length doc.pages in
   try
-    let len = List.length doc.pages in
     List.nth doc.pages (len - doc.page - 1)
-  with Failure "nth" -> failwith ("get_current_page (" ^ (string_of_int doc.page) ^ ")")
+  with Invalid_argument "List.nth" -> kprintf failwith "get_current_page (%d, %d)" len doc.page
 
 let page_no doc = doc.page
 
@@ -303,11 +303,11 @@ let get_page n doc =
   try
     let len = List.length doc.pages in
     List.nth doc.pages (len - n - 1)
-  with Failure "nth" -> failwith ("get_page (" ^ (string_of_int n) ^ ")")
+  with Invalid_argument "List.nth" -> failwith ("get_page (" ^ (string_of_int n) ^ ")")
 
 let get_link index doc =
   try List.nth doc.links index
-  with Failure "nth" -> failwith ("get_link (" ^ (string_of_int index) ^ ")")
+  with Invalid_argument "List.nth" -> failwith ("get_link (" ^ (string_of_int index) ^ ")")
 
 let find_object n doc =
   try List.nth doc.objects ((List.length doc.objects) - n)

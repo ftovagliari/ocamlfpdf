@@ -76,13 +76,15 @@ let main () = begin
 
       (** Markup *)
       PDF.add_page doc;
+      let test_parent = PDFBookmark.add ~text:"PARENT" doc in
+      ignore (PDFBookmark.add ~text:"Markup" doc);
       PDF.set_font ~family:`Times ~size:12. doc;
       let line_height = (*17.0*) (PDF.font_size doc) /. (PDF.scale doc) in
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let width = (*50.*) width_avail /. 2. in
 
-      let markup = "\
+      let markup = "
 <span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
@@ -113,6 +115,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** Vertical box *)
       PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Vertical box" doc);
       let width = width_avail *. 0.5 in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
@@ -131,6 +134,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** Horizontal box *)
       PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Horizontal box" doc);
       let width = width_avail in
       let height = 60. in
       let x = margin +. (width_avail -. width) /. 2. in
@@ -157,22 +161,27 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** Barcodes *)
       PDF.add_page doc;
+      let parent = PDFBookmark.add ~text:"Barcodes" doc in
       let barcode = "abc1234" in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
       let height = 10. in
+      ignore (PDFBookmark.add ~text:"Code39" (*~level:1*) ~y ~parent doc);
       Barcode.Code39.write ~x ~y ~barcode ~height ~baseline:1. ~text:10. doc;
       let y = y +. height +. 20. in
+      ignore (PDFBookmark.add ~text:"EAN13" (*~level:1*) ~y ~parent doc);
       Barcode.EAN13.write ~x ~y ~barcode:"8711253001202" ~width:1.0 doc;
       let y = y +. height +. 20. in
       Barcode.EAN13.write ~x ~y ~barcode:"3800065711135" doc;
       let y = y +. height +. 20. in
       Barcode.EAN13.write ~x ~y ~barcode:"4556789034461" ~width:(0.33 *. 0.8) doc;
       let y = y +. height +. 20. in
+      ignore (PDFBookmark.add ~text:"Code128C" (*~level:1*) ~y ~parent doc);
       Barcode.Code128C.write ~x ~y ~barcode:"123456" doc;
 
       (** Images *)
       PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Images" doc);
       let name = "Lena.jpg" in
       let data = Buffer.contents (PDFUtil.fread name) in
       let image_width = 220 in
@@ -192,6 +201,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** PDFTable *)
       PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"PDFTable" doc);
       let x = (width_avail -. width) /. 2. in
       let y = height_header +. spacing in
       PDF.set_font ~family ~size:9. doc;
@@ -227,12 +237,18 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
           `C, {PDFTable.col_width = 62.; col_title = "Column C"};
         ]
         ~rows:([
-          [|Some "a"; Some "M"; Some "c"|];
+          [|Some "a"; Some "M"; Some "\128"|];
           [|Some "1"; None; Some "3"|];
           [|Some "A"; None; Some "B"|];
         ] @ rows)
         ~cell_func
         doc;
+      let parent = PDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in
+      ignore (PDFBookmark.add ~parent ~text:"Test: à \128" doc);
+      ignore (PDFBookmark.add ~parent ~text:(PDFUtil.utf8_to_utf16 "Test: à €") doc);
+      let parent = PDFBookmark.add ~text:"CHILD 2" ~parent doc in
+      let parent = PDFBookmark.add ~text:"CHILD 3" ~parent doc in
+      let parent = PDFBookmark.add ~text:"CHILD 4" ~parent doc in
 
       (* Include javascript *)
       (*PDFJavascript.set_autoprint ~dialog:true doc;*)
