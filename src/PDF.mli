@@ -61,7 +61,6 @@ val close_document : document -> unit
 
 val double_sided : document -> bool
 val scale : document -> float
-val set_compression : bool -> document -> unit
 val set_double_sided : bool -> document -> unit
 val set_auto_page_break : ?margin:float -> bool -> document -> unit
 val set_display_mode : ?layout:layout -> zoom -> document -> unit

@@ -187,7 +187,9 @@ let set_display_mode ?(layout=Continuous) zoom doc =
   doc.zoomMode <- zoom;
   doc.layoutMode <- layout
 
-let set_compression x doc = doc.compress <- x
+let set_compression x doc =
+  if x then (invalid_arg "PDF.set_compression: Compression not yet implemented");
+  doc.compress <- x
 
 let create ?(orientation=Portrait) ?(m_unit=Mm) ?(format=A4) ~outchan () =
 (*  //Some checks (LOCALE) $this->_dochecks();*)

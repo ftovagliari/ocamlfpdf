@@ -2,7 +2,7 @@ LIBDIR=fpdf
 OCAMLLIB=`ocamlc -where`
 INSTALL_PATH=$(OCAMLLIB)/$(LIBDIR)
 INCLUDES=-I,+xml-light
-LIBS=-libs unix,str,nums,cryptokit,xml-light
+LIBS=-libs unix,str,xml-light
 
 all:
 	ocamlbuild -cflags $(INCLUDES) fpdf.cma fpdf.cmxa
@@ -17,7 +17,7 @@ test-without-install: clean
 	xpdf _build/test.byte.pdf
 
 test: test-without-install
-	ocamlc -o test -I +$(LIBDIR) -I +xml-light str.cma unix.cma nums.cma cryptokit.cma xml-light.cma fpdf.cma test.ml
+	ocamlc -o test -I +$(LIBDIR) -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma test.ml
 	./test
 	xpdf test.pdf
 
@@ -30,7 +30,7 @@ install:
 	cp -v _build/*.cmxa $(INSTALL_PATH)
 
 clean:
-	rm -f *.cm* test.byte test*.pdf test
+	rm -f *.cm* test.byte test*.pdf test test.opt test.byte *.o *.a *.annot
 	rm -fr _build
 	rm -f ../doc/*
 

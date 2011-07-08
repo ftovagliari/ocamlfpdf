@@ -14,7 +14,6 @@ COPYRIGHT:
 DEPENDENCIES:
 
   * Objective Caml 3.11;
-  * Cryptokit-1.3;
   * Xml-light.
 
 
@@ -43,8 +42,7 @@ HOW TO USE:
 
   Compile your program as follow:
 
-  ocamlc -o ??? -I +fpdf -I +xml-light str.cma unix.cma \
-    nums.cma cryptokit.cma xml-light.cma fpdf.cma ???.ml
+  ocamlc -o ??? -I +fpdf -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma ???.ml
 
 
 AUTHOR:

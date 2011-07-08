@@ -141,7 +141,7 @@ let create doc =
   PDF.add_catalog begin fun () ->
     if List.length bookmark.tree > 0 then begin
       PDF.print doc "/Outlines %d 0 R " bookmark.root_obj;
-      PDF.print doc "/PageMode /UseOutlines "
+      PDF.print doc "/PageMode /UseOutlines\n"
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;

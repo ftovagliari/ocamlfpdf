@@ -20,9 +20,6 @@
 
 *)
 
-open Cryptokit
-open Cryptokit.Cipher
-
 exception Continue
 
 (** Legge un file e ne mette il contenuto in un [Buffer]. *)
@@ -61,24 +58,29 @@ let may ~f x =
 let remove_dupl l =
   List.rev (List.fold_left (fun acc y -> if List.mem y acc then acc else y :: acc) [] l)
 
-(** Compressione
-  * sdsdkfskl
-  * sdklls
-  *
-  *)
-(*let gz_compress txt = try transform_string (Zlib.compress ()) txt with Error Compression_not_supported -> txt
-let gz_uncompress txt = try transform_string (Zlib.uncompress ()) txt with Error Compression_not_supported -> txt*)
+(** Compression *)
+(*let gz_compress txt =
+  try Cryptokit.transform_string (Cryptokit.Zlib.compress ()) txt
+  with Cryptokit.Error Cryptokit.Compression_not_supported -> txt
+let gz_uncompress txt =
+  try Cryptokit.transform_string (Cryptokit.Zlib.uncompress ()) txt
+  with Cryptokit.Error Cryptokit.Compression_not_supported -> txt*)
+(*let gz_compress txt = Cryptokit.transform_string (Cryptokit.Zlib.compress ()) txt
+let gz_uncompress txt = Cryptokit.transform_string (Cryptokit.Zlib.uncompress ()) txt*)
+let gz_compress txt = txt
+let gz_uncompress txt = txt
 
-let gz_compress txt = transform_string (Zlib.compress ()) txt
-let gz_uncompress txt = transform_string (Zlib.uncompress ()) txt
 
+(** excape *)
 let escape =
   let ro, rc, rbs = Str.regexp "(", Str.regexp ")", Str.regexp "\\" in fun s ->
     Str.global_replace rc "\\)"
       (Str.global_replace ro "\\("
         (Str.global_replace rbs "\\\\" s))
 
+(** pdf_string *)
 let pdf_string s = "(" ^ (escape s) ^ ")"
+
 (** call_and_restore *)
 let call_and_restore ~pre f x ~post =
   let old = pre() in
@@ -118,6 +120,7 @@ let utf8_to_utf16 text =
   done;
   Buffer.contents res
 
+(** memo *)
 let memo ~f =
   let table = Hashtbl.create 1 in
   fun ?(force=fun _ -> false) key ->
