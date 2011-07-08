@@ -248,7 +248,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       ignore (PDFBookmark.add ~parent ~text:(PDFUtil.utf8_to_utf16 "Test: à €") doc);
       let parent = PDFBookmark.add ~text:"CHILD 2" ~parent doc in
       let parent = PDFBookmark.add ~text:"CHILD 3" ~parent doc in
-      let parent = PDFBookmark.add ~text:"CHILD 4" ~parent doc in
+      let _ = PDFBookmark.add ~text:"CHILD 4" ~parent doc in
 
       (* Include javascript *)
       (*PDFJavascript.set_autoprint ~dialog:true doc;*)
