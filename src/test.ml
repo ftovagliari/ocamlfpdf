@@ -262,7 +262,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       raise ex
     end
   end;
-  Sys.command filename;
+  if Sys.os_type = "Win32" then ignore (Sys.command filename);
 end
 
 let _ = main ()

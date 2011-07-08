@@ -12,3 +12,4 @@ tmp
 *.exe.pdf
 Thumbs.db
 *~
+src/_build

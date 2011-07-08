@@ -11,13 +11,6 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="1411" active="true">test.ml</filename>
-    <filename offset="4565" active="false">PDFBookmark.ml</filename>
-    <filename offset="0" active="false">PDFBookmark.mli</filename>
-    <filename offset="1772" active="false">PDFMarkup.ml</filename>
-    <filename offset="2133" active="false">PDFUtil.ml</filename>
-    <filename offset="8428" active="false">PDF.ml</filename>
-    <filename offset="2718" active="false">PDF.mli</filename>
   </open_files>
   <runtime>
     <configuration>

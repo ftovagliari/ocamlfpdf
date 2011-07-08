@@ -17,7 +17,12 @@ test-without-install: clean
 	xpdf _build/test.byte.pdf
 
 test: test-without-install
-	ocamlc -o test -I +$(LIBDIR) -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma test.ml
+	ocamlc.opt -o test -I +$(LIBDIR) -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma test.ml
+	./test
+	xpdf test.pdf
+
+test.opt:
+	ocamlopt.opt -o test -I +$(LIBDIR) -I +xml-light str.cmxa unix.cmxa xml-light.cmxa fpdf.cmxa test.ml
 	./test
 	xpdf test.pdf
 
@@ -28,6 +33,7 @@ install:
 	cp -v _build/*.cmi $(INSTALL_PATH)
 	cp -v _build/*.cma $(INSTALL_PATH)
 	cp -v _build/*.cmxa $(INSTALL_PATH)
+	cp -v _build/*.a $(INSTALL_PATH)
 
 clean:
 	rm -f *.cm* test.byte test*.pdf test test.opt test.byte *.o *.a *.annot
