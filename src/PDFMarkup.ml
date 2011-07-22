@@ -196,7 +196,11 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
       avail_width := width0;
       y := !y +. line_height;
       x := x0;
-    | _ -> invalid_arg "Invalid markup."
+    | Xml.Element (tag, _, []) ->
+      write_remaining_text ();
+      set_attrib default_style;
+      write_text ~x ~y ~text:"" ~avail_width;
+    | _ -> failwith "Invalid markup."
   end xml;
   write_remaining_text ();
   set_attrib default_style;

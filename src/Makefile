@@ -17,6 +17,9 @@ test-without-install: clean
 	xpdf _build/test.byte.pdf
 
 test: test-without-install
+	#
+	# Now testing with the installed library...
+	#
 	ocamlc.opt -o test -I +$(LIBDIR) -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma test.ml
 	./test
 	xpdf test.pdf

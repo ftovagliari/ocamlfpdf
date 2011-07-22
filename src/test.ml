@@ -113,7 +113,6 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let _, _ = PDFMarkup.print ~x ~y ~width ~line_height ~padding:3. ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
 
-
       (** Vertical box *)
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"Vertical box" doc);
