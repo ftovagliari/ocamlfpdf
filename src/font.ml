@@ -31,7 +31,7 @@ type family = [`ZapfDingbats | `Symbol | `Arial | `Helvetica | `Courier | `Times
 type style = [`Underline | `Italic | `Bold]
 
 
-let key_of_font style = 
+let key_of_font style =
   let bold = List.mem `Bold style in
   let italic = List.mem `Italic style in
   function
@@ -44,7 +44,7 @@ let key_of_font style =
     | `Helvetica when italic -> Helvetica_I
     | `Helvetica -> Helvetica
     | `Courier when bold && italic -> Courier_BI
-    | `Courier when bold -> Courier_B 
+    | `Courier when bold -> Courier_B
     | `Courier when italic -> Courier_I
     | `Courier -> Courier
     | _ -> raise Not_found
@@ -83,7 +83,7 @@ let core_fonts = [
 ]
 
 let get_metric = function
-  | Times -> Times.normal 
+  | Times -> Times.normal
   | Times_B -> Times.bold
   | Times_I -> Times.italic
   | Times_BI -> Times.bold_italic
@@ -105,14 +105,14 @@ let family_of_string name =
   | "courier" -> `Courier
   | "zapfdingbats" -> `ZapfDingbats
   | "symbol" -> `Symbol
-  | _ -> failwith "family_of_string"
+  | _ -> Printf.kprintf failwith "family_of_string (%s)" name
 
 let style_of_string name =
   match String.lowercase name with
   | "underline" -> `Underline
   | "italic" -> `Italic
   | "bold" -> `Bold
-  | _ -> failwith "style_of_string"
+  | _ -> Printf.kprintf failwith "style_of_string (%s)" name
 
 
 

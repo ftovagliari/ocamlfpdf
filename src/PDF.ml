@@ -1209,4 +1209,3 @@ let add_catalog func doc = doc.print_catalog <- func :: doc.print_catalog
 
 
 
-

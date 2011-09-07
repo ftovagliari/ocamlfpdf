@@ -55,7 +55,7 @@ let underline_of_string name =
   | "low" -> `LOW
   | _ -> invalid_arg "underline_of_string"
 
-let split_attrib = let re = Str.regexp "[,;]?[ ]+" in Str.split re
+let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re 
 
 (** print' *)
 let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(border_width=0.) doc =
