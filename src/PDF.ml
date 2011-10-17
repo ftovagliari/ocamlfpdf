@@ -1202,10 +1202,3 @@ let current_object_number doc = doc.current_object_number
 let add_catalog func doc = doc.print_catalog <- func :: doc.print_catalog
 
 
-
-
-
-
-
-
-

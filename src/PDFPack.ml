@@ -21,7 +21,7 @@
 *)
 
 open PDF
- 
+
 class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc =
   let n, m = float columns, float rows in
   let width = (width -. spacing *. (n -. 1.)) /. n in
@@ -31,17 +31,17 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
   object (self)
     method set row column callback =
       callbacks.(row).(column) <- callback
-    method pack () = 
+    method pack () =
       for i = 0 to rows - 1 do
         for j = 0 to columns - 1 do
           let x = x0 +. (width +. spacing) *. (float j) in
-          let y = y0 +. (height +. spacing) *. (float i) in 
+          let y = y0 +. (height +. spacing) *. (float i) in
           PDF.rect ~x ~y ~width ~height (*~radius:5.0*) ~style:`Outline doc;
           let x = x +. padding in
           let y = y +. padding in
           let width = width -. 2. *. padding in
           let height = height -. 2. *. padding in
-          callbacks.(i).(j) ~x ~y ~width ~height; 
+          callbacks.(i).(j) ~x ~y ~width ~height;
         done;
       done
   end

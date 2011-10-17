@@ -90,7 +90,7 @@ let main () = begin
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
 
-<SPAN style='italic'>e canter\xF2 di quel secondo regno
+<SPAN style='italic,bold'>e canter\xF2 di quel secondo regno
 dove l\xB4umano spirito si purga
 e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
 

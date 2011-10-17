@@ -16,7 +16,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 *)
 
@@ -50,7 +50,7 @@ struct
     ('M', "wnwnnnnwn");
     ('N', "nnnnwnnww");
     ('O', "wnnnwnnwn");
-    ('P', "nnwnwnnwn"); 
+    ('P', "nnwnwnnwn");
     ('Q', "nnnnnnwww");
     ('R', "wnnnnnwwn");
     ('S', "nnwnnnwwn");
@@ -70,9 +70,9 @@ struct
     ('+', "nwnnnwnwn");
     ('%', "nnnwnwnwn");
   ]
-  
+
   let get_width ~barcode = (float (String.length barcode + 2)) *. 16. /. 3. +. 2.
-  
+
   let write ~x ~y ~barcode ?(baseline=0.5) ?(height=5.0) ?text doc =
     let wide = baseline in
     let narrow = baseline /. 3. in
@@ -94,7 +94,7 @@ struct
         let seq = List.assoc ch bar_char in
         for i = 0 to 8 do
           let line_width = if seq.[i] = 'n' then narrow else wide in
-          if i mod 2 = 0 then begin 
+          if i mod 2 = 0 then begin
             PDF.rect ~x:!x ~y ~width:line_width ~height ~style:`Fill doc
           end;
           x := !x +. line_width
@@ -108,12 +108,12 @@ module EAN13 =
 struct
 
   exception Incorrect_check_digit of string
-  
+
   let lpad str len ch =
     let len' = String.length str in
     if len' > len then str (*String.sub str 0 len*)
-    else 
-      let result = String.make len ch in  
+    else
+      let result = String.make len ch in
       String.blit str 0 result (len - len') len';
       result
 
@@ -129,13 +129,13 @@ struct
       | '3' -> "0100001" | '4' -> "0011101" | '5' -> "0111001"
       | '6' -> "0000101" | '7' -> "0010001" | '8' -> "0001001"
       | '9' -> "0010111" | _ -> assert false end
-    | 'C' -> begin function 
+    | 'C' -> begin function
       | '0' -> "1110010" | '1' -> "1100110" | '2' -> "1101100"
       | '3' -> "1000010" | '4' -> "1011100" | '5' -> "1001110"
       | '6' -> "1010000" | '7' -> "1000100" | '8' -> "1001000"
       | '9' -> "1110100" | _ -> assert false end
-    | _ -> assert false  
- 
+    | _ -> assert false
+
   let parities = function
     | '0' -> [| 'A'; 'A'; 'A'; 'A'; 'A'; 'A' |]
     | '1' -> [| 'A'; 'A'; 'B'; 'A'; 'B'; 'B' |]
@@ -397,7 +397,7 @@ module Code128C =
             let barcode_width = float (get_width ~barcode) *. baseline in
             let x = x +. (barcode_width -. text_width) /. 2. in
             PDF.text ~x ~y:(y +. height +. (size -. 1.) /. PDF.scale doc) ~text doc
-  end	
+  end
 
 
 
@@ -523,7 +523,7 @@ module Code128C =
       Buffer.add_buffer a abc;
       Buffer.add_buffer b abc;
       for i = 0 to 31 do
-        Buffer.add_char abc (Char.chr i);
+        Buffer.add_char abc (Char.chr i); line_height
         Buffer.add_char a (Char.chr i);
       done;
       for i = 96 to 126 do
@@ -579,7 +579,7 @@ module Code128C =
             let barcode_width = float (get_width ~barcode) *. baseline in
             let x = x +. (barcode_width -. text_width) /. 2. in
             doc#text ~x ~y:(y +. height +. (size -. 1.) /. doc#scale) ~text ()
-  end	
+  end
 
 
 
