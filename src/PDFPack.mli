@@ -20,12 +20,17 @@
 
 *)
 
-(** Horizontal and vetical box layout *)
+(** Horizontal and vetical box layout. *)
 
 
-(** Horiontal boxes
+(** A horizontal container box.
     @param x Abscissa of the upper-left corner.
-    @param y Ordinate of the upper-left corner.
+    @param y ordinate of the upper-left corner.
+    @param width Total width of the container.
+    @param height Total height of the container.
+    @param spacing The amount of space between children.
+    @param padding Extra space to put between the child and its neighbors.
+    @param border Draw a red border around the container (for debugging purposes).
   *)
 class hbox :
   x:float ->
@@ -37,14 +42,29 @@ class hbox :
   ?border:bool ->
   PDF.document ->
   object
+
+    (** Add a child box drawn with the given function.
+      @param x Absolute abscissa of the upper-left corner of the child box.
+      @param y Absolute ordinate of the upper-left corner of the child box.
+      @param width Total available width of the container.
+      @param height Total available height of the container.
+      @return The actual width of the child box.
+    *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
+
+    (** Print all boxes that have been added to the container. *)
     method pack : unit -> unit
   end
 
-(** Vertical boxes
+(** A vertical container box.
     @param x Abscissa of the upper-left corner.
     @param y Ordinate of the upper-left corner.
+    @param width Total width of the container.
+    @param height Total height of the container.
+    @param spacing The amount of space between children.
+    @param padding Extra space to put between the child and its neighbors.
+    @param border Draw a red border around the container (for debugging purposes).
 *)
 class vbox :
   x:float ->
@@ -56,13 +76,33 @@ class vbox :
   ?border:bool ->
   PDF.document ->
   object
+
+    (** Add a child box drawn with the given function.
+      @param x Absolute abscissaof the upper-left corner of the child box.
+      @param y Absolute ordinateof the upper-left corner of the child box.
+      @param width Total available width of the container.
+      @param height Total available height of the container.
+      @return The actual height of the child box.
+    *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
+
     method dim : unit -> float
+
+    (** Print all boxes that have been added to the container. *)
     method pack : unit -> unit
   end
 
-(** Table layout *)
+(** Pack child boxes in regular patterns.
+    @param x Abscissa of the upper-left corner.
+    @param y Ordinate of the upper-left corner.
+    @param width Total width of the container.
+    @param height Total height of the container.
+    @param rows Number of rows.
+    @param colums  Number of columns.
+    @param spacing The amount of space between cells.
+    @param padding The amount of space around a cell.
+*)
 class table :
   x:float ->
   y:float ->

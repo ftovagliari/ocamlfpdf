@@ -6,20 +6,17 @@ val hex_of_rgb : int * int * int -> string
 (** Print text with markup.
     Tags are [<span>] and [<br/>]; attributes for the [<span>] tag are:
 
-    {ul
-    {- [family]: families are those available from the module {!Font}, names are lowercase.}
-    {- [style]: 'underline', 'italic' or 'bold' separated by comma.}
-    {- [size]: float.}
-    {- [underline]: 'none', 'single', 'low'.}
-    {- [color]: HEX triplet}
-    {- [bgcolor]: HEX triplet }
-    }
+    - [family]: families are those available from the module {!Font}, names are lowercase.
+    - [style]: 'underline', 'italic' or 'bold' separated by comma.
+    - [size]: float.
+    - [underline]: 'none', 'single', 'low'.
+    - [color]: HEX triplet
+    - [bgcolor]: HEX triplet
 
     You can not nest multiple [<span>] tags.
 
     Example:
-
-    {[  <span bgcolor='#f0f0ff' color='#ff1010' family='courier' size='12.5' style='italic,bold'>...</span>]}
+    {[<span bgcolor='#f0f0ff' color='#ff1010' family='courier' size='12.5' style='italic,bold'>...</span>]}
 
     @param x Absolute abscissa of the upper-left corner.
     @param y Absolute ordinate of the upper-left corner.
@@ -31,6 +28,7 @@ val hex_of_rgb : int * int * int -> string
     @param border_color Border color.
     @param border_radius Radius for boxes with rounded corners.
     @param padding Internal padding.
+    @return The actual width and height of the markup box.
 *)
 val print :
   x:float ->

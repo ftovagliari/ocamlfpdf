@@ -45,7 +45,7 @@ type 'a column_id = 'a
          for example it may be a user defined variant tag.
   @param rows The list of rows.
   @param caption Caption of the table.
-  @param cell_func Function applied to every single cell of the table to get style properties.
+  @param cell_func Function applied to every single cell of the table to set style properties.
          The [cell_properties] returned are applied to the cell identified by [index] and [col],
          where [index] is the general row index starting from zero.
          [(row column_id)] returns the content of the cell at index [index] and column [column_id].

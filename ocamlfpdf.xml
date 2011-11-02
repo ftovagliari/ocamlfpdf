@@ -11,21 +11,23 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="18714" active="false">PDF.ml</filename>
+    <filename offset="44600" active="false">PDF.ml</filename>
     <filename offset="3389" active="false">font.ml</filename>
     <filename offset="4219" active="false">PDFUtil.ml</filename>
     <filename offset="40003" active="false">pDF.ml</filename>
-    <filename offset="0" active="false">barcode.ml</filename>
-    <filename offset="0" active="false">barcode.mli</filename>
+    <filename offset="18592" active="false">barcode.ml</filename>
+    <filename offset="2232" active="false">barcode.mli</filename>
     <filename offset="0" active="false">font.mli</filename>
     <filename offset="634" active="false">font_metrics.ml</filename>
-    <filename offset="2775" active="false">image.ml</filename>
-    <filename offset="0" active="false">PDFBookmark.mli</filename>
+    <filename offset="3116" active="false">image.ml</filename>
+    <filename offset="1370" active="false">PDFBookmark.mli</filename>
     <filename offset="0" active="false">PDFJavascript.mli</filename>
-    <filename offset="0" active="false">PDFPack.ml</filename>
-    <filename offset="6278" active="false">test.ml</filename>
-    <filename offset="496" active="true">PDFMarkup.mli</filename>
-    <filename offset="0" active="false">C:\Objective Caml\lib\ocamldoc\odoc_info.mli</filename>
+    <filename offset="4005" active="false">PDFPack.ml</filename>
+    <filename offset="10936" active="false">test.ml</filename>
+    <filename offset="1219" active="true">PDFMarkup.mli</filename>
+    <filename offset="10222" active="false">PDFMarkup.ml</filename>
+    <filename offset="2628" active="false">PDFTable.mli</filename>
+    <filename offset="4085" active="false">PDFPack.mli</filename>
   </open_files>
   <runtime>
     <configuration>

@@ -121,6 +121,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
             if !avail_width > 0. then (consumed_width := !consumed_width +. cw);
             incr i;
           done;
+          incr i;
           raise Exit;
         with Exit -> begin
           i := prev_word_start text !i;
