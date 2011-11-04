@@ -110,8 +110,48 @@ del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</
 tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>"
       in
+
       let _, _ = PDFMarkup.print ~x ~y ~width ~line_height ~padding:3. ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
+
+      (** Markup and wrap char *)
+      PDF.add_page doc;
+      let x = margin in
+      let y = margin +. height_header *. 5. /. 3. in
+      let markup = "WRAPCHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
+      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) ~line_height ~padding:3. ~markup
+        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
+
+      (** Markup and wrap char *)
+      PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Markup - Wrap" doc);
+      let x = margin in
+      let y = margin +. height_header *. 5. /. 3. in
+      let markup = "\
+The Objective Caml language
+
+
+Foreword
+
+This document is intended as a reference manual for the Objective Caml language. \
+It lists the language constructs, and gives their precise syntax and informal semantics. \
+It is by no means a tutorial introduction to the language: there is not a single example. \
+A good working knowledge of Caml is assumed.
+
+No attempt has been made at mathematical rigor: words are employed with their intuitive \
+meaning, without further definition. As a consequence, the typing rules have been left \
+out, by lack of the mathematical framework required to express them, while they are \
+definitely part of a full formal definition of the language.
+
+Notations
+
+The syntax of the language is given in BNF-like notation. Terminal symbols are set \
+in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
+Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
+several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
+denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping." in
+      let _, _ = PDFMarkup.print ~x ~y ~width:(width*.0.75) ~line_height ~padding:3. ~markup
+        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
 
       (** Vertical box *)
       PDF.add_page doc;

@@ -32,6 +32,9 @@ type t = {
   mutable fill : bool;
 }
 
+exception Break_char
+exception Break_line
+
 let blanks = [' '; '\n'; '\r'; '\t'];;
 
 let prev_word_start text i =
@@ -106,56 +109,75 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
   (** write_text *)
   let write_text ~x ~y ~text ~avail_width =
     let i = ref 0 in
-    let text = if !x = x0 then PDFUtil.ltrim text else text in
-    if (*PDFUtil.trim*) text <> "" then begin
+    let text = ref (if !x = x0 then PDFUtil.ltrim text else text) in
+    if (*PDFUtil.trim*) !text <> "" then begin
       let consumed_width = ref 0. in
       let new_line = ref false in
+      let last_newline = ref 0 in
+      let write_line () =
+        let remaining_text = String.sub !text !i (String.length !text - !i) in
+        let width_is_exact = !avail_width = 0. && remaining_text = "" in
+        remaining :=
+          if (not !new_line) && (!avail_width > 0. || width_is_exact || remaining_text = "") then None
+          else (Some (remaining_text));
+        let is_new_line = !remaining <> None || width_is_exact in
+        let text = String.sub !text 0 !i in
+        if_print (PDF.set ~x:!x ~y:!y) doc;
+        if !consumed_width = 0. then (consumed_width := 0.);
+        if_print (PDF.cell ~fill:!fill ~width:!consumed_width ~height:line_height ~border:[] ~padding:0. ~text) doc;
+        let old = PDF.line_width doc in
+        begin
+          let uw = (*min (0.5 /. (PDF.scale doc))*) (PDF.font_size doc /. 64.) in
+          if_print (PDF.set_line_width uw) doc;
+          match !underline with
+            | `NONE -> ()
+            | `SINGLE ->
+              let y = !y +. 0.75 *. line_height +. 3. /. 2. *. uw in
+              if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
+            | `LOW ->
+              let y = !y +. 0.75 *. line_height +. ((PDF.font_size doc) /. (PDF.scale doc)) /. 4. (*+. uw /. 2.*) in
+              if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
+        end;
+        if_print (PDF.set_line_width old) doc;
+        x := !x +. !consumed_width;
+        (* Move to a new line *)
+        if is_new_line then begin
+          avail_width := width0;
+          y := !y +. line_height;
+          x := x0;
+        end;
+      in
       begin
         try
-          let len = String.length text in
+          let len = String.length !text in
           while !avail_width > 0. && !i < len do
-            let ch = String.unsafe_get text !i in
-            if ch = '\n' then (new_line := true; (*consumed_width := !consumed_width +. cw; *)incr i; raise Exit);
+            let ch = String.unsafe_get !text !i in
+            if ch = '\n' then begin
+              new_line := true;
+              (*consumed_width := !consumed_width +. cw; *)incr i;
+              raise Break_line
+            end;
             let cw = !char_width ch in
             avail_width := !avail_width -. cw;
-            if !avail_width > 0. then (consumed_width := !consumed_width +. cw);
+            (*Printf.printf "!avail_width = %f, %d, %d, %f\n%!" !avail_width !i len cw;*)
+            if !avail_width > 0. then (consumed_width := !consumed_width +. cw) else begin
+              let prev_ws = prev_word_start !text !i in
+              if prev_ws = !last_newline then begin
+                new_line := true;
+                text := (String.sub !text 0 !i) ^ "\n" ^ (String.sub !text !i (String.length !text - !i));
+                incr i;
+                raise Break_char;
+              end
+            end;
             incr i;
           done;
           incr i;
-          raise Exit;
-        with Exit -> begin
-          i := prev_word_start text !i;
-          let remaining_text = String.sub text !i (String.length text - !i) in
-          let width_is_exact = !avail_width = 0. && remaining_text = "" in
-          remaining :=
-            if (not !new_line) && (!avail_width > 0. || width_is_exact || remaining_text = "") then None
-            else (Some (remaining_text));
-          let is_new_line = !remaining <> None || width_is_exact in
-          let text = String.sub text 0 !i in
-          if_print (PDF.set ~x:!x ~y:!y) doc;
-          if !consumed_width = 0. then (consumed_width := 0.);
-          if_print (PDF.cell ~fill:!fill ~width:!consumed_width ~height:line_height ~border:[] ~padding:0. ~text) doc;
-          let old = PDF.line_width doc in
-          begin
-            let uw = (*min (0.5 /. (PDF.scale doc))*) (PDF.font_size doc /. 64.) in
-            if_print (PDF.set_line_width uw) doc;
-            match !underline with
-              | `NONE -> ()
-              | `SINGLE ->
-                let y = !y +. 0.75 *. line_height +. 3. /. 2. *. uw in
-                if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
-              | `LOW ->
-                let y = !y +. 0.75 *. line_height +. ((PDF.font_size doc) /. (PDF.scale doc)) /. 4. (*+. uw /. 2.*) in
-                if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
-          end;
-          if_print (PDF.set_line_width old) doc;
-          x := !x +. !consumed_width;
-          (* Move to a new line *)
-          if is_new_line then begin
-            avail_width := width0;
-            y := !y +. line_height;
-            x := x0;
-          end;
+          raise Break_line;
+        with
+          | Break_char -> write_line()
+          | Break_line -> begin
+            i := prev_word_start !text !i;
+            write_line()
         end;
       end;
     end

@@ -13,3 +13,4 @@ tmp
 Thumbs.db
 *~
 src/_build
+ocamlfpdf.cache
