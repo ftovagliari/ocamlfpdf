@@ -15,12 +15,8 @@
     <filename offset="9062" active="false">PDFMarkup.ml</filename>
     <filename offset="1004" active="false">pDFBookmark.mli</filename>
     <filename offset="3286" active="false">PDFPack.mli</filename>
-    <filename offset="3224" active="true">PDF.mli</filename>
-    <filename offset="1260" active="false">PDFMarkup.mli</filename>
-    <filename offset="913" active="false">font.mli</filename>
-    <filename offset="914" active="false">barcode.mli</filename>
-    <filename offset="0" active="false">font_metrics.ml</filename>
-    <filename offset="1062" active="false">font.ml</filename>
+    <filename offset="6570" active="false">PDF.mli</filename>
+    <filename offset="1260" active="true">PDFMarkup.mli</filename>
     <filename offset="2165" active="false">PDFTable.mli</filename>
   </open_files>
   <runtime>

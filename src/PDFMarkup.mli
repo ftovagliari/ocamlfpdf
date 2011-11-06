@@ -29,7 +29,7 @@ val hex_of_rgb : int * int * int -> string
     @param border_radius Radius for boxes with rounded corners.
     @param padding Internal padding.
     @return The actual width and height of the markup box.
-    @raise Failure("invalid_markup") When errors occur parsing the marked-up text.
+    @raise Failure("invalid_markup") If an error occurs.
 *)
 val print :
   x:float ->
