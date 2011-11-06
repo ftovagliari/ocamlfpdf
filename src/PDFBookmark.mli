@@ -20,14 +20,17 @@
 
 *)
 
-(** Bookmarks *)
+(** Document outline.
+
+    Function to build a tree-structured hierarchy of outline items, which serve
+    as a visual table of contents to display the document’s structure to the user. *)
 
 type index
 
 (**
   @param text The bookmark title. The title must be encoded in ISO-8859-1. Use {!PDFUtil.utf8_to_utf16} for UTF-8.
   @param parent The index of the parent item.
-  @param page The page number of the bookmark. Default value: current page.
+  @param page The page number of the bookmark. Default value is the current page.
   @param y The {i y} position of the bookmark destination in the page. [-1] means the current position. Default value: [0].
   @return An index representing the bookmark, for use in subsequent calls as parameter "parent" to append child elements.
 *)

@@ -29,8 +29,6 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
   let x0, y0 = x, y in
   let callbacks = Array.make_matrix rows columns (fun ~x ~y ~width ~height -> ()) in
   object (self)
-    method set row column callback =
-      callbacks.(row).(column) <- callback
     method pack () =
       for i = 0 to rows - 1 do
         for j = 0 to columns - 1 do
@@ -44,6 +42,8 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
           callbacks.(i).(j) ~x ~y ~width ~height;
         done;
       done
+    method set row column callback =
+      callbacks.(row).(column) <- callback
   end
 
 class virtual box ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =

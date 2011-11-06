@@ -1,10 +1,10 @@
-(** Text with markup *)
+(** Print text containing markup. *)
 
 val rgb_of_hex : string -> int * int * int
 val hex_of_rgb : int * int * int -> string
 
-(** Print text with markup.
-    Tags are [<span>] and [<br/>]; attributes for the [<span>] tag are:
+(** Print text containing markup.
+    Recognized tags are [<span>] and [<br/>]; attributes for the [<span>] tag are:
 
     - [family]: families are those available from the module {!Font}, names are lowercase.
     - [style]: 'underline', 'italic' or 'bold' separated by comma.
@@ -29,6 +29,7 @@ val hex_of_rgb : int * int * int -> string
     @param border_radius Radius for boxes with rounded corners.
     @param padding Internal padding.
     @return The actual width and height of the markup box.
+    @raise Failure("invalid_markup") When errors occur parsing the marked-up text.
 *)
 val print :
   x:float ->

@@ -20,10 +20,10 @@
 
 *)
 
-(** Fonts Description *)
-type key 
+(** Fonts Description. *)
+type key
 type family =
-    [ `Arial | `Courier | `Helvetica | `Symbol | `Times | `ZapfDingbats ]
+    [ `Courier | `Helvetica | `Symbol | `Times | `ZapfDingbats ]
 type style = [ `Bold | `Italic | `Underline ]
 val key_of_font :
   [> `Bold | `Italic ] list -> [> `Courier | `Helvetica | `Times ] -> key

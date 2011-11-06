@@ -20,17 +20,18 @@
 
 *)
 
-(** Horizontal and vetical box layout. *)
+(** Layout containers. *)
 
 
 (** A horizontal container box.
+    [hbox] is a container that organizes child boxes into a single row.
     @param x Abscissa of the upper-left corner.
-    @param y ordinate of the upper-left corner.
-    @param width Total width of the container.
-    @param height Total height of the container.
+    @param y Ordinate of the upper-left corner.
+    @param width Width of the container.
+    @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (for debugging purposes).
+    @param border Draw a red border around the container (to be used for debugging purposes).
   *)
 class hbox :
   x:float ->
@@ -43,28 +44,29 @@ class hbox :
   PDF.document ->
   object
 
-    (** Add a child box drawn with the given function.
-      @param x Absolute abscissa of the upper-left corner of the child box.
-      @param y Absolute ordinate of the upper-left corner of the child box.
-      @param width Total available width of the container.
-      @param height Total available height of the container.
-      @return The actual width of the child box.
+    (** Add a child box to the container in which the given function draws.
+
+        The drawing function receives arguments [x] and [y], which give the absolute
+        coordinates of the upper-left corner of the child box, and arguments
+        [width] and [height] providing the parent's overall space available for drawing.
+        The value returned by the function must be the actual width of the child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
 
-    (** Print all boxes that have been added to the container. *)
+    (** Draw the content of all boxes that have been added to the container. *)
     method pack : unit -> unit
   end
 
 (** A vertical container box.
+    [vbox] is a container that organizes child boxes into a single column.
     @param x Abscissa of the upper-left corner.
     @param y Ordinate of the upper-left corner.
-    @param width Total width of the container.
-    @param height Total height of the container.
+    @param width Width of the container.
+    @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (for debugging purposes).
+    @param border Draw a red border around the container (to be used for debugging purposes).
 *)
 class vbox :
   x:float ->
@@ -77,27 +79,30 @@ class vbox :
   PDF.document ->
   object
 
-    (** Add a child box drawn with the given function.
-      @param x Absolute abscissaof the upper-left corner of the child box.
-      @param y Absolute ordinateof the upper-left corner of the child box.
-      @param width Total available width of the container.
-      @param height Total available height of the container.
-      @return The actual height of the child box.
+    (** Add a child box to the container in which the given function draws.
+
+        The drawing function receives arguments [x] and [y], which give the absolute
+        coordinates of the upper-left corner of the child box, and arguments
+        [width] and [height] providing the parent's overall space available for drawing.
+        The value returned by the function must be the actual height of the child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
 
+    (** @return The width of the container. *)
     method dim : unit -> float
 
-    (** Print all boxes that have been added to the container. *)
+    (** Draw the content of all boxes that have been added to the container. *)
     method pack : unit -> unit
   end
 
 (** Pack child boxes in regular patterns.
+    The [table] methods allow to arrange boxes in rows and columns, making it easy to
+    align many boxes next to each other, horizontally and vertically.
     @param x Abscissa of the upper-left corner.
     @param y Ordinate of the upper-left corner.
-    @param width Total width of the container.
-    @param height Total height of the container.
+    @param width Width of the table.
+    @param height Height of the table.
     @param rows Number of rows.
     @param colums  Number of columns.
     @param spacing The amount of space between cells.
@@ -114,9 +119,17 @@ class table :
   ?padding:float ->
   PDF.document ->
   object
-    method pack : unit -> unit
+
+    (** [set row column f] sets [f] as the function to use to draw the content of the cell
+        at position [row] and [column].
+        Arguments [x], [y], [width] and [height] provide absolute coordinates of
+        the upper-left corner of the cell and dimensions.
+      *)
     method set :
       int ->
       int ->
       (x:float -> y:float -> width:float -> height:float -> unit) -> unit
+
+    (** Draw the content of all cells that have been set in the table. *)
+    method pack : unit -> unit
   end

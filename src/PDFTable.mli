@@ -20,7 +20,7 @@
 
 *)
 
-(** Table Layout *)
+(** Layout for printing tabular material. *)
 type cell_properties = {
   mutable prop_text : string;
   mutable prop_align : PDF.align;
@@ -38,8 +38,8 @@ type 'a column_id = 'a
 (** Table layout with automatic page break.
   @param x Abscissa of the upper-left corner relative to the page's left margin.
   @param y Ordinate of the upper-left corner relative to the page's top margin.
-  @param width Total width of the table
-  @param page_height Available height of the page body.
+  @param width Width of the table
+  @param page_height Available height in the page body.
   @param line_height Height of the line of text.
   @param columns Columns description. The first element of the pairs is a column identifier,
          for example it may be a user defined variant tag.

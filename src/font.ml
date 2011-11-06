@@ -25,8 +25,8 @@ open Font_metrics
 
 type key = Times | Times_B | Times_I | Times_BI | Helvetica | Helvetica_B | Helvetica_I | Helvetica_BI | Courier | Courier_I | Courier_BI | Courier_B
 
-type family = [`ZapfDingbats | `Symbol | `Arial | `Helvetica | `Courier | `Times]
-(* Alis: Arial = Helvetica; Symbol = ZapfDingbats *)
+type family = [`ZapfDingbats | `Symbol | `Helvetica | `Courier | `Times]
+(* Alis: Symbol = ZapfDingbats *)
 
 type style = [`Underline | `Italic | `Bold]
 
@@ -101,7 +101,7 @@ let get_name key = List.assoc key core_fonts
 let family_of_string name =
   match String.lowercase name with
   | "times" -> `Times
-  | "helvetica" | "arial" -> `Helvetica
+  | "helvetica" -> `Helvetica
   | "courier" -> `Courier
   | "zapfdingbats" -> `ZapfDingbats
   | "symbol" -> `Symbol

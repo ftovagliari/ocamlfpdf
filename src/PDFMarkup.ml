@@ -223,7 +223,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
       write_remaining_text ();
       set_attrib default_style;
       write_text ~x ~y ~text:"" ~avail_width;
-    | _ -> failwith "Invalid markup."
+    | _ -> failwith "invalid_markup"
   end xml;
   write_remaining_text ();
   set_attrib default_style;
