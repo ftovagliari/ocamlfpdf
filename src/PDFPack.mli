@@ -44,12 +44,13 @@ class hbox :
   PDF.document ->
   object
 
-    (** Add a child box to the container in which the given function draws.
+    (** Add a child box to the container and set the function to use to render inside it.
 
-        The drawing function receives arguments [x] and [y], which give the absolute
+        The rendering function receives arguments [x] and [y], which are the absolute
         coordinates of the upper-left corner of the child box, and arguments
-        [width] and [height] providing the parent's overall space available for drawing.
-        The value returned by the function must be the actual width of the child box.
+        [width] and [height] providing the overall available space of the parent,
+        which can be used for rendering. The value returned by the function must be
+        the actual width of the child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
@@ -79,12 +80,13 @@ class vbox :
   PDF.document ->
   object
 
-    (** Add a child box to the container in which the given function draws.
+    (** Add a child box to the container and set the function to use to render inside it.
 
-        The drawing function receives arguments [x] and [y], which give the absolute
+        The rendering function receives arguments [x] and [y], which are the absolute
         coordinates of the upper-left corner of the child box, and arguments
-        [width] and [height] providing the parent's overall space available for drawing.
-        The value returned by the function must be the actual height of the child box.
+        [width] and [height] providing the overall available space of the parent,
+        which can be used for rendering. The value returned by the function must be
+        the actual height of the child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
@@ -120,16 +122,16 @@ class table :
   PDF.document ->
   object
 
-    (** [set row column f] sets [f] as the function to use to draw the content of the cell
-        at position [row] and [column].
+    (** [set row column f] sets [f] as the function to use to render the content
+        of the cell at position [row] and [column].
         Arguments [x], [y], [width] and [height] provide absolute coordinates of
-        the upper-left corner of the cell and dimensions.
+        the upper-left corner of the cell and its dimensions.
       *)
     method set :
       int ->
       int ->
       (x:float -> y:float -> width:float -> height:float -> unit) -> unit
 
-    (** Draw the content of all cells that have been set in the table. *)
+    (** Render the content of all cells that have been set in the table. *)
     method pack : unit -> unit
   end

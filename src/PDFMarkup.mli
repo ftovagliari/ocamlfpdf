@@ -4,7 +4,7 @@ val rgb_of_hex : string -> int * int * int
 val hex_of_rgb : int * int * int -> string
 
 (** Print text containing markup.
-    Recognized tags are [<span>] and [<br/>]; attributes for the [<span>] tag are:
+    Recognized tags are [<span>] and [<br/>], attributes for the [<span>] tag are:
 
     - [family]: families are those available from the module {!Font}, names are lowercase.
     - [style]: 'underline', 'italic' or 'bold' separated by comma.
