@@ -1,11 +1,18 @@
 LIBDIR=fpdf
 OCAMLLIB=`ocamlc -where`
 INSTALL_PATH=$(OCAMLLIB)/$(LIBDIR)
-INCLUDES=-I,+xml-light
+INCLUDES=-I,+xml-light,-I,+lablgtk2
 LIBS=-libs unix,str,xml-light
 
-all:
+all: 
 	ocamlbuild -cflags $(INCLUDES) fpdf.cma fpdf.cmxa
+
+gtk_pdfmarkup_editor: 
+	ocamlbuild -cflags $(INCLUDES),-w,sy $@.cma $@.cmxa
+
+test_pdfmarkup_editor: gtk_pdfmarkup_editor
+	cd _build && ocamlc -o $@ -I +lablgtk2 unix.cma str.cma lablgtk.cma gtk_pdfmarkup_editor.cma gtkInit.cmo ../$@.ml
+	_build/$@
 
 doc: all
 	mkdir -p ../doc
@@ -42,5 +49,6 @@ clean:
 	rm -f *.cm* test.byte test*.pdf test test.opt test.byte *.o *.a *.annot
 	rm -fr _build
 	rm -f ../doc/*
+	ocamlbuild -clean
 
 
