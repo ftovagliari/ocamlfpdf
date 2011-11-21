@@ -1,5 +1,6 @@
 bak
 tmp
+.cache
 *.annot
 *.exe
 *.bak

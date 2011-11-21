@@ -14,7 +14,8 @@ COPYRIGHT:
 DEPENDENCIES:
 
   * Objective Caml 3.11;
-  * Xml-light.
+  * Xml-light;
+  * LablGtk2 (optional, only for the markup editor widget)
 
 
 HOW TO COMPILE:

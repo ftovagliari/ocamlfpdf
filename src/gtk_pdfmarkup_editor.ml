@@ -1,12 +1,27 @@
+(*
+
+  OCaml-FPDF
+  Copyright (C) 2010 Francesco Tovagliari
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version,
+  with the special exception on linking described in file LICENSE.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+
+
 open Printf
-
-let text = "\
-Returns whether the character at iter is within an editable region of text. Non-editable text is \"locked\" and can't be changed by the user via GtkTextView. This function is simply a convenience wrapper around gtk_text_iter_get_attributes(). If no tags applied to this text affect editability, default_setting will be returned.
-
-You don't want to use this function to decide whether text can be inserted at iter, because for insertion you don't want to know whether the char at iter is inside an editable range, you want to know whether a new character inserted at iter would be inside an editable range. Use gtk_text_iter_can_insert() to handle this case."
-
-type t = Span of string list | End_of_span | Text of string
-type attr = {mutable style : string list; size : float}
 
 let remove_dupl l =
   List.rev (List.fold_left (fun acc y -> if List.mem y acc then acc else y :: acc) [] l)
@@ -58,38 +73,58 @@ object (self)
 
     method get_markup () =
       let iter = ref buffer#start_iter in
-      let buf = ref [] in
-      let style = ref [] in
-      let tags = ref [] in
+      let buf = Buffer.create 1000 in
+      let current_style = ref [] in
+      let current_size = ref None in
+      let current_tags = ref [] in
       while not !iter#is_end do
-        tags := List.filter (fun t -> not (!iter#ends_tag (Some t))) !tags;
-        tags := !tags @ (List.filter (fun t -> !iter#begins_tag (Some t)) !iter#tags);
-        if !tags <> [] then begin
-
-          style := List.map begin fun t ->
-            if t = tag_bold then "bold"
-            else if t = tag_italic then "italic"
-            else if t = tag_uline then "underline"
-            else ""
-          end !tags;
-          style := List.filter ((<>) "") !style;
-          style := remove_dupl !style;
-
-
+        current_tags := List.filter (fun t -> not (!iter#ends_tag (Some t))) !current_tags;
+        current_tags := !current_tags @ (List.filter (fun t -> !iter#begins_tag (Some t)) !iter#tags);
+        (** Style *)
+        current_style := List.map begin fun t ->
+          if t#get_oid = tag_bold#get_oid then "bold"
+          else if t#get_oid = tag_italic#get_oid then "italic"
+          else if t#get_oid = tag_uline#get_oid then "underline"
+          else ""
+        end !current_tags;
+        current_style := List.filter ((<>) "") !current_style;
+        current_style := remove_dupl !current_style;
+        (** Font size *)
+        current_size := begin
+            try
+              let size, _ = List.find begin fun (size, ts) ->
+                try
+                  List.find (fun ct -> ts#get_oid = ct#get_oid) !current_tags;
+                  true
+                with Not_found -> false
+              end tagsize in
+              Some size
+            with Not_found -> None
         end;
-
+        (**  *)
         let stop = !iter#forward_to_tag_toggle None in
         let text = !iter#get_text ~stop in
-        buf := (Text text) :: !buf;
+        Buffer.add_string buf "<SPAN";
+        if !current_style <> [] then begin
+          Buffer.add_string buf " style='";
+          Buffer.add_string buf (String.concat "," !current_style);
+          Buffer.add_string buf "'";
+          current_style := [];
+        end;
+        begin
+          match !current_size with
+            | Some size ->
+              Buffer.add_string buf " size='";
+              Buffer.add_string buf (string_of_float size);
+              Buffer.add_string buf "'";
+              current_size := None;
+            | _ -> ()
+        end;
+        Buffer.add_string buf ">";
+        Buffer.add_string buf text;
+        Buffer.add_string buf "</SPAN>";
         iter := stop
       done;
-      let elements = List.rev !buf in
-      let buf = Buffer.create 1000 in
-      List.iter begin function
-        | Text text -> Buffer.add_string buf text
-        | Span attrs -> Buffer.add_string buf "<SPAN>"
-        | End_of_span -> Buffer.add_string buf "</SPAN>"
-      end elements;
       Buffer.contents buf
 
     initializer
@@ -163,20 +198,3 @@ object (self)
       end);
 
 end
-
-let main () = begin
-  let window = GWindow.window ~position:`CENTER ~show:false () in
-  let vbox = GPack.vbox ~packing:window#add () in
-  let buffer = GText.buffer ~text () in
-  let editor = new editor ~buffer ~size:10. ~packing:vbox#add () in
-  let button_ok = GButton.button ~stock:`OK ~packing:vbox#pack () in
-  button_ok#connect#clicked ~callback:begin fun () ->
-    Printf.printf "%s\n%!" (editor#get_markup());
-  end;
-  (*  *)
-  window#connect#destroy ~callback:GMain.quit;
-  window#show();
-  GMain.main()
-end
-
-let _ = main ()
