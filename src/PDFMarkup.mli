@@ -7,7 +7,7 @@ val hex_of_rgb : int * int * int -> string
     Recognized tags are [<span>] and [<br/>], attributes for the [<span>] tag are:
 
     - [family]: families are those available from the module {!Font}, names are lowercase.
-    - [style]: 'underline', 'italic' or 'bold' separated by comma.
+    - [style]: 'italic' or 'bold' separated by comma.
     - [size]: float.
     - [underline]: 'none', 'single', 'low'.
     - [color]: HEX triplet

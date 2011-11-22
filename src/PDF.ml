@@ -297,7 +297,7 @@ let get_current_page doc =
   let len = List.length doc.pages in
   try
     List.nth doc.pages (len - doc.page - 1)
-  with Invalid_argument "List.nth" -> kprintf failwith "get_current_page (%d, %d)" len doc.page
+  with Failure "nth" -> kprintf failwith "get_current_page (%d, %d)" len doc.page
 
 let page_no doc = doc.page
 

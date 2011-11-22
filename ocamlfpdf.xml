@@ -11,14 +11,16 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="7697" active="false">test.ml</filename>
-    <filename offset="8911" active="false">PDFMarkup.ml</filename>
-    <filename offset="1004" active="false">pDFBookmark.mli</filename>
-    <filename offset="854" active="false">PDFPack.mli</filename>
-    <filename offset="6570" active="false">PDF.mli</filename>
-    <filename offset="0" active="false">PDFMarkup.mli</filename>
-    <filename offset="0" active="false">test_markup.ml</filename>
-    <filename offset="0" active="false">gtk_markup_editor.ml</filename>
+    <filename offset="3210" active="false">test.ml</filename>
+    <filename offset="2286" active="false">PDFMarkup.ml</filename>
+    <filename offset="349" active="false">PDFMarkup.mli</filename>
+    <filename offset="367" active="false">C:\Objective Caml\devel\ocamlfpdf\README</filename>
+    <filename offset="453" active="false">Makefile</filename>
+    <filename offset="7569" active="true">gtk_pdfmarkup_editor.ml</filename>
+    <filename offset="2491" active="false">test_pdfmarkup_editor.ml</filename>
+    <filename offset="2611" active="false">C:\Objective Caml\devel\ocamleditor\src\common\miscellanea.ml</filename>
+    <filename offset="881" active="false">gtk_pdfmarkup_editor.mli</filename>
+    <filename offset="10983" active="false">PDF.ml</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -105,6 +107,8 @@
             <arg>-t</arg>
             <arg>&quot;ocamlfpdf&quot;</arg>
             <arg>-html</arg>
+            <arg>-I</arg>
+            <arg>+lablgtk2</arg>
           </args>
           <phase>After_compile</phase>
         </task>
@@ -221,7 +225,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <cflags>-w sy -g</cflags>
-      <lflags></lflags>
+      <lflags>-g</lflags>
       <outkind>Executable</outkind>
       <outname>test_pdfmarkup_editor</outname>
       <lib_install_path></lib_install_path>
@@ -236,15 +240,15 @@
       <libs></libs>
       <other_objects></other_objects>
       <files>gtk_pdfmarkup_editor.ml</files>
-      <includes>+lablgtk2</includes>
+      <includes>+lablgtk2 +xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
-      <cflags>-w s</cflags>
-      <lflags></lflags>
+      <cflags>-w sy -g</cflags>
+      <lflags>-g</lflags>
       <outkind>Library</outkind>
       <outname>gtk_pdfmarkup_editor</outname>
-      <lib_install_path></lib_install_path>
+      <lib_install_path>fpdf2</lib_install_path>
       <external_tasks/>
     </configuration>
   </build>

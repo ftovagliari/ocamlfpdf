@@ -63,7 +63,7 @@ let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re
 (** print' *)
 let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(border_width=0.) doc =
   let if_print f x = if print then (f x) else () in
-  let markup = Str.global_replace (Str.regexp "\n\n") "<BR/><BR/>" markup in
+  let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
   let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
   (** Globals *)
   let x0 = x +. padding +. border_width in
@@ -201,24 +201,36 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
       write_remaining_text ();
       set_attrib default_style;
       write_text ~x ~y ~text ~avail_width;
-    | Xml.Element (tag, attrs, [Xml.PCData text]) when (String.lowercase tag) = "span" ->
-      let style = {
-        family = (try Some (Font.family_of_string (List.assoc "family" attrs)) with Not_found -> None);
-        style = (try Some (List.map Font.style_of_string (split_attrib (List.assoc "style" attrs))) with Not_found -> None);
-        size = (try Some (float_of_string (List.assoc "size" attrs)) with Not_found -> None);
-        underline = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
-        color = (try Some (List.assoc "color" attrs) with Not_found -> None);
-        bgcolor = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
-        fill = false; (* dummy *)
-      } in
-      write_remaining_text ();
-      set_attrib style;
-      write_text ~x ~y ~text ~avail_width;
     | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
       write_remaining_text ();
       avail_width := width0;
       y := !y +. line_height;
       x := x0;
+    | Xml.Element (tag, attrs, (*[Xml.PCData text]*)children) when (String.lowercase tag) = "span" ->
+      let style = {
+        family    = (try Some (Font.family_of_string (List.assoc "family" attrs)) with Not_found -> None);
+        style     = (try Some (List.map Font.style_of_string (split_attrib (List.assoc "style" attrs))) with Not_found -> None);
+        size      = (try Some (float_of_string (List.assoc "size" attrs)) with Not_found -> None);
+        underline = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
+        color     = (try Some (List.assoc "color" attrs) with Not_found -> None);
+        bgcolor   = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
+        fill      = false; (* dummy *)
+      } in
+      write_remaining_text ();
+      set_attrib style;
+      begin
+        match children with
+          | [] -> write_text ~x ~y ~text:" " ~avail_width;
+          | children ->
+            List.iter begin function
+              | Xml.PCData text -> write_text ~x ~y ~text ~avail_width;
+              | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
+                avail_width := width0;
+                y := !y +. line_height;
+                x := x0;
+              | _ -> failwith "invalid_markup"
+            end children
+      end;
     | Xml.Element (tag, _, []) ->
       write_remaining_text ();
       set_attrib default_style;
