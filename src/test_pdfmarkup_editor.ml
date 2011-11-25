@@ -32,7 +32,7 @@ let main () = begin
   let window = GWindow.window ~position:`CENTER ~show:false () in
   let vbox = GPack.vbox ~packing:window#add () in
   let buffer = GText.buffer ~text () in
-  let editor = new Gtk_pdfmarkup_editor.editor ~buffer ~size:10. ~packing:vbox#add () in
+  let editor = new Gtk_pdfmarkup_editor.editor ~buffer ~size_points:15. ~width:500 ~height:200 ~packing:vbox#add () in
   let markup = text in
   let markup = Str.global_replace (Str.regexp_string "function") "<SPAN size='18'>function</SPAN>" markup in
   let markup = Str.global_replace (Str.regexp_string "text") "<SPAN size='18' style='bold'>text</SPAN>" markup in

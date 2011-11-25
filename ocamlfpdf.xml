@@ -12,15 +12,16 @@
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
     <filename offset="3210" active="false">test.ml</filename>
-    <filename offset="2286" active="false">PDFMarkup.ml</filename>
+    <filename offset="6042" active="false">PDFMarkup.ml</filename>
     <filename offset="349" active="false">PDFMarkup.mli</filename>
     <filename offset="367" active="false">C:\Objective Caml\devel\ocamlfpdf\README</filename>
     <filename offset="453" active="false">Makefile</filename>
-    <filename offset="7569" active="true">gtk_pdfmarkup_editor.ml</filename>
-    <filename offset="2491" active="false">test_pdfmarkup_editor.ml</filename>
+    <filename offset="14943" active="true">gtk_pdfmarkup_editor.ml</filename>
+    <filename offset="1788" active="false">test_pdfmarkup_editor.ml</filename>
     <filename offset="2611" active="false">C:\Objective Caml\devel\ocamleditor\src\common\miscellanea.ml</filename>
-    <filename offset="881" active="false">gtk_pdfmarkup_editor.mli</filename>
-    <filename offset="10983" active="false">PDF.ml</filename>
+    <filename offset="31038" active="false">PDF.ml</filename>
+    <filename offset="2909" active="false">image.ml</filename>
+    <filename offset="226" active="false">C:\devel\ocaml\Mig3\ProgrammaAgenti\src\page_ctl.ml</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -77,7 +78,7 @@
   <build>
     <configuration>
       <id>0</id>
-      <name>fpdf</name>
+      <name>fpdf library</name>
       <default>false</default>
       <byt>true</byt>
       <opt>true</opt>
