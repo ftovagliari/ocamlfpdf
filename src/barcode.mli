@@ -20,7 +20,7 @@
 
 *)
 
-(** Print barcodes in Code39, EAN13 or Code128C formats. *)
+(** Print barcodes in Code39, EAN13 or Code128C format. *)
 
 module Code39 :
   sig

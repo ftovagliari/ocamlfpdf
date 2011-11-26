@@ -23,7 +23,7 @@
 (** Document outline.
 
     Function to build a tree-structured hierarchy of outline items, which serve
-    as a visual table of contents to display the document’s structure to the user. *)
+    as a visual table of contents to display the document's structure to the user. *)
 
 type index
 

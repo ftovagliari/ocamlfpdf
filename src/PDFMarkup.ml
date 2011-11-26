@@ -61,7 +61,7 @@ let underline_of_string name =
 let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re
 
 (** print' *)
-let print' ~x ~y ~width (*~line_height*) ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(line_heights=[]) ?(border_width=0.) doc =
+let print' ~x ~y ~width ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(line_heights=[]) ?(border_width=0.) doc =
   let scale = PDF.scale doc in
   let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
   let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
@@ -79,7 +79,6 @@ let print' ~x ~y ~width (*~line_height*) ~markup ?(align=`Left) ?(padding=0.) ?(
     with Not_found -> PDF.font_size doc /. scale in
   let add_current_line_height is_new_line =
     if not print then begin
-      (*Printf.printf "%d: %b\n%!" !current_line is_new_line;*)
       let lh =
         if is_new_line then get_current_line_height()
         else max (PDF.font_size doc /. scale) (get_current_line_height())
@@ -144,7 +143,7 @@ let print' ~x ~y ~width (*~line_height*) ~markup ?(align=`Left) ?(padding=0.) ?(
             y := !y +. clh;
           end;
           PDF.set ~x:!x ~y:!y doc;
-          PDF.cell ~fill:!fill ~width:!consumed_width (*~height:clh*) ~border:[] ~padding:0. ~text doc;
+          PDF.cell ~fill:!fill ~width:!consumed_width ~border:[] ~padding:0. ~text doc;
           let old = PDF.line_width doc in
           let r, g, b = PDF.draw_color doc in
           begin
@@ -283,9 +282,9 @@ let print' ~x ~y ~width (*~line_height*) ~markup ?(align=`Left) ?(padding=0.) ?(
   !line_heights
 
 (** print *)
-let print ~x ~y ~width (*~line_height*) ~markup (*?(align=`Left)*) ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
+let print ~x ~y ~width ~markup (*?(align=`Left)*) ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
   let width, height, line_heights =
-    print' ~x ~y ~width (*~line_height*) ~markup (*~align*) ~padding ~print:false ?border_width doc
+    print' ~x ~y ~width ~markup (*~align*) ~padding ~print:false ?border_width doc
   in
   let old_bgcolor = PDF.fill_color doc in
   let old_draw_color = PDF.draw_color doc in
@@ -310,7 +309,7 @@ let print ~x ~y ~width (*~line_height*) ~markup (*?(align=`Left)*) ?bgcolor ?bor
   let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc;
   let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc;
   PDF.set_line_width old_line_width doc;
-  let w, h, _ = print' ~x ~y ~width (*~line_height*) ~markup (*~align*) ~padding ~print:true ~line_heights ?border_width doc in
+  let w, h, _ = print' ~x ~y ~width ~markup (*~align*) ~padding ~print:true ~line_heights ?border_width doc in
   w, h
 
 

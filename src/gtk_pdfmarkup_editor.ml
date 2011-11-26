@@ -38,19 +38,11 @@ let filter_map p =
   in
   find [];;
 
-let list_full x n =
-  let seq = ref [] in
-  for i = 1 to n do seq := x :: !seq done;
-  !seq;;
-
 let trim =
   let re = Str.regexp "\\(^[ ]+\\)\\|\\([ ]+$\\)" in
   Str.global_replace re ""
 
-let rgb_of_hex name = Scanf.sscanf name "#%2x%2x%2x" (fun r g b -> (r, g, b));;
 let hex_of_rgb (r, g, b) = Printf.sprintf "#%02X%02X%02X" r g b;;
-
-let name = function `RGB (red, green, blue) -> Printf.sprintf "#%X%X%X" red green blue
 
 let name_of_gdk color =
   let r = Gdk.Color.red color in
