@@ -35,7 +35,7 @@ val print :
   x:float ->
   y:float ->
   width:float ->
-  line_height:float ->
+  (*line_height:float ->*)
   markup:string ->
   (*?align:[> `Left ] ->*)
   ?bgcolor:string ->

@@ -61,24 +61,38 @@ let underline_of_string name =
 let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re
 
 (** print' *)
-let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(border_width=0.) doc =
-  let if_print f x = if print then (f x) else () in
+let print' ~x ~y ~width (*~line_height*) ~markup ?(align=`Left) ?(padding=0.) ?(print=true) ?(line_heights=[]) ?(border_width=0.) doc =
+  let scale = PDF.scale doc in
   let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
   let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
   (** Globals *)
-  let x0 = x +. padding +. border_width in
+  let x0 = x +. padding +. border_width /. 2. in
   let y0 = y +. padding +. border_width /. 2. in
   let width0 = width -. 2. *. padding -. 2. *. border_width in
   let fill = ref false in
   let underline = ref `NONE in
   let remaining = ref None in
   let avail_width = ref width0 in
+  let line_heights = ref line_heights in
+  let current_line = ref 0 in
+  let get_current_line_height () = try List.assoc !current_line !line_heights
+    with Not_found -> PDF.font_size doc /. scale in
+  let add_current_line_height is_new_line =
+    if not print then begin
+      (*Printf.printf "%d: %b\n%!" !current_line is_new_line;*)
+      let lh =
+        if is_new_line then get_current_line_height()
+        else max (PDF.font_size doc /. scale) (get_current_line_height())
+      in
+      line_heights := (!current_line, lh) :: (List.remove_assoc !current_line !line_heights);
+    end;
+  in
   let x = ref x0 in
   let y = ref y0 in
   (** default_style *)
   let default_style = {
     family = (PDF.font_family doc);
-    style = Some (PDF.font_style doc);
+    style = Some [] (*(PDF.font_style doc)*);
     size = Some (PDF.font_size doc);
     underline = `NONE;
     color = Some (hex_of_rgb (PDF.text_color doc));
@@ -104,7 +118,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
     (match bgcolor with None -> fill := false | Some x -> let red, green, blue = rgb_of_hex x in PDF.set_fill_color ~red ~green ~blue doc; fill := true);
     let family = match PDF.font_family doc with Some x -> x | None -> `Courier in
     let f = cw ~family ~style:(PDF.font_style doc) in
-    char_width := fun x -> ((float (f x)) *. (PDF.font_size doc) /. 1000.) /. (PDF.scale doc)
+    char_width := fun x -> ((float (f x)) *. (PDF.font_size doc) /. 1000.) /. scale
   in
   (** write_text *)
   let write_text ~x ~y ~text ~avail_width =
@@ -114,6 +128,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
       let consumed_width = ref 0. in
       let new_line = ref false in
       let last_newline = ref 0 in
+      (** write_line: writes until a newline character or an attribute change. *)
       let write_line () =
         let remaining_text = String.sub !text !i (String.length !text - !i) in
         let width_is_exact = !avail_width = 0. && remaining_text = "" in
@@ -122,31 +137,48 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
           else (Some (remaining_text));
         let is_new_line = !remaining <> None || width_is_exact in
         let text = String.sub !text 0 !i in
-        if_print (PDF.set ~x:!x ~y:!y) doc;
-        if !consumed_width = 0. then (consumed_width := 0.);
-        if_print (PDF.cell ~fill:!fill ~width:!consumed_width ~height:line_height ~border:[] ~padding:0. ~text) doc;
-        let old = PDF.line_width doc in
-        begin
-          let uw = (*min (0.5 /. (PDF.scale doc))*) (PDF.font_size doc /. 64.) in
-          if_print (PDF.set_line_width uw) doc;
-          match !underline with
-            | `NONE -> ()
-            | `SINGLE ->
-              let y = !y +. 0.75 *. line_height +. 3. /. 2. *. uw in
-              if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
-            | `LOW ->
-              let y = !y +. 0.75 *. line_height +. ((PDF.font_size doc) /. (PDF.scale doc)) /. 4. (*+. uw /. 2.*) in
-              if_print (PDF.line ~x1:(!x +. uw /. 2.) ~y1:y ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y) doc;
+        add_current_line_height is_new_line;
+        if print then begin
+          let clh = get_current_line_height() in
+          if !current_line = 0 && !y = y0 then begin
+            y := !y +. clh;
+          end;
+          PDF.set ~x:!x ~y:!y doc;
+          PDF.cell ~fill:!fill ~width:!consumed_width (*~height:clh*) ~border:[] ~padding:0. ~text doc;
+          let old = PDF.line_width doc in
+          let r, g, b = PDF.draw_color doc in
+          begin
+            let fs = PDF.font_size doc in
+            let uw = fs /. 64. in
+            PDF.set_line_width uw doc;
+            let red, green, blue = PDF.text_color doc in
+            PDF.set_draw_color ~red ~green ~blue doc ;
+            match !underline with
+              | `NONE -> ()
+              | `SINGLE ->
+                let y = !y +. uw *. 3.5 in
+                PDF.line
+                  ~x1:(!x +. uw /. 2.) ~y1:y
+                  ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y doc;
+              | `LOW ->
+                let y = !y +. (fs /. scale) /. 4. in
+                PDF.line
+                  ~x1:(!x +. uw /. 2.) ~y1:y
+                  ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y doc;
+          end;
+          PDF.set_line_width old doc;
+          PDF.set_draw_color ~red:r ~green:g ~blue:b doc ;
         end;
-        if_print (PDF.set_line_width old) doc;
         x := !x +. !consumed_width;
         (* Move to a new line *)
         if is_new_line then begin
           avail_width := width0;
-          y := !y +. line_height;
+          incr current_line;
+          y := !y +. get_current_line_height();
           x := x0;
         end;
       in
+      (** Main loop of write_text *)
       begin
         try
           let len = String.length !text in
@@ -159,7 +191,6 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
             end;
             let cw = !char_width ch in
             avail_width := !avail_width -. cw;
-            (*Printf.printf "!avail_width = %f, %d, %d, %f\n%!" !avail_width !i len cw;*)
             if !avail_width > 0. then (consumed_width := !consumed_width +. cw) else begin
               let prev_ws = prev_word_start !text !i in
               if prev_ws = !last_newline then begin
@@ -177,7 +208,7 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
           | Break_char -> write_line()
           | Break_line -> begin
             i := prev_word_start !text !i;
-            write_line()
+            write_line();
         end;
       end;
     end
@@ -204,10 +235,12 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
     | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
       write_remaining_text ();
       avail_width := width0;
-      y := !y +. line_height;
+      incr current_line;
+      add_current_line_height true;
+      y := !y +. get_current_line_height();
       x := x0;
-    | Xml.Element (tag, attrs, (*[Xml.PCData text]*)children) when (String.lowercase tag) = "span" ->
-      let style = {
+    | Xml.Element (tag, attrs, children) when (String.lowercase tag) = "span" ->
+      let attr = {
         family    = (try Some (Font.family_of_string (List.assoc "family" attrs)) with Not_found -> None);
         style     = (try Some (List.map Font.style_of_string (split_attrib (List.assoc "style" attrs))) with Not_found -> None);
         size      = (try Some (float_of_string (List.assoc "size" attrs)) with Not_found -> None);
@@ -217,16 +250,20 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
         fill      = false; (* dummy *)
       } in
       write_remaining_text ();
-      set_attrib style;
+      set_attrib attr;
       begin
         match children with
           | [] -> write_text ~x ~y ~text:" " ~avail_width;
           | children ->
             List.iter begin function
-              | Xml.PCData text -> write_text ~x ~y ~text ~avail_width;
+              | Xml.PCData text ->
+                write_text ~x ~y ~text ~avail_width;
+                write_remaining_text ();
               | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
                 avail_width := width0;
-                y := !y +. line_height;
+                incr current_line;
+                add_current_line_height true;
+                y := !y +. get_current_line_height();
                 x := x0;
               | _ -> failwith "invalid_markup"
             end children
@@ -239,11 +276,17 @@ let print' ~x ~y ~width ~line_height ~markup ?(align=`Left) ?(padding=0.) ?(prin
   end xml;
   write_remaining_text ();
   set_attrib default_style;
-  width0 +. 2. *. (padding +. border_width), (!y -. y0) +. line_height +. 2. *. padding +. border_width
+  let text_height = List.fold_left (fun acc (_, x) -> acc +. x) 0. !line_heights in
+  (** Return the actual width and height *)
+  width0 +. 2. *. (padding +. border_width),
+  text_height +. 2. *. padding +. border_width,
+  !line_heights
 
 (** print *)
-let print ~x ~y ~width ~line_height ~markup (*?(align=`Left)*) ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
-  let width, height = print' ~x ~y ~width ~line_height ~markup (*~align*) ~padding ~print:false ?border_width doc in
+let print ~x ~y ~width (*~line_height*) ~markup (*?(align=`Left)*) ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
+  let width, height, line_heights =
+    print' ~x ~y ~width (*~line_height*) ~markup (*~align*) ~padding ~print:false ?border_width doc
+  in
   let old_bgcolor = PDF.fill_color doc in
   let old_draw_color = PDF.draw_color doc in
   let old_line_width = PDF.line_width doc in
@@ -267,7 +310,8 @@ let print ~x ~y ~width ~line_height ~markup (*?(align=`Left)*) ?bgcolor ?border_
   let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc;
   let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc;
   PDF.set_line_width old_line_width doc;
-  print' ~x ~y ~width ~line_height ~markup (*~align*) ~padding ~print:true ?border_width doc
+  let w, h, _ = print' ~x ~y ~width (*~line_height*) ~markup (*~align*) ~padding ~print:true ~line_heights ?border_width doc in
+  w, h
 
 
 

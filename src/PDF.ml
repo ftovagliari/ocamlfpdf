@@ -870,7 +870,7 @@ let set_text_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
     ((float red) /. 255.) ((float green) /. 255.) ((float blue) /. 255.)
   end;
   doc.colorFlag <- doc.fillColor <> doc.textColor;
-  doc.text_color_rgb <- (red, green, red)
+  doc.text_color_rgb <- (red, green, blue)
 
 let text_color doc = doc.text_color_rgb
 

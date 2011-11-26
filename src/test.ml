@@ -80,12 +80,11 @@ let main () = begin
       let test_parent = PDFBookmark.add ~text:"PARENT" doc in
       ignore (PDFBookmark.add ~text:"Markup" doc);
       PDF.set_font ~family:`Times ~size:12. doc;
-      let line_height = (*17.0*) (PDF.font_size doc) /. (PDF.scale doc) in
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
-      let width = (*50.*) width_avail /. 2. in
+      let width = (*50.*) width_avail /. 2.3 (*5. *. 3.*) in
 
-      let markup = "
+      let markup = "\
 <span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
@@ -111,7 +110,7 @@ tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>"
       in
 
-      let _, _ = PDFMarkup.print ~x ~y ~width ~line_height ~padding:3. ~markup
+      let _, _ = PDFMarkup.print ~x ~y ~width ~padding:3. ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
@@ -119,7 +118,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAPCHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
-      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) ~line_height ~padding:3. ~markup
+      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:3. ~markup
         ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
@@ -128,19 +127,19 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "\
-The Objective Caml language
+<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30'> language</SPAN>
 
 
 Foreword
 
-This document is intended as a reference manual for the Objective Caml language. \
+This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
 It lists the language constructs, and gives their precise syntax and informal semantics. \
-It is by no means a tutorial introduction to the language: there is not a single example. \
+It is by no means a tutorial introduction to the language: there is not a <SPAN size='5'>single</SPAN> example. \
 A good working knowledge of Caml is assumed.
 
 No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a consequence, the typing rules have been left \
-out, by lack of the mathematical framework required to express them, while they are \
+meaning, without further definition. As a <SPAN size='30.'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
+out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
 Notations
@@ -150,8 +149,9 @@ in typewriter font (like this). Non-terminal symbols are set in italic font (lik
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
 denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping." in
-      let _, _ = PDFMarkup.print ~x ~y ~width:(width*.0.75) ~line_height ~padding:3. ~markup
-        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
+      let width = (*50.*) width_avail /. 5. *. 3. in
+      let _, _ = PDFMarkup.print ~x ~y ~width (*~line_height*) ~padding:3. ~markup
+        ~bgcolor:"#fff0f0" ~border_width:0.4 ~border_color:"#f00000" ~border_radius:3. doc in
 
       (** Vertical box *)
       PDF.add_page doc;

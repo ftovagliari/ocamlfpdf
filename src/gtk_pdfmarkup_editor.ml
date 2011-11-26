@@ -111,6 +111,7 @@ object (self)
 
     method view = view
     method buffer = buffer
+    method toolbox = toolbox
 
     method private find_tagsize size =
       try List.assoc size tagsize
@@ -249,7 +250,7 @@ object (self)
           current_style := [];
         end;
         if !current_uline then begin
-          Buffer.add_string buf " underline='low'";
+          Buffer.add_string buf " underline='single'";
           current_uline := false;
         end;
         begin
