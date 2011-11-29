@@ -11,13 +11,13 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="4794" active="false">test.ml</filename>
-    <filename offset="11495" active="false">PDFMarkup.ml</filename>
-    <filename offset="815" active="true">C:\Objective Caml\devel\ocamlfpdf\README</filename>
+    <filename offset="6662" active="false">test.ml</filename>
+    <filename offset="3619" active="true">PDFMarkup.ml</filename>
     <filename offset="453" active="false">Makefile</filename>
-    <filename offset="989" active="false">gtk_pdfmarkup_editor.ml</filename>
+    <filename offset="637" active="false">gtk_pdfmarkup_editor.ml</filename>
     <filename offset="1788" active="false">test_pdfmarkup_editor.ml</filename>
-    <filename offset="848" active="false">PDF.ml</filename>
+    <filename offset="25602" active="false">PDF.ml</filename>
+    <filename offset="452" active="false">PDFMarkup.mli</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -75,7 +75,7 @@
     <configuration>
       <id>0</id>
       <name>fpdf library</name>
-      <default>false</default>
+      <default>true</default>
       <byt>true</byt>
       <opt>true</opt>
       <libs>xml-light</libs>
@@ -85,7 +85,7 @@
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
-      <cflags></cflags>
+      <cflags>-w y</cflags>
       <lflags></lflags>
       <outkind>Library</outkind>
       <outname>fpdf</outname>
@@ -174,7 +174,7 @@
     <configuration>
       <id>6</id>
       <name>Test</name>
-      <default>true</default>
+      <default>false</default>
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light</libs>
@@ -184,7 +184,7 @@
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
-      <cflags>-g</cflags>
+      <cflags>-w y -g</cflags>
       <lflags></lflags>
       <outkind>Executable</outkind>
       <outname>test</outname>

@@ -82,7 +82,7 @@ let main () = begin
       PDF.set_font ~family:`Times ~size:12. doc;
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
-      let width = (*50.*) width_avail /. 2.3 (*5. *. 3.*) in
+      let width = (*50.*) width_avail (*/. 2.3*) in
 
       let markup = "\
 <span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
@@ -110,7 +110,7 @@ tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>"
       in
 
-      let _, _ = PDFMarkup.print ~x ~y ~width ~padding:3. ~markup
+      (*let _, _ = PDFMarkup.print ~x ~y ~width ~padding:3. ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
@@ -119,7 +119,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAPCHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
       let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:3. ~markup
-        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
+        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in*)
 
       (** Markup and wrap char *)
       PDF.add_page doc;
@@ -149,9 +149,13 @@ in typewriter font (like this). Non-terminal symbols are set in italic font (lik
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
 denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping." in
-      let width = (*50.*) width_avail /. 5. *. 3. in
-      let _, _ = PDFMarkup.print ~x ~y ~width (*~line_height*) ~padding:3. ~markup
-        ~bgcolor:"#fff0f0" ~border_width:0.4 ~border_color:"#f00000" ~border_radius:3. doc in
+      let width = (*50.*) width_avail /. 5. *. 2. in
+
+      let markup = "The_syntax_of_the_language is given notation__Terminal              symbols_are_set_in_typewriter_font (like this). Non-terminal are set in_italic font (like that)."
+      in
+
+      let _, _ = PDFMarkup.print ~x ~y ~width (*~line_height*) ~padding:0. ~markup
+        ~bgcolor:"#50f0f0" (*~border_width:0.4 ~border_color:"#f00000" ~border_radius:3.*) doc in
 
       (** Vertical box *)
       PDF.add_page doc;

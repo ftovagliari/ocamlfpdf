@@ -63,7 +63,9 @@ and editor ~buffer ~size_points ?width ?height ?shadow_type ?packing () =
   let changed           = new changed () in
   let default_fgcolor   = "#000000" in
   let vbox              = GPack.vbox ?packing () in
-  let toolbox           = GPack.hbox ~packing:vbox#pack () in
+  let htbox             = GPack.hbox ~packing:vbox#pack () in
+  let toolbox           = GPack.hbox ~packing:htbox#pack () in
+  let toolbox_secondary = GPack.hbox ~packing:htbox#add () in
   let adjustment        = GData.adjustment ~lower:3.5 ~upper:50. ~step_incr:0.5 ~page_size:0.0 () in
   let entry_size        = GEdit.spin_button ~adjustment ~numeric:true ~digits:1 ~value:size_points  ~packing:toolbox#pack () in
   let button_bold       = GButton.toggle_button ~packing:toolbox#pack () in
@@ -72,10 +74,16 @@ and editor ~buffer ~size_points ?width ?height ?shadow_type ?packing () =
   let _                 = button_italic#set_image (GMisc.image ~stock:`ITALIC ~icon_size:`MENU ())#coerce in
   let button_uline      = GButton.toggle_button ~packing:toolbox#pack () in
   let _                 = button_uline#set_image (GMisc.image ~stock:`UNDERLINE ~icon_size:`MENU ())#coerce in
+  let button_left       = GButton.toggle_button ~packing:toolbox#pack () in
+  let _                 = button_left#set_image (GMisc.image ~stock:`JUSTIFY_LEFT ~icon_size:`MENU ())#coerce in
+  let button_center     = GButton.toggle_button ~packing:toolbox#pack () in
+  let _                 = button_center#set_image (GMisc.image ~stock:`JUSTIFY_CENTER ~icon_size:`MENU ())#coerce in
+  let button_right      = GButton.toggle_button ~packing:toolbox#pack () in
+  let _                 = button_right#set_image (GMisc.image ~stock:`JUSTIFY_RIGHT ~icon_size:`MENU ())#coerce in
   let button_fgcolor    = GButton.color_button ~color:(GDraw.color `BLACK) ~title:"Colore del testo" ~packing:toolbox#pack () in
   let button_bgcolor    = GButton.color_button ~color:(GDraw.color `WHITE) ~title:"Colore di sfondo del testo" ~packing:toolbox#pack ~show:false () in
   let button_base_color = GButton.color_button ~color:(GDraw.color `WHITE) ~title:"Colore di sfondo del riquadro" ~packing:toolbox#pack ~show:false () in
-  let button_clear      = GButton.button ~packing:toolbox#pack () in
+  let button_clear      = GButton.button ~packing:(toolbox_secondary#pack ~from:`END) () in
   let _                 = button_clear#set_image (GMisc.image ~stock:`CLEAR ~icon_size:`MENU ())#coerce in
   let sw                = GBin.scrolled_window ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ~packing:vbox#add ?shadow_type () in
   let view              = GText.view ~wrap_mode:`WORD ?width ?height ~buffer () in
@@ -83,12 +91,18 @@ and editor ~buffer ~size_points ?width ?height ?shadow_type ?packing () =
   let tag_bold          = buffer#create_tag [`WEIGHT `BOLD] in
   let tag_italic        = buffer#create_tag [`STYLE `ITALIC] in
   let tag_uline         = buffer#create_tag [`UNDERLINE `LOW] in
+  let tag_left          = buffer#create_tag [`JUSTIFICATION `LEFT] in
+  let tag_center        = buffer#create_tag [`JUSTIFICATION `CENTER] in
+  let tag_right         = buffer#create_tag [`JUSTIFICATION `RIGHT] in
   let tag_fgcolor       = buffer#create_tag [`FOREGROUND default_fgcolor ] in
   let tag_bgcolor       = buffer#create_tag [`BACKGROUND "#ffffff"] in
   let _                 =
     button_bold#misc#set_can_focus false;
     button_italic#misc#set_can_focus false;
     button_uline#misc#set_can_focus false;
+    button_left#misc#set_can_focus false;
+    button_center#misc#set_can_focus false;
+    button_right#misc#set_can_focus false;
   in
 object (self)
     inherit GObj.widget vbox#as_widget
@@ -104,6 +118,7 @@ object (self)
     method view = view
     method buffer = buffer
     method toolbox = toolbox
+    method toolbox_secondary = toolbox_secondary
 
     method private find_tagsize size =
       try List.assoc size tagsize
@@ -293,7 +308,14 @@ object (self)
         end in
         button, sign, tag
       in
-      let toggles = List.map connect_toggle [button_bold, tag_bold; button_italic, tag_italic; button_uline, tag_uline] in
+      let toggles = List.map connect_toggle [
+        button_bold, tag_bold;
+        button_italic, tag_italic;
+        button_uline, tag_uline;
+        button_left, tag_left;
+        button_center, tag_center;
+        button_right, tag_right;
+      ] in
       (** Synchronize tag_select with selection *)
       let busy = ref false in
       let sigid = buffer#connect#mark_set ~callback:begin fun iter mark ->

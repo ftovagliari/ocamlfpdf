@@ -9,6 +9,7 @@ val hex_of_rgb : int * int * int -> string
     - [family]: families are those available from the module {!Font}, names are lowercase.
     - [style]: 'italic' or 'bold' separated by comma.
     - [size]: float.
+    - [align]: 'left', 'center' or 'right'.
     - [underline]: 'none', 'single', 'low'.
     - [color]: HEX triplet
     - [bgcolor]: HEX triplet
