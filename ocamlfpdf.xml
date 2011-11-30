@@ -11,13 +11,15 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="6662" active="false">test.ml</filename>
-    <filename offset="3619" active="true">PDFMarkup.ml</filename>
+    <filename offset="4785" active="false">test.ml</filename>
+    <filename offset="14416" active="true">PDFMarkup.ml</filename>
     <filename offset="453" active="false">Makefile</filename>
     <filename offset="637" active="false">gtk_pdfmarkup_editor.ml</filename>
     <filename offset="1788" active="false">test_pdfmarkup_editor.ml</filename>
-    <filename offset="25602" active="false">PDF.ml</filename>
+    <filename offset="32193" active="false">PDF.ml</filename>
     <filename offset="452" active="false">PDFMarkup.mli</filename>
+    <filename offset="29307" active="false">pDF.ml</filename>
+    <filename offset="3843" active="false">PDFUtil.ml</filename>
   </open_files>
   <runtime>
     <configuration>

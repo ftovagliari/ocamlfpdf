@@ -847,7 +847,7 @@ let set_draw_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
     ((float red) /. 255.) ((float green) /. 255.) ((float blue) /. 255.)
   end;
   if doc.page >= 0 then print_buffer doc "%s\n" doc.drawColor;
-  doc.draw_color_rgb <- (red, green, red)
+  doc.draw_color_rgb <- (red, green, blue)
 
 let draw_color doc = doc.draw_color_rgb
 
@@ -859,7 +859,7 @@ let set_fill_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
   end;
   doc.colorFlag <- doc.fillColor <> doc.textColor;
   if doc.page >= 0 then print_buffer doc "%s\n" doc.fillColor;
-  doc.fill_color_rgb <- (red, green, red)
+  doc.fill_color_rgb <- (red, green, blue)
 
 let fill_color doc = doc.fill_color_rgb
 
