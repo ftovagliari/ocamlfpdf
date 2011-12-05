@@ -22,46 +22,58 @@
 
 open Printf
 
-type t = {
-  mutable family    : Font.family option;
-  mutable style     : Font.style list option;
-  mutable size      : float option;
-  mutable underline : [`NONE | `SINGLE | `LOW ];
-  mutable align     : float;
-  mutable color     : string option;
-  mutable bgcolor   : string option;
-  mutable fill      : bool;
-}
-
 type analysis = {
-  mutable an_lines_height      : (int * float) list;
-  mutable an_lines_avail_width : (int * float) list;
+  mutable width                          : float;
+  mutable height                         : float;
+  mutable paragraphs                     : paragraph list;
 }
 
-exception Break_char of int * int
-exception Break_line
+and cell = {
+  mutable text                           : string;
+  mutable attr                           : attributes;
+  mutable cell_width                     : float;
+  mutable cell_height                    : float;
+  mutable par                            : int;
+  mutable line                           : int;
+}
 
-let find_word_bound_backward =
-  let blanks = Str.regexp "[ \r\n\t]" in
-  let non_blanks = Str.regexp "[^ ]" in
-  fun bound text i ->
-    let i = if i < 0 then 0 else i in
-    match bound with
-      | `START ->
-        let stop = try Str.search_backward non_blanks text i with Not_found -> i in
-        (try (Str.search_backward blanks text stop) + 1 with Not_found -> 0)
-      | `STOP ->
-        let start = try Str.search_backward blanks text i with Not_found -> i in
-        (try (Str.search_backward non_blanks text start) + 1 with Not_found -> 0)
-;;
+and line = {
+  mutable line_width                     : float;
+  mutable line_height                    : float;
+  mutable line_cells                     : cell list;
+}
 
-(*#load "str.cma";;
-let s = "a    symbols_are_set_in_typewriter_font (like this).  Non-terminal are set in_italic ";;
-Str.search_backward (Str.regexp "[ \r\n\t]") s 16 + 1;;
-Str.search_backward (Str.regexp "[^ ]") s 4;;
-let x = find_word_bound_backward `START s 16;;
-let x = find_word_bound_backward `STOP s 16;;
-find_word_bound_backward `STOP s (x - 1);;*)
+and paragraph = {
+  mutable paragraph_align                : float;
+  mutable paragraph_line_spacing         : float;
+  paragraph_lines                        : line list;
+}
+
+and attributes = {
+  mutable family                         : Font.family;
+  mutable style                          : Font.style list;
+  mutable size                           : float;
+  mutable underline                      : [`NONE | `SINGLE | `LOW ];
+  mutable color                          : string;
+  mutable bgcolor                        : string option;
+  mutable align                          : float;
+  mutable line_spacing                   : float;
+}
+
+exception Width_is_less_than_first_char_width
+
+(** Util *)
+
+let (!!) x = match x with Some x -> x | _ -> ""
+
+let group_by f ll =
+  List.fold_right begin fun cell acc ->
+    match acc with
+      | ((c :: _) as p) :: tl ->
+        if f c cell then ((cell :: p) :: tl) else ([cell] :: p :: tl)
+      | [] -> [cell] :: []
+      | _ -> assert false
+  end ll [];;
 
 let rgb_of_hex name = Scanf.sscanf name "#%2x%2x%2x" (fun r g b -> (r, g, b));;
 
@@ -75,282 +87,343 @@ let underline_of_string name =
     | "low" -> `LOW
     | _ -> invalid_arg "PDFMarkup.underline_of_string";;
 
-let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re
+let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re;;
 
-(** print' *)
-let print' ~x ~y ~width ~markup ?(align=`Left) ?(padding=0.) ?(border_width=0.)
-    ?(analyze=false)
-    ?(analysis={an_lines_height=[]; an_lines_avail_width=[]})
-    doc =
-  let scale = PDF.scale doc in
+let char_width ~family ~style ~size ~scale =
+  let key = Font.key_of_font style family  in
+  let f = Font.get_metric key in
+  function '\n' -> 0.0 | x -> ((float (f x)) /. 1000.) *. size /. scale;;
+
+let find_word_bound_backward, find_word_bound_forward =
+  let blanks = Str.regexp "[- \r\n\t]" in
+  let non_blanks = Str.regexp "[^ ]" in
+  begin fun (bound : [`START | `STOP]) text i ->
+    let i = if i < 0 then 0 else i in
+    match bound with
+      | `START ->
+        let stop = try Str.search_backward non_blanks text i with Not_found -> i in
+        (try (Str.search_backward blanks text stop) + 1 with Not_found -> 0)
+      | `STOP ->
+        let start = try Str.search_backward blanks text i with Not_found -> i in
+        (try (Str.search_backward non_blanks text start) + 1 with Not_found -> 0)
+  end, begin fun (bound : [`START | `STOP]) text i ->
+    let i = if i < 0 then 0 else i in
+    match bound with
+      | `START ->
+        (try Str.search_forward non_blanks text i with Not_found -> i)
+      | `STOP -> assert false
+  end;;
+
+let default_family doc = match PDF.font_family doc with Some x -> x | _ -> `Courier;;
+
+(** markup_to_blocks *)
+let markup_to_blocks ~markup doc =
+  let attr doc = {
+    family    = (default_family doc);
+    style     = [];
+    size      = PDF.font_size doc;
+    underline = `NONE;
+    color     = (hex_of_rgb (PDF.text_color doc));
+    bgcolor   = None;
+    align     = 0.0;
+    line_spacing = 0.0;
+  } in
+  let cell ~text ~attr ~par = {text=text; attr=attr; cell_width=0.0; cell_height=0.0; par=par; line=0} in
   let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
   let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
-  (*if analyze then (Printf.printf "%s\n%!" (Xml.to_string_fmt xml));*)
-  (** Globals *)
-  let x0 = x +. padding +. border_width /. 2. in
-  let y0 = y +. padding +. border_width /. 2. in
-  let width0 = width -. 2. *. padding -. 2. *. border_width in
-  let fill = ref false in
-  let underline = ref `NONE in
-  let remaining = ref None in
-  let avail_width = ref width0 in
-  let avail_width_exceeded = ref false in
-  let current_line = ref 0 in
-  let get_current_line_height () =
-    try let clh = List.assoc !current_line analysis.an_lines_height in clh
-    with Not_found -> PDF.font_size doc /. scale in
-  let add_current_line_height is_new_line =
-    if analyze then begin
-      let lh =
-        if is_new_line then get_current_line_height()
-        else max (PDF.font_size doc /. scale) (get_current_line_height())
-      in
-      analysis.an_lines_height <- (!current_line, lh) :: (List.remove_assoc !current_line analysis.an_lines_height);
-    end;
-  in
-  (** default_style *)
-  let default_style = {
-    family    = (PDF.font_family doc);
-    style     = Some [];
-    size      = Some (PDF.font_size doc);
-    underline = `NONE;
-    align     = 0.0;
-    color     = Some (hex_of_rgb (PDF.text_color doc));
-    bgcolor   = None;
-    fill      = false;
-  } in
-  let current_attribs = ref default_style in
-  let current_paragraph = ref 0 in
-  let x = ref x0 in
-  let y = ref y0 in
+  (*(Printf.printf "%s\n----------------------------------------\n%!" (Xml.to_string_fmt xml));*)
+  let cells = ref [] in
+  let current_par = ref 0 in
   let newline () =
-    let clh = get_current_line_height() in
-    y := !y +. clh;
-    let offset =
-      if not analyze then begin
-        let align = !current_attribs.align in
-        let law = try List.assoc !current_line analysis.an_lines_avail_width with Not_found -> 0.0 in
-        law *. align;
-      end else 0.0
-    in
-    x := x0 +. offset;
+    incr current_par;
+    match !cells with
+      | hd :: _ when String.length hd.text > 0 && hd.text.[String.length hd.text - 1] <> '\n' ->
+        hd.text <- hd.text ^ "\n"
+      | _ ->
+        cells := (cell ~text:"\n" ~attr:(attr doc) ~par:(!current_par - 1)) :: !cells
   in
-  (** char_width *)
-  let cw ~family ~style =
-    let key = Font.key_of_font style family in
-    Font.get_metric key
-  in
-  let char_width = ref (fun x -> 0.0) in
-  (** set_attrib *)
-  let set_attrib attribs =
-    let family = if attribs.family = None then default_style.family else attribs.family in
-    let style = if attribs.style = None then default_style.style else attribs.style in
-    let size = if attribs.size = None then default_style.size else attribs.size in
-    underline := attribs.underline;
-    PDF.set_font ?family ?style ?size doc;
-    let color = if attribs.color = None then default_style.color else attribs.color in
-    (match color with None -> () | Some x -> let red, green, blue = rgb_of_hex x in PDF.set_text_color ~red ~green ~blue doc);
-    let bgcolor = if attribs.bgcolor = None then default_style.bgcolor else attribs.bgcolor in
-    (match bgcolor with None -> fill := false | Some x -> let red, green, blue = rgb_of_hex x in PDF.set_fill_color ~red ~green ~blue doc; fill := true);
-    let family = match PDF.font_family doc with Some x -> x | None -> `Courier in
-    let f = cw ~family ~style:(PDF.font_style doc) in
-    char_width := (fun x -> ((float (f x)) *. (PDF.font_size doc) /. 1000.) /. scale);
-    current_attribs := attribs;
-  in
-  (** print_text *)
-  let rec print_text text =
-    let i = ref 0 in
-    let text = ref text in
-    if !text <> "" then begin
-      let consumed_width = ref 0. in
-      let new_line_pending = ref false in
-      (** print_cell *)
-      let print_cell stop =
-        let len = String.length !text in
-        let remaining_text = String.sub !text !i (len - !i) in
-        let width_is_exact = !avail_width_exceeded && remaining_text = "" in
-        remaining :=
-          if (not !new_line_pending) && (not !avail_width_exceeded || width_is_exact || remaining_text = "") then None
-          else (Some (remaining_text));
-        let is_new_line = !remaining <> None || width_is_exact in
-        let text = String.sub !text 0 stop (*!i*) in
-        add_current_line_height is_new_line;
-        if not analyze then begin
-          if !current_line = 0 && !y = y0 then (newline());
-          PDF.set ~x:!x ~y:!y doc;
-          let width = !consumed_width in
-          PDF.cell ~width ~fill:!fill (*~height:3. ~border:[`R;`L]*) ~padding:0. ~text (*~align:`Left*) doc;
-          begin (* Draw underline *)
-            let old = PDF.line_width doc in
-            let r, g, b = PDF.draw_color doc in
-            let fs = PDF.font_size doc in
-            let uw = fs /. 64. in
-            PDF.set_line_width uw doc;
-            let red, green, blue = PDF.text_color doc in
-            PDF.set_draw_color ~red ~green ~blue doc ;
-            match !underline with
-              | `NONE -> ()
-              | `SINGLE ->
-                let y = !y +. uw *. 3.5 in
-                PDF.line
-                  ~x1:(!x +. uw /. 2.) ~y1:y
-                  ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y doc;
-              | `LOW ->
-                let y = !y +. (fs /. scale) /. 4. in
-                PDF.line
-                  ~x1:(!x +. uw /. 2.) ~y1:y
-                  ~x2:(!x +. !consumed_width -. uw /. 2.) ~y2:y doc;
-            PDF.set_line_width old doc;
-            PDF.set_draw_color ~red:r ~green:g ~blue:b doc ;
-          end
-        end;
-        x := !x +. !consumed_width;
-        (* Move to a new line, if necessary. *)
-        if is_new_line then begin
-          avail_width := width0;
-          incr current_line;
-          newline();
-        end;
-      in
-      (** Splits text in writeable cells. *)
-      begin
-        let find_line_break () =
-          let prev_start = find_word_bound_backward `START !text !i in
-          let prev_stop = find_word_bound_backward `STOP !text (prev_start - 1) in
-          if analyze then begin
-            if !avail_width_exceeded then
-              for j = prev_stop to !i do
-                let ch = String.unsafe_get !text j in
-                avail_width := !avail_width +. (!char_width ch);
-              done;
-            (*Printf.printf "#### %2d: i=%2d prev=(%2d,%2d) avail_width=%5.2f align=%2.1f exceed=%b par=%d%!"
-              !current_line !i prev_stop prev_start !avail_width !current_attribs.align !avail_width_exceeded !current_paragraph;
-            Printf.printf " %S\n%!" (String.sub !text prev_stop (min (String.length !text - prev_stop) (!i - prev_stop + 1)));*)
-            analysis.an_lines_avail_width <- (!current_line, !avail_width) :: analysis.an_lines_avail_width;
-          end else begin
-            if !avail_width_exceeded && prev_start > 0 then
-              for j = prev_stop to !i - 1 do
-                let ch = String.unsafe_get !text j in
-                consumed_width := !consumed_width -. (!char_width ch);
-              done;
-          end;
-          prev_stop, prev_start;
-        in
-        let pending_space_width = ref 0.0 in
-        try
-          avail_width_exceeded := false;
-          let len = String.length !text in
-          while not !avail_width_exceeded && !i < len do
-            let ch = String.unsafe_get !text !i in
-            if ch = '\n' then begin
-              new_line_pending := true;
-              incr i;
-              raise Break_line
-            end;
-            let cw = !char_width ch in
-            if ch = ' ' then (pending_space_width := !pending_space_width +. cw)
-            else begin
-              avail_width := !avail_width -. !pending_space_width -. cw;
-              if !avail_width > 0. then (consumed_width := !consumed_width +. !pending_space_width +. cw)
-              else begin
-                avail_width_exceeded := true;
-                let stop, start = find_line_break() in
-                if start = 0 then begin
-                  raise (Break_char (start, stop));
-                end;
-              end;
-              pending_space_width := 0.0;
-            end;
-            incr i;
-          done;
-          raise Break_line;
-        with
-          | Break_char (start, stop) ->
-            (*eprintf "Break_char %S i=%d stop=%d start=%d consumed_width=%5.2f\n%!" !text !i stop start !consumed_width;*)
-            analysis.an_lines_avail_width <- (!current_line, 0.0) :: analysis.an_lines_avail_width;
-            print_cell !i;
-          | Break_line -> begin
-            consumed_width := !consumed_width +. !pending_space_width;
-            let _, start =
-              if not !avail_width_exceeded then find_line_break()
-              else 0, (find_word_bound_backward `START !text !i)
-            in
-            if !i < String.length !text (*- 1*) then begin
-              i := start;
-            end;
-            let stop = if !avail_width_exceeded then find_word_bound_backward `STOP !text !i else !i in
-            print_cell stop;
-          end;
-      end;
-    end;
-    print_remaining_text ();
-  and print_remaining_text () =
-    while !remaining <> None do
-      match !remaining with
-        | Some text -> print_text text;
-        | _ -> assert false
-    done;
-  in
-  (** Markup traversal *)
   Xml.iter begin function
     | Xml.PCData "&nbsp;" ->
-      set_attrib default_style;
-      print_text " ";
+      cells := (cell ~text:" " ~attr:(attr doc) ~par:!current_par) :: !cells;
     | Xml.PCData text ->
-      set_attrib default_style;
-      print_text text;
-    | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
-      avail_width := width0;
-      incr current_line;
-      add_current_line_height true;
-      newline();
-      incr current_paragraph;
-    | Xml.Element (tag, attrs, children) when (String.lowercase tag) = "span" ->
+      cells := (cell ~text ~attr:(attr doc) ~par:!current_par) :: !cells;
+    | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
+      newline ()
+    | Xml.Element (tag, attrs, children) when (String.uppercase tag) = "SPAN" ->
       let attr = {
-        family    = (try Some (Font.family_of_string (List.assoc "family" attrs)) with Not_found -> None);
-        style     = (try Some (List.map Font.style_of_string (split_attrib (List.assoc "style" attrs))) with Not_found -> None);
-        size      = (try Some (float_of_string (List.assoc "size" attrs)) with Not_found -> None);
+        family    = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family doc);
+        style     = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> []);
+        size      = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
         underline = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
-        align     = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
-        color     = (try Some (List.assoc "color" attrs) with Not_found -> None);
+        color     = (try List.assoc "color" attrs with Not_found -> hex_of_rgb (PDF.text_color doc));
         bgcolor   = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
-        fill      = false; (* dummy *)
+        align     = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
+        line_spacing = (try float_of_string (List.assoc "line_spacing" attrs) with Not_found -> 0.0);
       } in
-      set_attrib attr;
       begin
         match children with
-          | [] ->
-            print_text " ";
+          | [] -> () (* Spazio? " " *)
           | children ->
             List.iter begin function
               | Xml.PCData text ->
-                print_text text;
-              | Xml.Element (tag, _, _) when (String.lowercase tag) = "br" ->
-                avail_width := width0;
-                incr current_line;
-                add_current_line_height true;
-                newline();
-                incr current_paragraph;
-              | _ -> failwith "invalid_markup"
+                let cell = (cell ~text ~attr ~par:!current_par) in
+                cells := cell :: !cells;
+              | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
+                newline ()
+              | _ -> invalid_arg "markup"
             end children
       end;
-    | Xml.Element (tag, _, []) ->
-      set_attrib default_style;
-      print_text "";
-    | _ -> failwith "invalid_markup"
+    | Xml.Element (tag, _, []) -> ()
+    | _ -> invalid_arg "markup"
   end xml;
-  set_attrib default_style;
-  let text_height = List.fold_left (fun acc (_, lh) -> acc +. lh) 0. analysis.an_lines_height in
-  (** Return the actual width and height *)
-  width0 +. 2. *. (padding +. border_width),
-  text_height +. 2. *. padding +. border_width,
-  analysis
+  List.rev !cells
+;;
+
+(** split_text_by_width *)
+let split_text_by_width ~widths ~cw ~can_wrap_char text =
+  let current_width = ref 0.0 in
+  let chunks = ref [] in
+  let i0 = ref 0 in
+  let i = ref 0 in
+  let widths = ref widths in
+  let width = ref 0.0 in
+  let string_width s =
+    let w = ref 0.0 in
+    String.iter (fun x -> w := !w +. cw x) s;
+    !w
+  in
+  let pop () =
+    match !widths with
+      | [] -> ()
+      | w :: tl ->
+        width := w;
+        widths := tl
+  in
+  pop();
+  let len = String.length text in
+  while !i < len do
+    let ch = String.unsafe_get text !i in
+    let w = cw ch in
+    current_width := !current_width +. w;
+    if !current_width > !width then begin
+      if !i = 0 then (raise Width_is_less_than_first_char_width);
+      let is_blank = ch = ' ' in
+      let start =
+        if is_blank then (find_word_bound_forward `START text !i)
+        else (find_word_bound_backward `START text !i)
+      in
+      let remaining_width =
+        if start = 0 && can_wrap_char then begin
+          chunks := (!current_width -. w, (String.sub text !i0 (!i - !i0))) :: !chunks;
+          w
+        end else begin
+          let stop = if start = 0 then 0 else find_word_bound_backward `STOP text !i in
+          let exceeding = String.sub text stop (!i - stop + 1) in
+          let exceeding_width = string_width exceeding in
+          chunks := (!current_width -. exceeding_width, (String.sub text !i0 (stop - !i0))) :: !chunks;
+          i := start - 1; (* -1 because i will be incremented *)
+          0.0
+        end
+      in
+      i0 := !i + 1;
+      current_width := remaining_width;
+      pop();
+    end;
+    incr i;
+  done;
+  chunks := (!current_width, (String.sub text !i0 (!i - !i0))) :: !chunks;
+  (*List.rev*) !chunks
+;;
+
+(** split_blocks_at_line_break *)
+let split_blocks_at_line_break ~paragraphs ~avail_width doc =
+  let scale = PDF.scale doc in
+  let width0 = avail_width in
+  let first_block = ref true in
+  List.map begin fun paragraph ->
+    let avail_width = ref width0 in
+    first_block := true;
+    List.rev (List.fold_left begin fun acc block ->
+      block.cell_height <- block.attr.size /. scale +. block.attr.line_spacing;
+      let family = block.attr.family in
+      let cw = char_width ~family ~style:block.attr.style ~size:block.attr.size ~scale in
+      (*Printf.printf ">>> %5.2f %5.2f %S\n%!" block.attr.size !avail_width block.text;*)
+      let chunks =
+        try split_text_by_width ~widths:[!avail_width; width0] ~cw ~can_wrap_char:!first_block block.text
+        with Width_is_less_than_first_char_width -> begin
+          avail_width := width0;
+          split_text_by_width ~widths:[!avail_width] ~cw ~can_wrap_char:!first_block block.text
+        end
+      in
+      List.iter begin fun (w, t) ->
+        avail_width := !avail_width -. w;
+        if !avail_width < 0.0 then (avail_width := width0 -. w);
+      end (List.rev chunks);
+      first_block := false;
+      (List.map (fun (w, t) -> {block with text=t; cell_width=w}) chunks) @ acc;
+    end [] paragraph)
+  end paragraphs
+;;
+
+(** struct_by_lines *)
+let struct_by_lines paragraphs =
+  List.map begin fun lines ->
+    List.map begin fun line ->
+      let line_width = List.fold_left (fun acc c -> acc +. c.cell_width) 0.0 line in
+      {line_width = line_width; line_height = 0.0; line_cells = line}
+    end lines
+  end paragraphs;
+;;
+
+(** struct_by_paragraphs *)
+let struct_by_paragraphs paragraphs = List.map begin fun lines -> {
+  paragraph_align        = 0.0;
+  paragraph_line_spacing = 0.0;
+  paragraph_lines        = lines;
+} end paragraphs
+;;
+
+(** set_line_numbers *)
+let set_line_numbers ~paragraphs ~avail_width =
+  let current_line = ref 0 in
+  let current_width = ref 0.0 in
+  List.iter begin fun paragraph ->
+    List.iter begin fun cell ->
+      if !current_width +. cell.cell_width >= avail_width then begin
+        current_width := cell.cell_width;
+        incr current_line;
+      end else begin
+        current_width := !current_width +. cell.cell_width
+      end;
+      cell.line <- !current_line;
+    end paragraph
+  end paragraphs
+;;
+
+(** set_paragraph_align *)
+let set_paragraph_align paragraphs =
+  List.iter begin fun par ->
+    let align =
+      List.fold_left begin fun acc line ->
+        max acc (List.fold_left (fun acc x -> max acc x.attr.align) 0.0 line.line_cells)
+      end 0.0 par.paragraph_lines
+    in
+    par.paragraph_align <- align;
+  end paragraphs
+;;
+
+(** set_paragraph_line_spacing *)
+let set_paragraph_line_spacing paragraphs =
+  let overall_height = ref 0.0 in
+  List.iter begin fun par ->
+    let line_spacing =
+      List.fold_left begin fun acc line ->
+        max acc (List.fold_left (fun acc x -> max acc x.attr.line_spacing) 0.0 line.line_cells)
+      end 0.0 par.paragraph_lines
+    in
+    par.paragraph_line_spacing <- line_spacing;
+    List.iter begin fun line ->
+      line.line_height <- List.fold_left (fun acc c -> max acc c.cell_height) 0.0 line.line_cells;
+      overall_height := !overall_height +. line.line_height +. line_spacing;
+    end par.paragraph_lines
+  end paragraphs;
+  !overall_height
+;;
+
+(** draw_underline *)
+let draw_underline ~x ~y ~cell doc =
+  let scale = PDF.scale doc in
+  let old = PDF.line_width doc in
+  let r, g, b = PDF.draw_color doc in
+  let fs = PDF.font_size doc in
+  let uw = fs /. 100. (*64.*) in
+  PDF.set_line_width uw doc;
+  let red, green, blue = PDF.text_color doc in
+  PDF.set_draw_color ~red ~green ~blue doc ;
+  match cell.attr.underline with
+    | `NONE -> ()
+    | `SINGLE ->
+      let y = y +. uw *. 3.5 in
+      PDF.line
+        ~x1:(x +. uw /. 2.) ~y1:y
+        ~x2:(x +. cell.cell_width -. uw /. 2.) ~y2:y doc;
+    | `LOW ->
+      let y = y +. (fs /. scale) /. 4. in
+      PDF.line
+        ~x1:(x +. uw /. 2.) ~y1:y
+        ~x2:(x +. cell.cell_width -. uw /. 2.) ~y2:y doc;
+  PDF.set_line_width old doc;
+  PDF.set_draw_color ~red:r ~green:g ~blue:b doc
+;;
+
+(** analyze *)
+let analyze ~x ~y ~width ~markup ?(padding=0.) ?(border_width=0.) doc =
+  let avail_width = width -. 2. *. padding -. 2. *. border_width in
+  let blocks = markup_to_blocks ~markup doc in
+  let paragraphs = group_by (fun x y -> x.par = y.par) blocks in
+  let paragraphs = split_blocks_at_line_break ~paragraphs ~avail_width doc in
+  set_line_numbers ~paragraphs ~avail_width;
+  let paragraphs = List.map (group_by (fun x y -> x.line = y.line)) paragraphs in
+  let paragraphs = struct_by_lines paragraphs in
+  let paragraphs = struct_by_paragraphs paragraphs in
+  set_paragraph_align paragraphs;
+  let overall_height = set_paragraph_line_spacing paragraphs in
+  (*(* Print debug info *)
+  List.iter begin fun {paragraph_lines=lines} ->
+    List.iter begin function {line_width=line_width; line_cells=cells} ->
+      List.iter begin fun cell ->
+        Printf.printf "%5.2f {w=%6.2f; h=%5.2f; color=% 7s; l=%2d; p=%2d; text=%S}\n%!"
+          line_width
+          cell.cell_width cell.cell_height
+          cell.attr.color cell.line cell.par cell.text;
+      end cells;
+      (*Printf.printf "\n%!" ;*)
+    end lines;
+    Printf.printf "======== %5.2f ========\n%!" width0;
+  end paragraphs;*)
+  (* Return analysis *)
+  {
+    width      = width;
+    height     = (overall_height +. 2. *. padding +. 2. *. border_width);
+    paragraphs = paragraphs
+  }
+;;
+
+(** print_text *)
+let print_text ~x ~y ~width ~markup ~analysis ?(padding=0.) ?(border_width=0.) doc =
+  let x0 = x +. padding +. border_width in
+  let y0 = y +. padding +. border_width in
+  let x = ref x0 in
+  let y = ref y0 in
+  List.iter begin function {
+    paragraph_align        = paragraph_align;
+    paragraph_line_spacing = paragraph_line_spacing;
+    paragraph_lines        = lines
+  } ->
+    List.iter begin function {line_width=line_width; line_height=line_height; line_cells=cells} ->
+      x := x0 +. (width -. line_width) *. paragraph_align;
+      y := !y +. line_height +. paragraph_line_spacing;
+      List.iter begin fun cell ->
+        if cell.cell_width > 0.0 then begin
+          let text = cell.text in
+          let red, green, blue = rgb_of_hex cell.attr.color in
+          PDF.set_text_color ~red ~green ~blue doc;
+          PDF.set_font ~family:cell.attr.family ~style:cell.attr.style ~size:cell.attr.size doc;
+          PDF.set ~x:!x ~y:!y doc;
+          PDF.cell ~width:cell.cell_width ~fill:false ~padding:0. ~text (*~height:3.0 ~border:[`All]*) doc;
+          draw_underline ~x:!x ~y:!y ~cell doc;
+          x := !x +. cell.cell_width;
+        end;
+      end cells;
+    end lines;
+  end analysis.paragraphs;;
 
 (** print *)
 let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=0.) doc =
-  let width, height, analysis =
-    print' ~x ~y ~width ~markup ~padding ~analyze:true ?border_width doc
-  in
+  let analysis = analyze ~x ~y ~width ~markup ~padding ?border_width doc in
+  let width = analysis.width in
+  let height = analysis.height in
+  let old_text_color = PDF.text_color doc in
   let old_bgcolor = PDF.fill_color doc in
   let old_draw_color = PDF.draw_color doc in
   let old_line_width = PDF.line_width doc in
@@ -368,15 +441,16 @@ let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_rad
     (match style with None -> () | Some style ->
       let bw = match border_width with None -> 0. | Some x -> x in
       PDF.rect ~x:(x +. bw /. 2.) ~y ~radius:border_radius
-        ~width:(width -. 1. *. bw)
+        ~width:(width -. bw)
         ~height ~style doc);
   end;
+  print_text ~x ~y ~width ~markup ~padding ~analysis ?border_width doc;
+  let red, green, blue = old_text_color in PDF.set_text_color ~red ~green ~blue doc;
   let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc;
   let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc;
   PDF.set_line_width old_line_width doc;
-  let w, h, _ = print' ~x ~y ~width ~markup ~padding ~analyze:false ~analysis ?border_width doc in
-  w, h
-
+  analysis.width, analysis.height
+;;
 
 
 

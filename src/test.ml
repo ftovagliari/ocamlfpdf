@@ -118,8 +118,9 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAPCHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
-      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:3. ~markup
-        ~bgcolor:"#fff0f0" ~border_width:0.2 ~border_color:"#f00000" ~border_radius:3. doc in
+      PDF.set_font ~family:`Times ~size:12. doc;
+      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:5. ~markup
+        ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
 
       (** Markup and wrap char *)
       PDF.add_page doc;
@@ -127,18 +128,18 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "\
-<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30'> language</SPAN>
+<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
 
 
 Foreword
 
 This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
 It lists the language constructs, and gives their precise syntax and informal semantics. \
-It is by no means a tutorial introduction to the language: there is not a <SPAN size='5'>single</SPAN> example. \
+It is by         no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
 A good working knowledge of Caml is assumed.
 
 No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a <SPAN size='30.'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
+meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
 out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
@@ -149,19 +150,20 @@ in typewriter font (like this). Non-terminal symbols are set in italic font (lik
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
 denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping." in
-      let width = (*50.*) width_avail /. 5. *. 2. in
 
-      let markup = "The_syntax_of_the_language is given .Mtation__Terminal <SPAN \
+(*      let markup = "The_syntax_of_the_language is given .Mtation__Terminal <SPAN \
 style='bold'>aa</SPAN>              symbols_are_set_in_typewriter_font (like this). \
 Non-terminal are set in_italic fosssssssnt font (like that)." in
 
-      let markup = "The_syntax_of_the_language <SPAN style='bold'>is</SPAN> given notation__Terminal \
-<SPAN style='bold'>aa</SPAN> symbols_are_set_in_typewriter_font (like this).  \
-Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN> font (like that)." in
+      let markup = "The_syntax_of_the_language <SPAN style='bold'>is</SPAN> given <SPAN style='bold'>notation__Terminal</SPAN> \
+aa symbols_are_set_in_typewriter_font (like this).  \
+Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN> font (like that)." in*)
 
+      PDF.set_font ~family:`Times ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
-      let _, _ = PDFMarkup.print ~x ~y ~width ~padding:0. ~markup
-        ~bgcolor:"#50f0f0" (*~border_width:0.4 ~border_color:"#f00000" ~border_radius:3.*) doc in
+      let width = (*50.*) width_avail /. 5. *. 3. +. 0.5 in
+      let _, _ = PDFMarkup.print ~x ~y ~width ~markup
+        ~bgcolor:"#fff0f0" (*~padding:2. ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc in
 
       (** Vertical box *)
       PDF.add_page doc;

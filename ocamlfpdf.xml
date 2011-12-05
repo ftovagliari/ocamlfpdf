@@ -11,15 +11,16 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="4785" active="false">test.ml</filename>
-    <filename offset="14416" active="true">PDFMarkup.ml</filename>
+    <filename offset="3467" active="true">test.ml</filename>
+    <filename offset="8093" active="false">PDFMarkup.old.ml</filename>
     <filename offset="453" active="false">Makefile</filename>
-    <filename offset="637" active="false">gtk_pdfmarkup_editor.ml</filename>
+    <filename offset="13134" active="false">gtk_pdfmarkup_editor.ml</filename>
     <filename offset="1788" active="false">test_pdfmarkup_editor.ml</filename>
-    <filename offset="32193" active="false">PDF.ml</filename>
-    <filename offset="452" active="false">PDFMarkup.mli</filename>
-    <filename offset="29307" active="false">pDF.ml</filename>
     <filename offset="3843" active="false">PDFUtil.ml</filename>
+    <filename offset="15231" active="false">PDFMarkup.ml</filename>
+    <filename offset="2855" active="false">font.ml</filename>
+    <filename offset="1101" active="false">font_metrics.ml</filename>
+    <filename offset="39988" active="false">PDF.ml</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -77,7 +78,7 @@
     <configuration>
       <id>0</id>
       <name>fpdf library</name>
-      <default>true</default>
+      <default>false</default>
       <byt>true</byt>
       <opt>true</opt>
       <libs>xml-light</libs>
@@ -233,7 +234,7 @@
     <configuration>
       <id>8</id>
       <name>Markup Editor</name>
-      <default>false</default>
+      <default>true</default>
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
