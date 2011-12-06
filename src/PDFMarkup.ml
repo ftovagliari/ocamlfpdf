@@ -336,7 +336,7 @@ let draw_underline ~x ~y ~cell doc =
   let old = PDF.line_width doc in
   let r, g, b = PDF.draw_color doc in
   let fs = PDF.font_size doc in
-  let uw = fs /. 100. (*64.*) in
+  let uw = fs /. 64. in
   PDF.set_line_width uw doc;
   let red, green, blue = PDF.text_color doc in
   PDF.set_draw_color ~red ~green ~blue doc ;
