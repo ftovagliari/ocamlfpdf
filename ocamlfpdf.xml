@@ -11,10 +11,10 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="3467" active="true">test.ml</filename>
+    <filename offset="3467" active="false">test.ml</filename>
     <filename offset="8093" active="false">PDFMarkup.old.ml</filename>
     <filename offset="453" active="false">Makefile</filename>
-    <filename offset="13134" active="false">gtk_pdfmarkup_editor.ml</filename>
+    <filename offset="13186" active="true">gtk_pdfmarkup_editor.ml</filename>
     <filename offset="1788" active="false">test_pdfmarkup_editor.ml</filename>
     <filename offset="3843" active="false">PDFUtil.ml</filename>
     <filename offset="15231" active="false">PDFMarkup.ml</filename>
@@ -27,7 +27,7 @@
       <id>3</id>
       <id_build>6</id_build>
       <name>Test</name>
-      <default>true</default>
+      <default>false</default>
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var>TEST=1</var>
@@ -66,7 +66,7 @@
       <id>5</id>
       <id_build>7</id_build>
       <name>Test Editor</name>
-      <default>false</default>
+      <default>true</default>
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var>OCAMLRUNPARAM=b</var>
