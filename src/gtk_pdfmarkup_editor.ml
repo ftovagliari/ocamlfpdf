@@ -121,22 +121,19 @@ object (self)
     method buffer = buffer
     method toolbox = toolbox
     method toolbox_secondary = toolbox_secondary
+    method entry_size = entry_size
+    method button_bold = button_bold
+    method button_italic = button_italic
+    method button_uline = button_uline
+    method button_left = button_left
+    method button_center = button_center
+    method button_right = button_right
+    method button_fgcolor = button_fgcolor
+    method button_clear = button_clear
 
-    method private find_tagsize size =
-      try List.assoc size tagsize
-      with Not_found -> begin
-        let tag = buffer#create_tag [`SIZE_POINTS size] in
-        tagsize <- (size, tag) :: tagsize;
-        tag
-      end
-
-    method private find_tagfgcolor color =
-      try List.assoc color tagfgcolor
-      with Not_found -> begin
-        let tag = buffer#create_tag [`FOREGROUND color] in
-        tagfgcolor <- (color, tag) :: tagfgcolor;
-        tag
-      end
+    method set_color_fg colorname =
+      button_fgcolor#set_color (Gdk.Color.alloc ~colormap:(Gdk.Color.get_system_colormap()) (`NAME colorname));
+      self#apply_color_fg()
 
     method set_markup markup =
       buffer#delete buffer#start_iter buffer#end_iter;
@@ -395,18 +392,7 @@ object (self)
         changed#call()
       end);
       (** fgcolor *)
-      ignore (button_fgcolor#connect#color_set ~callback:begin fun () ->
-        let start = buffer#get_iter_at_mark tag_select_start in
-        let stop = buffer#get_iter_at_mark tag_select_stop in
-        if not (start#equal stop) then begin
-          List.iter (fun (_, t) -> buffer#remove_tag t ~start ~stop) tagfgcolor;
-          if name_of_gdk button_fgcolor#color <> default_fgcolor then begin
-            let tag = self#find_tagfgcolor (name_of_gdk button_fgcolor#color) in
-            buffer#apply_tag tag ~start ~stop
-          end
-        end;
-        changed#call()
-      end);
+      ignore (button_fgcolor#connect#color_set ~callback:self#apply_color_fg);
       (** button_clear *)
       ignore (button_clear#connect#clicked ~callback:begin fun () ->
         buffer#remove_all_tags ~start:buffer#start_iter ~stop:buffer#end_iter;
@@ -415,6 +401,18 @@ object (self)
         button_right#set_active false;
         changed#call()
       end);
+
+    method private apply_color_fg () =
+      let start = buffer#get_iter_at_mark tag_select_start in
+      let stop = buffer#get_iter_at_mark tag_select_stop in
+      if not (start#equal stop) then begin
+        List.iter (fun (_, t) -> buffer#remove_tag t ~start ~stop) tagfgcolor;
+        if name_of_gdk button_fgcolor#color <> default_fgcolor then begin
+          let tag = self#find_tagfgcolor (name_of_gdk button_fgcolor#color) in
+          buffer#apply_tag tag ~start ~stop
+        end
+      end;
+      changed#call()
 
     method private set_align current_align current_tags =
       current_align :=
@@ -457,5 +455,21 @@ object (self)
       end current_tags;
       current_style := List.filter ((<>) "") !current_style;
       current_style := remove_dupl !current_style;
+
+    method private find_tagsize size =
+      try List.assoc size tagsize
+      with Not_found -> begin
+        let tag = buffer#create_tag [`SIZE_POINTS size] in
+        tagsize <- (size, tag) :: tagsize;
+        tag
+      end
+
+    method private find_tagfgcolor color =
+      try List.assoc color tagfgcolor
+      with Not_found -> begin
+        let tag = buffer#create_tag [`FOREGROUND color] in
+        tagfgcolor <- (color, tag) :: tagfgcolor;
+        tag
+      end
 
 end
