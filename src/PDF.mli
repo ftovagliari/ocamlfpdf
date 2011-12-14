@@ -35,7 +35,7 @@ and internal_link = int * float
 
 type document
 
-(** {2 PDF Document} *)
+(** {6 PDF Document} *)
 
 (**
   @param m_unit Default is [Mm].
@@ -69,7 +69,7 @@ val title : document -> string
 val set_author : string -> document -> unit
 val set_title : string -> document -> unit
 
-(** {2 Page } *)
+(** {6 Page Properties } *)
 
 val page_width : document -> float
 val page_height : document -> float
@@ -84,7 +84,7 @@ val set_margins :
 (** Returns the current page number. *)
 val page_no : document -> int
 
-(** Page header and footer. *)
+(** {6 Page Header and Footer} *)
 
 (** Set the drawing function for the header. *)
 val set_header_func : (unit -> unit) -> document -> unit
@@ -92,7 +92,7 @@ val set_header_func : (unit -> unit) -> document -> unit
 (** Set the drawing function for the footer. *)
 val set_footer_func : (unit -> unit) -> document -> unit
 
-(** {2 Positioning} *)
+(** {6 Positioning} *)
 
 (** Return the current absolute {i x} position. *)
 val x : document -> float
@@ -104,7 +104,7 @@ val y : document -> float
 val set : ?x:float -> ?y:float -> document -> unit
 
 
-(** {2 Text} *)
+(** {6 Text} *)
 
 val font_style : document -> Font.style list
 val font_size : document -> float
@@ -148,7 +148,7 @@ val text : x:float -> y:float -> text:string -> document -> unit
 
 val newline : ?height:float -> document -> unit
 
-(** {2 Drawing} *)
+(** {6 Drawing} *)
 
 (** Default value is 0.1 *)
 val set_line_width : float -> document -> unit
@@ -174,7 +174,7 @@ val rect :
   width:float ->
   height:float -> ?radius:float -> ?style:rect_style -> document -> unit
 
-(** {2 Images } *)
+(** {6 Images } *)
 
 (** Put an image in the document.
   @param name Filename with format [<id>.\{jpg|jpeg|png\}] (for example: {i myimage.jpg}).
@@ -196,13 +196,13 @@ val image :
   ?width:float ->
   ?height:float -> ?format:string -> ?link:'a -> document -> unit
 
-(** {2 Miscellaneous functions} *)
+(** {6 Miscellaneous Functions} *)
 
 (** Return the width of a string in user units computed with the current font. *)
 val get_string_width : string -> document -> float
 
 
-(** {2 Private} *)
+(** {6 Private} *)
 
 val add_resource : (unit -> unit) -> document -> unit
 val add_catalog : (unit -> unit) -> document -> unit
@@ -210,7 +210,7 @@ val new_obj : document -> unit
 val current_object_number : document -> int
 val print : document -> ('a, unit, string, unit) format4 -> 'a
 
-(** {2 Hyperlinks } *)
+(** {6 Hyperlinks } *)
 
 (**
     @deprecated

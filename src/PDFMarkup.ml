@@ -186,7 +186,7 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
   let i0 = ref 0 in
   let i = ref 0 in
   let widths = ref widths in
-  let width = ref 0.0 in
+  let avail_width = ref 0.0 in
   let string_width s =
     let w = ref 0.0 in
     String.iter (fun x -> w := !w +. cw x) s;
@@ -196,7 +196,7 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
     match !widths with
       | [] -> ()
       | w :: tl ->
-        width := w;
+        avail_width := w;
         widths := tl
   in
   pop();
@@ -205,23 +205,35 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
     let ch = String.unsafe_get text !i in
     let w = cw ch in
     current_width := !current_width +. w;
-    if !current_width > !width then begin
+    if !current_width > !avail_width then begin
       if !i = 0 then (raise Width_is_less_than_first_char_width);
       let is_blank = ch = ' ' in
-      let start =
-        if is_blank then (find_word_bound_forward `START text !i)
-        else (find_word_bound_backward `START text !i)
+      let word_start, need_wrap_char =
+        if is_blank then (find_word_bound_forward `START text !i, false)
+        else begin
+          let word_start = find_word_bound_backward `START text !i in
+          let s = String.sub text word_start (!i - word_start + 1) in
+          let need_wrap_char = (*word_start = 0*) string_width s > !avail_width in
+          word_start, need_wrap_char
+        end
       in
       let remaining_width =
-        if start = 0 && can_wrap_char then begin
+        if need_wrap_char && can_wrap_char then begin
           chunks := (!current_width -. w, (String.sub text !i0 (!i - !i0))) :: !chunks;
           w
         end else begin
-          let stop = if start = 0 then 0 else find_word_bound_backward `STOP text !i in
-          let exceeding = String.sub text stop (!i - stop + 1) in
+          let word_stop = if need_wrap_char then word_start else find_word_bound_backward `STOP text !i in
+          let exceeding = String.sub text word_stop (!i - word_stop + 1) in
           let exceeding_width = string_width exceeding in
-          chunks := (!current_width -. exceeding_width, (String.sub text !i0 (stop - !i0))) :: !chunks;
-          i := start - 1; (* -1 because i will be incremented *)
+          begin
+            (*try*)
+              chunks := (!current_width -. exceeding_width, (String.sub text !i0 (word_stop - !i0))) :: !chunks;
+            (*with Invalid_argument("String.sub") ->
+              Printf.printf "need_wrap_char=%b; can_wrap_char=%b; i0=%d; i=%d; word_start=%d; word_stop=%d; %S;\n%!"
+                need_wrap_char !can_wrap_char !i0 !i word_start word_stop text;
+              List.iter (fun (x, y) -> Printf.printf "%s\n%!" y;) !chunks;*)
+          end;
+          i := word_start - 1; (* -1 because i will be incremented *)
           0.0
         end
       in

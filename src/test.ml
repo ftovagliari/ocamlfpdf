@@ -117,7 +117,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       PDF.add_page doc;
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
-      let markup = "WRAPCHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
+      let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
       PDF.set_font ~family:`Times ~size:12. doc;
       let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:5. ~markup
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
