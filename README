@@ -36,7 +36,7 @@ HOW TO COMPILE:
     make install
 
   By default, the library will be installed in the `ocamlc -where`/fpdf
-  directory. You can change it by editing the Makefile.
+  directory.
 
   You can generate a LablGtk2 markup editor (for use with PDFMarkup) with:
 
@@ -46,7 +46,7 @@ HOW TO COMPILE:
 
 HOW TO USE:
 
-  Compile your program as follow:
+  Compile your program as follows:
 
   ocamlc -o ??? -I +fpdf -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma ???.ml
 
