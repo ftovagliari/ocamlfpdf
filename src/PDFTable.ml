@@ -71,13 +71,13 @@ let print
     ~rows
     ?caption
     ?(cell_func=(fun ~index ~row ~col -> {
-      prop_text = (match row col with None -> "" | Some x -> x);
-      prop_align = `Center;
+      prop_text       = (match row col with None -> "" | Some x -> x);
+      prop_align      = `Center;
       prop_font_style = [];
-      prop_font_size = None;
-      prop_image = None;
-      prop_bg_color = None;
-      prop_fg_color = None;
+      prop_font_size  = None;
+      prop_image      = None;
+      prop_bg_color   = None;
+      prop_fg_color   = None;
     })) doc =
   let set_default_draw_color doc = PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
   let margin_top, _, margin_bottom, margin_left = PDF.margins doc in
@@ -99,7 +99,7 @@ let print
   let y0 = y in
   let x = ref (margin_left +. x0) in
   let y = ref (margin_top +. y0) in
-  (* Titles of the columns *)
+  (** column titles *)
   let print_title ~x ~y ?align (_, col) =
     let width = col.col_width in
     if width > 0. then begin
@@ -123,7 +123,7 @@ let print
     PDF.set_font ~style:[] doc;
     PDF.set ~x:!x ~y:!y doc;
   in
-  (* Caption *)
+  (** Caption *)
   begin
     match caption with None -> () | Some caption ->
       PDF.set_font ~style:[`Bold] doc;
@@ -133,7 +133,7 @@ let print
   end;
   let top, left = ref !y, ref (margin_left +. x0) in
   print_titles ~x ~y ();
-  (* Vertical lines between columns *)
+  (** Vertical lines between columns *)
   let print_vertical_lines ~left ~top ~bottom () =
     let x = ref left in
     PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc;
@@ -146,21 +146,21 @@ let print
     List.iter print_line columns;
     PDF.line ~x1:left ~y1:bottom ~x2:(left +. width) ~y2:bottom doc;
   in
-  (* Print rows *)
+  (** Print rows *)
   let tags = fst (List.split columns) in
   let (!!) = PDFUtil.memo ~f:(list_pos tags) in
   let index = ref 0 in
   let cont = ref [] in
   List.iter begin fun row ->
     x := !left;
-    let cell_props = Array.create (Array.length row) {
-      prop_text = "";
-      prop_align = `Left;
+    let cell_props  = Array.create (Array.length row) {
+      prop_text       = "";
+      prop_align      = `Left;
       prop_font_style = [];
-      prop_font_size = None;
-      prop_image = None;
-      prop_bg_color = None;
-      prop_fg_color = None;
+      prop_font_size  = None;
+      prop_image      = None;
+      prop_bg_color   = None;
+      prop_fg_color   = None;
     } in
     let i = ref 0 in
     let heights = List.map begin fun (tag, col) ->
@@ -234,7 +234,7 @@ let print
       PDF.y doc
     end columns in
     y := List.fold_left max 0.0 ys;
-    (* Horizontal line between rows. *)
+    (** Horizontal line between rows. *)
 (*    PDF.set_draw_color ~red:200 ~green:200 ~blue:200 doc;*)
     let x1, y1, x2, y2 = !left, !y, !x, !y in
     let f = fun () -> PDF.line ~x1 ~y1 ~x2 ~y2 doc in
@@ -244,7 +244,6 @@ let print
   end rows;
   List.iter (fun f -> f ()) !cont;
   print_vertical_lines ~left:!left ~top:!top ~bottom:!y ()
-
 
 
 

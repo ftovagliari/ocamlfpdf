@@ -22,13 +22,13 @@
 
 (** Layout for printing tabular material. *)
 type cell_properties = {
-  mutable prop_text : string;
-  mutable prop_align : PDF.align;
+  mutable prop_text       : string;
+  mutable prop_align      : PDF.align;
   mutable prop_font_style : Font.style list;
-  mutable prop_font_size : float option;
-  mutable prop_bg_color : (int * int * int) option;
-  mutable prop_fg_color : (int * int * int) option;
-  prop_image : image option;
+  mutable prop_font_size  : float option;
+  mutable prop_bg_color   : (int * int * int) option;
+  mutable prop_fg_color   : (int * int * int) option;
+  prop_image              : image option;
 }
 and image
 and column = { mutable col_width : float; mutable col_title : string; }
