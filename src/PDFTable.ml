@@ -50,6 +50,16 @@ let rec list_pos ?(pos=0) ll x = match ll with
   | [] -> raise Not_found
   | a :: b -> if a = x then pos else 1 + (list_pos ~pos b x)
 
+let default_cell_func ~index ~row ~col = {
+  prop_text       = (match row col with None -> "" | Some x -> x);
+  prop_align      = `Center;
+  prop_font_style = [];
+  prop_font_size  = None;
+  prop_image      = None;
+  prop_bg_color   = None;
+  prop_fg_color   = None;
+}
+
 (** Table with automatic page break.
   * @param x Position of the left border of the table.
   * @param y Position of the top border of the table.
@@ -69,24 +79,11 @@ let print
     ~line_height
     ~columns
     ~rows
+    ?(grid_lines=(`Both : [`None | `Vertical | `Horizontal | `Both]))
+    ?(page_break_func=ignore)
     ?caption
-    ?(cell_func=(fun ~index ~row ~col -> {
-      prop_text       = (match row col with None -> "" | Some x -> x);
-      prop_align      = `Center;
-      prop_font_style = [];
-      prop_font_size  = None;
-      prop_image      = None;
-      prop_bg_color   = None;
-      prop_fg_color   = None;
-    })) doc =
-  let set_default_draw_color doc = PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
-  let margin_top, _, margin_bottom, margin_left = PDF.margins doc in
-  let add_page () =
-    PDF.add_page doc;
-    PDF.set_line_width 0.1 doc;
-    let mt, mr, mb, ml = PDF.margins doc in
-    mt, ml
-  in
+    ?(cell_func=default_cell_func)
+    doc =
   let perc =
     let sum_perc = ref 0.0 in fun x ->
       if x <= 0.0 then 0.0 else
@@ -95,10 +92,13 @@ let print
         w
   in
   List.iter (fun (_, col) -> col.col_width <- (perc col.col_width)) columns;
+  (**  *)
+  let set_default_draw_color doc = PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
+  let space_sep = 0.5 in
   let x0 = x in
   let y0 = y in
-  let x = ref (margin_left +. x0) in
-  let y = ref (margin_top +. y0) in
+  let x = ref x0 in
+  let y = ref y0 in
   (** column titles *)
   let print_title ~x ~y ?align (_, col) =
     let width = col.col_width in
@@ -110,7 +110,6 @@ let print
     end;
     PDF.y doc
   in
-  let space = 0.5 in
   let print_titles ~x ~y () =
     let x0, y0 = !x, !y in
     PDF.set_font ~style:[] doc;
@@ -118,7 +117,7 @@ let print
     (* *)
     PDF.line ~x1:x0 ~y1:y0 ~x2:(x0 +. width) ~y2:y0 doc;
     PDF.line ~x1:x0 ~y1:!y ~x2:!x ~y2:!y doc;
-    y := !y +. space;
+    y := !y +. space_sep;
     PDF.line ~x1:x0 ~y1:!y ~x2:!x ~y2:!y doc;
     PDF.set_font ~style:[] doc;
     PDF.set ~x:!x ~y:!y doc;
@@ -129,22 +128,26 @@ let print
       PDF.set_font ~style:[`Bold] doc;
       PDF.set ~x:!x ~y:!y doc;
       PDF.multi_cell ~width ~line_height ~border:[] ~padding:0.5 ~align:`Center ~text:caption doc;
-      y := !y +. line_height +. space;
+      y := !y +. line_height +. space_sep;
   end;
-  let top, left = ref !y, ref (margin_left +. x0) in
+  let top, left = ref !y, ref x0 in
   print_titles ~x ~y ();
   (** Vertical lines between columns *)
   let print_vertical_lines ~left ~top ~bottom () =
     let x = ref left in
     PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc;
-    let print_line (_, col) =
-      let width = col.col_width in
-      if width > 0. then begin
-        x := !x +. width;
-        PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc
-      end in
-    List.iter print_line columns;
     PDF.line ~x1:left ~y1:bottom ~x2:(left +. width) ~y2:bottom doc;
+    match grid_lines with
+      | `Vertical | `Both ->
+        let print_line (_, col) =
+          let width = col.col_width in
+          if width > 0. then begin
+            x := !x +. width;
+            PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc
+          end
+        in
+        List.iter print_line columns;
+      | _ -> PDF.line ~x1:(left +. width) ~y1:top ~x2:(left +. width) ~y2:bottom doc
   in
   (** Print rows *)
   let tags = fst (List.split columns) in
@@ -183,12 +186,11 @@ let print
     (* Salto pagina se necessario. Se una riga sconfina su più righe e l'altezza totale
      * supera lo spazio restante a fine pagina allora viene forzato un salto pagina (invece
      * di spezzare la riga). *)
-    if !y -. margin_top +. max_height > page_height then begin
+    if !y -. !top +. max_height > page_height then begin
       List.iter (fun f -> f ()) !cont;
       cont := [];
       print_vertical_lines ~left:!left ~top:!top ~bottom:!y ();
-      let margin_top, margin_left = add_page() in
-      PDF.set ~x:(margin_left +. x0) ~y:(margin_top +. y0) doc;
+      page_break_func ();
       left := PDF.x doc;
       top := PDF.y doc;
       x := PDF.x doc;
@@ -235,10 +237,14 @@ let print
     end columns in
     y := List.fold_left max 0.0 ys;
     (** Horizontal line between rows. *)
-(*    PDF.set_draw_color ~red:200 ~green:200 ~blue:200 doc;*)
-    let x1, y1, x2, y2 = !left, !y, !x, !y in
-    let f = fun () -> PDF.line ~x1 ~y1 ~x2 ~y2 doc in
-    cont := f :: !cont;
+    begin
+      match grid_lines with
+        | `Horizontal | `Both ->
+          let x1, y1, x2, y2 = !left, !y, !x, !y in
+          let f = fun () -> PDF.line ~x1 ~y1 ~x2 ~y2 doc in
+          cont := f :: !cont;
+        | _ -> ()
+    end;
     set_default_draw_color doc;
     incr index;
   end rows;

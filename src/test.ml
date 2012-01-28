@@ -254,29 +254,46 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       (** PDFTable *)
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"PDFTable" doc);
-      let x = (width_avail -. width) /. 2. in
-      let y = height_header +. spacing in
+      let width = width_avail *. 0.7 in
+      let x = margin +. (width_avail -. width) /. 2. in
+      let y = margin +. height_header +. spacing in
+      (**  *)
+      PDFTable.print ~x:1. ~y
+        ~caption:""
+        ~grid_lines:`Vertical
+        ~width:25.
+        ~page_height:height_avail
+        ~line_height
+        ~columns:[
+          `A, {PDFTable.col_width = 38.; col_title = "A"};
+          `B, {PDFTable.col_width = 62.; col_title = "B"};
+        ]
+        ~rows:[
+          [|Some "a"; Some "\128"|];
+          [|Some "1"; Some "3"|];
+          [|Some "A"; Some "B"|];
+        ]
+        doc;
+      (**  *)
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
       let cell_func ~index ~row ~col =
         let prop = {PDFTable.
-          prop_text = (match row col with None -> "" | Some x -> x);
-          prop_align = `Center;
+          prop_text       = (match row col with None -> "" | Some x -> x);
+          prop_align      = `Center;
           prop_font_style = (if is_fib index then [`Bold] else []);
-          prop_font_size = None;
-          prop_image = None;
-          prop_bg_color = (if is_fib index then Some (220, 220, 255) else None);
-          prop_fg_color = None;
+          prop_font_size  = None;
+          prop_image      = None;
+          prop_bg_color   = (if is_fib index then Some (220, 220, 255) else None);
+          prop_fg_color   = None;
         } in
         if col = `B then {prop with PDFTable.
-          prop_text = (match row col with None -> "-" | Some x -> x);
-          prop_align = `Left;
+          prop_text       = (match row col with None -> "-" | Some x -> x);
+          prop_align      = `Left;
           prop_font_style = prop.PDFTable.prop_font_style @ [`Italic];
         } else prop
       in
-      let width = width_avail *. 0.7 in
-      let x = x +. (width_avail -. width) /. 2. in
-      let rows = Array.create 75 [|Some "Text"; Some "text"; Some "Text"|] in
+      let rows = Array.create 275 [|Some "Text"; Some "text"; Some "Text"|] in
       let rows = Array.to_list rows in
       PDFTable.print ~x ~y
         ~caption:"PDFTable"
@@ -293,8 +310,13 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           [|Some "1"; None; Some "3"|];
           [|Some "A"; None; Some "B"|];
         ] @ rows)
+        ~page_break_func:begin fun () ->
+          PDF.add_page doc;
+          PDF.set ~x ~y doc;
+        end
         ~cell_func
         doc;
+      (**  *)
       let parent = PDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in
       ignore (PDFBookmark.add ~parent ~text:"Test: à \128" doc);
       ignore (PDFBookmark.add ~parent ~text:(PDFUtil.utf8_to_utf16 "Test: à €") doc);

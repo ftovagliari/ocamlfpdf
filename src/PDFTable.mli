@@ -59,6 +59,8 @@ val print :
   line_height:float ->
   columns:('a column_id * column) list ->
   rows:string option array list ->
+  ?grid_lines : [`None | `Vertical | `Horizontal | `Both] ->
+  ?page_break_func:(unit -> unit) ->
   ?caption:string ->
   ?cell_func:(index:int ->
               row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
