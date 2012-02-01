@@ -259,7 +259,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header +. spacing +. 40. in
       (**  *)
-      (*PDFTable.print ~x:1. ~y
+      PDFTable.print ~x:1. ~y
         ~caption:""
         ~grid_lines:`Vertical
         ~width:25.
@@ -274,7 +274,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           [|Some "1"; Some "3"|];
           [|Some "A"; Some "B"|];
         ]
-        doc;*)
+        doc;
       (**  *)
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
@@ -350,7 +350,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
         ~page_height:height_avail
         ~page_header_height:height_header
         ~line_height
-        (*~header_layout*)
+        ~header_layout
         ~grid_lines:`Vertical
         (*~cellpadding:0.*)
         ~columns
