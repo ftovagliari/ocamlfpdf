@@ -35,9 +35,21 @@ and column = { mutable col_width : float; mutable col_title : string; }
 
 type 'a column_id = 'a
 
+and 'a tree = [`Node of 'a node | `Leaf of 'a column_id ]
+
+and 'a node = {
+  h_vertical_line_width : thickness;
+  h_draw                : header_draw_func;
+  h_children            : 'a tree list;
+}
+
+and header_draw_func = [`Text of string | `Func of (width:float -> float)]
+
+and thickness = [`Thin | `Thick ]
+
 (** Table layout with automatic page break.
-  @param x Abscissa of the upper-left corner relative to the page's left margin.
-  @param y Ordinate of the upper-left corner relative to the page's top margin.
+  @param x Absolute abscissa of the upper-left corner.
+  @param y Absolute ordinate of the upper-left corner.
   @param width Width of the table
   @param page_height Available height in the page body.
   @param line_height Height of the line of text.
@@ -45,6 +57,13 @@ type 'a column_id = 'a
          for example it may be a user defined variant tag.
   @param rows The list of rows.
   @param caption Caption of the table.
+  @param grid_lines Whether grid lines should be drawn in the table body.
+  @param border Which parts of the table border should be drawn.
+  @param border_width Width of the table border.
+  @param header_layout Table header layout.
+  @param page_header_height Height of the page header.
+  @param page_break_func Function called when a page break occurs.
+  @param cellpadding Extra space to put around cell contents.
   @param cell_func Function applied to every single cell of the table to set style properties.
          The [cell_properties] returned are applied to the cell identified by [index] and [col],
          where [index] is the general row index starting from zero.
@@ -60,8 +79,13 @@ val print :
   columns:('a column_id * column) list ->
   rows:string option array list ->
   ?grid_lines : [`None | `Vertical | `Horizontal | `Both] ->
+  ?border : PDF.border ->
+  ?border_width:thickness ->
+  ?header_layout:('a tree list) ->
+  ?page_header_height:float ->
   ?page_break_func:(unit -> unit) ->
   ?caption:string ->
+  ?cellpadding:float ->
   ?cell_func:(index:int ->
               row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
   PDF.document -> unit

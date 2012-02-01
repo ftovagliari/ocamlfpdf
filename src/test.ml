@@ -21,6 +21,7 @@
 *)
 
 open Printf
+open PDFTable
 
 let rec fixpoint f v =
   let v' = f v in
@@ -256,9 +257,9 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       ignore (PDFBookmark.add ~text:"PDFTable" doc);
       let width = width_avail *. 0.7 in
       let x = margin +. (width_avail -. width) /. 2. in
-      let y = margin +. height_header +. spacing in
+      let y = margin +. height_header +. spacing +. 40. in
       (**  *)
-      PDFTable.print ~x:1. ~y
+      (*PDFTable.print ~x:1. ~y
         ~caption:""
         ~grid_lines:`Vertical
         ~width:25.
@@ -273,7 +274,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           [|Some "1"; Some "3"|];
           [|Some "A"; Some "B"|];
         ]
-        doc;
+        doc;*)
       (**  *)
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
@@ -293,28 +294,76 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           prop_font_style = prop.PDFTable.prop_font_style @ [`Italic];
         } else prop
       in
-      let rows = Array.create 275 [|Some "Text"; Some "text"; Some "Text"|] in
+      let rows = Array.create 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
       let rows = Array.to_list rows in
+      let w = (float (truncate (100. /. 8. *. 1000.))) /. 1000. in
+      let columns = [
+        `A, {PDFTable.col_width = w; col_title = "Column A"};
+        `B, {PDFTable.col_width = w; col_title = "Column B"};
+        `C, {PDFTable.col_width = w; col_title = "Column C"};
+        `D, {PDFTable.col_width = w; col_title = "Column D"};
+        `E, {PDFTable.col_width = w; col_title = "Column E"};
+        `F, {PDFTable.col_width = w; col_title = "Column F"};
+        `G, {PDFTable.col_width = w; col_title = "Column G"};
+        `H, {PDFTable.col_width = w; col_title = "Column H"};
+      ] in
+      let header_layout = [
+        `Node {
+          h_draw = `Text "ABC";
+          h_vertical_line_width = `Thick;
+          h_children = [
+            `Node {
+               h_draw                = `Text "AB";
+               h_vertical_line_width = `Thick;
+               h_children            = [`Leaf `A; `Leaf `B];
+            };
+            `Leaf `C;
+          ]
+        };
+        `Node {
+          h_draw = `Text "DEFG";
+          h_vertical_line_width = `Thin;
+          h_children = [
+            `Node {
+              h_draw = `Text "DE";
+              h_vertical_line_width = `Thin;
+              h_children            = [`Leaf `D; `Leaf `E];
+            };
+            `Node {
+              h_draw = `Text "FGH";
+              h_vertical_line_width = `Thin;
+              h_children = [
+                `Node {
+                  h_draw = `Text "FG";
+                  h_vertical_line_width = `Thin;
+                  h_children            = [`Leaf `F; `Leaf `G]
+                };
+                `Leaf `H
+              ]
+            }
+          ]
+        }
+      ] in
       PDFTable.print ~x ~y
         ~caption:"PDFTable"
         ~width
         ~page_height:height_avail
+        ~page_header_height:height_header
         ~line_height
-        ~columns:[
-          `A, {PDFTable.col_width = 15.; col_title = "Column A"};
-          `B, {PDFTable.col_width = 23.; col_title = "Column B"};
-          `C, {PDFTable.col_width = 62.; col_title = "Column C"};
-        ]
+        (*~header_layout*)
+        ~grid_lines:`Vertical
+        (*~cellpadding:0.*)
+        ~columns
         ~rows:([
-          [|Some "a"; Some "M"; Some "\128"|];
-          [|Some "1"; None; Some "3"|];
-          [|Some "A"; None; Some "B"|];
+          [|Some "a"; Some "M"; Some "\128"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
+          [|Some "1"; None; Some "3"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
+          [|Some "A"; None; Some "B"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
         ] @ rows)
         ~page_break_func:begin fun () ->
           PDF.add_page doc;
-          PDF.set ~x ~y doc;
+          PDF.set ~x ~y:(PDF.y doc +. 2.) doc;
         end
-        ~cell_func
+        (*~cell_func*)
         doc;
       (**  *)
       let parent = PDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in

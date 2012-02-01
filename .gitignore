@@ -1,5 +1,6 @@
 bak
 tmp
+.tmp
 .cache
 *.annot
 *.exe
@@ -15,3 +16,4 @@ Thumbs.db
 *~
 src/_build
 ocamlfpdf.cache
+doc/*

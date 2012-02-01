@@ -14,3 +14,4 @@ val call_and_restore :
   pre:(unit -> 'a) -> ('b -> 'c) -> 'b -> post:('a -> 'd) -> 'c
 val utf8_to_utf16 : string -> string
 val memo : f:('a -> 'b) -> ?force:('b -> bool) -> 'a -> 'b
+val group_by : ('a -> 'b) -> 'a list -> ('b * 'a list) list

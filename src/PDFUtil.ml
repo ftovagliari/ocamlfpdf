@@ -136,7 +136,15 @@ let memo ~f =
       Hashtbl.add table key data;
       data
 
-
+let rec group_by f ll =
+  List.map (fun (a, r) -> (a, !r)) (List.fold_left begin fun groups a ->
+    let g = f a in
+    try
+      let group = List.assoc g groups in
+      group := a :: !group;
+      groups
+    with Not_found -> ((g, ref [a]) :: groups)
+  end [] ll);;
 
 
 

@@ -44,7 +44,110 @@ and column = {
   mutable col_title : string;
 }
 
-type 'a column_id = 'a
+and 'a column_id = 'a
+
+and 'a tree = [`Node of 'a node | `Leaf of 'a column_id ]
+
+and 'a node = {
+  h_vertical_line_width : thickness;
+  h_draw                : header_draw_func;
+  h_children            : 'a tree list;
+}
+
+and header_draw_func = [`Text of string | `Func of (width:float -> float)]
+
+and thickness = [`Thin | `Thick ]
+
+let line_disjoin = 0.5
+
+let size_of_thickness = function `Thin -> 0.1 | `Thick -> 0.3
+
+let header_columns columns nodes =
+  let rec f = function
+    | `Leaf id -> (try [List.assoc id columns] with Not_found -> invalid_arg "header_columns")
+    | `Node node -> List.flatten (List.map f node.h_children)
+  in f nodes;;
+
+let header_width col_group =
+    (List.fold_left (fun acc c -> acc +. c.col_width) 0.0) col_group;;
+
+let with_line_width doc lw f x =
+  let old = PDF.line_width doc in
+  PDF.set_line_width lw doc;
+  f x;
+  PDF.set_line_width old doc;;
+
+let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin ~border_width doc =
+  let y0 = y in
+  let x = ref x in
+  let border = [] in
+  let points = ref [] in (* starting points for vertical lines *)
+  let rec draw_node x y = function
+    | `Leaf id ->
+      let col = try List.assoc id columns with Not_found -> invalid_arg "header_draw" in
+      let width = col.col_width -. 2. *. padding in
+      let text = col.col_title in
+      PDF.set ~x:(x +. padding) ~y:(y +. padding) doc;
+      PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
+      let height = PDF.y doc -. y +. padding in
+      points := (x +. col.col_width, y, size_of_thickness `Thin) :: !points;
+      width +. 2. *. padding, height
+    | `Node node ->
+      let widths = List.map header_width (List.map (header_columns columns) node.h_children) in
+      let width = List.fold_left (+.) 0.0 widths in
+      points := (x +. width, y, size_of_thickness node.h_vertical_line_width) :: !points;
+      let width = width -. 2. *. padding in
+      PDF.set ~x:(x +. padding) ~y:(y +. padding) doc;
+      let height =
+        match node.h_draw with
+          | `Text text ->
+            PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
+            PDF.y doc -. y +. padding
+          | `Func f -> f ~width
+      in
+      (*PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
+      PDF.rect ~x ~y ~width ~height ~style:`Both doc;*)
+      let x = ref x in
+      let y = y +. height in
+      PDF.line ~x1:(!x +. line_disjoin) ~y1:y ~x2:(!x +. width +. 2. *. padding -. line_disjoin) ~y2:y doc;
+      let widths_heights = List.map begin fun node ->
+        let width, height = draw_node !x y node in
+        x := !x +. width;
+        width, height
+      end node.h_children in
+      let _, heights = List.split widths_heights in
+      let height = height +. (List.fold_left max 0.0 heights) in
+      width +. 2. *. padding, height
+  in
+  let widths_heights = List.map begin fun node ->
+    let width, height = draw_node !x y0 node in
+    x := !x +. width;
+    width, height
+  end nodes in
+  let widths, heights = List.split widths_heights in
+  let width = List.fold_left (+.) 0.0 widths in
+  let height = List.fold_left max 0.0 heights in
+  let points = PDFUtil.group_by (fun (x, _, _) -> x) !points in
+  let points = List.map begin fun (x, g) ->
+    let yw = List.fold_left (fun (ya, wa) (_, y, w) -> min ya y, max wa w) (max_float, 0.) g in
+    x, yw
+  end points in
+  (* Draw vertical lines between column headers *)
+  with_line_width doc 0.0 begin fun () ->
+    let border_width = size_of_thickness border_width in
+    List.iter begin fun (x', (y', lw)) ->
+      if lw < max_float && x' < !x -. lw then begin (* the right-most line is on the right table border *)
+        let lw = min border_width lw in
+        PDF.set_line_width lw doc;
+        PDF.line ~x1:x' ~y1:(y' +. lw/.2.) ~x2:x' ~y2:(y +. height -. lw/.2.) doc;
+      end;
+    end points;
+  end ();
+  height, points
+;;
+
+let has_border (border : PDF.border) which =
+  List.mem `All border || List.mem which border
 
 let rec list_pos ?(pos=0) ll x = match ll with
   | [] -> raise Not_found
@@ -60,17 +163,6 @@ let default_cell_func ~index ~row ~col = {
   prop_fg_color   = None;
 }
 
-(** Table with automatic page break.
-  * @param x Position of the left border of the table.
-  * @param y Position of the top border of the table.
-  * @param width Total width.
-  * @param page_height Available height of the page body.
-  ° @param line_height Height of the line of text.
-  * @param columns
-  * @param rows Cell contents.
-  * @param cell_func
-  * @param doc A [PDF] document.
-  *)
 let print
     ~x
     ~y
@@ -79,11 +171,27 @@ let print
     ~line_height
     ~columns
     ~rows
-    ?(grid_lines=(`Both : [`None | `Vertical | `Horizontal | `Both]))
+    ?(grid_lines=`Both)
+    ?(border=[`All])
+    ?(border_width=`Thin)
+    ?header_layout
+    ?(page_header_height=0.0)
     ?(page_break_func=ignore)
     ?caption
+    ?(cellpadding=0.5)
     ?(cell_func=default_cell_func)
     doc =
+  let margin_top, _, _, _ = PDF.margins doc in
+  let has_border = has_border border in
+  let with_line_width thickness f x =
+    let old = PDF.line_width doc in
+    PDF.set_line_width (size_of_thickness thickness) doc;
+    f x;
+    PDF.set_line_width old doc
+  in
+  let line_disjoin = match grid_lines with `Both | `Horizontal -> 0.0 | _ -> line_disjoin in
+  let vlines_points = ref [] in
+  let header_height = ref 0.0 in
   let perc =
     let sum_perc = ref 0.0 in fun x ->
       if x <= 0.0 then 0.0 else
@@ -92,6 +200,9 @@ let print
         w
   in
   List.iter (fun (_, col) -> col.col_width <- (perc col.col_width)) columns;
+  let header_layout = match header_layout with Some hl -> hl
+    | None -> List.map (fun (id, _) -> `Leaf id) columns
+  in
   (**  *)
   let set_default_draw_color doc = PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
   let space_sep = 0.5 in
@@ -100,54 +211,60 @@ let print
   let x = ref x0 in
   let y = ref y0 in
   (** column titles *)
-  let print_title ~x ~y ?align (_, col) =
-    let width = col.col_width in
-    if width > 0. then begin
-      let text = col.col_title in
-      PDF.set ~x:!x ~y:!y doc;
-      PDF.multi_cell ~width ~line_height ~border:[] ~padding:0.5 ?align ~text doc;
-      x := !x +. width;
-    end;
-    PDF.y doc
-  in
   let print_titles ~x ~y () =
     let x0, y0 = !x, !y in
     PDF.set_font ~style:[] doc;
-    y := List.fold_left max 0.0 (List.map (print_title ~align:`Center ~x ~y) columns);
-    (* *)
-    PDF.line ~x1:x0 ~y1:y0 ~x2:(x0 +. width) ~y2:y0 doc;
-    PDF.line ~x1:x0 ~y1:!y ~x2:!x ~y2:!y doc;
-    y := !y +. space_sep;
-    PDF.line ~x1:x0 ~y1:!y ~x2:!x ~y2:!y doc;
+    let height, points = header_draw ~columns ~nodes:header_layout ~x:!x ~y:!y
+      ~line_height ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
+    x := x0;
+    y := !y +. height;
+    begin
+      match grid_lines with `None -> () | _ ->
+        (* Horizontal line between header and first row *)
+        let xx = ref x0 in
+        let yy = y0 +. height in
+        List.iter begin fun (_, col) ->
+          PDF.line ~x1:(!xx +. line_disjoin) ~y1:yy ~x2:(!xx +. col.col_width -. line_disjoin) ~y2:yy doc;
+          xx := !xx +. col.col_width;
+        end columns;
+    end;
     PDF.set_font ~style:[] doc;
     PDF.set ~x:!x ~y:!y doc;
+    height, points
   in
   (** Caption *)
   begin
     match caption with None -> () | Some caption ->
       PDF.set_font ~style:[`Bold] doc;
       PDF.set ~x:!x ~y:!y doc;
-      PDF.multi_cell ~width ~line_height ~border:[] ~padding:0.5 ~align:`Center ~text:caption doc;
+      PDF.multi_cell ~width ~line_height ~border:[] ~align:`Center ~text:caption doc;
       y := !y +. line_height +. space_sep;
   end;
   let top, left = ref !y, ref x0 in
-  print_titles ~x ~y ();
+  let y_avail = ref (page_height -. y0 +. margin_top +. page_header_height) in
+  let hh, vp = print_titles ~x ~y () in
+  vlines_points := vp;
+  header_height := hh;
   (** Vertical lines between columns *)
-  let print_vertical_lines ~left ~top ~bottom () =
-    let x = ref left in
-    PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc;
-    PDF.line ~x1:left ~y1:bottom ~x2:(left +. width) ~y2:bottom doc;
-    match grid_lines with
-      | `Vertical | `Both ->
-        let print_line (_, col) =
-          let width = col.col_width in
-          if width > 0. then begin
-            x := !x +. width;
-            PDF.line ~x1:!x ~y1:top ~x2:!x ~y2:bottom doc
+  let print_vertical_lines ~x ~y ~bottom () =
+    let xw = x +. width in
+    if has_border `T then with_line_width border_width (PDF.line ~x1:x ~y1:y ~x2:xw ~y2:y) doc;
+    if has_border `L then with_line_width border_width (PDF.line ~x1:x ~y1:y ~x2:x ~y2:bottom) doc;
+    if has_border `B then with_line_width border_width (PDF.line ~x1:x ~y1:bottom ~x2:xw ~y2:bottom) doc;
+    if has_border `R then with_line_width border_width (PDF.line ~x1:xw ~y1:y ~x2:xw ~y2:bottom) doc;
+    match grid_lines with `Both | `Vertical ->
+      with_line_width `Thin begin fun () ->
+        (* Vertical lines between columns and below the column titles *)
+        let y = y +. !header_height in
+        List.iter begin fun (x', (y', lw)) ->
+          if lw > 0. && lw < max_float && x' < x +. width then begin (* the right-most line is on the right border *)
+            let lw = min (size_of_thickness border_width) lw in
+            PDF.set_line_width lw doc;
+            PDF.line ~x1:x' ~y1:(y +. lw/.2.) ~x2:x' ~y2:(bottom -. lw/.2. -. line_disjoin) doc;
           end
-        in
-        List.iter print_line columns;
-      | _ -> PDF.line ~x1:(left +. width) ~y1:top ~x2:(left +. width) ~y2:bottom doc
+        end !vlines_points;
+      end ()
+    | _ -> ()
   in
   (** Print rows *)
   let tags = fst (List.split columns) in
@@ -182,20 +299,24 @@ let print
       incr i;
       maxh
     end columns in
-    let max_height = List.fold_left max 0.0 heights in
+    let row_height = List.fold_left max 0.0 heights +. 2. *. cellpadding in
     (* Salto pagina se necessario. Se una riga sconfina su più righe e l'altezza totale
      * supera lo spazio restante a fine pagina allora viene forzato un salto pagina (invece
      * di spezzare la riga). *)
-    if !y -. !top +. max_height > page_height then begin
+    if !y -. !top +. row_height > !y_avail then begin
       List.iter (fun f -> f ()) !cont;
       cont := [];
-      print_vertical_lines ~left:!left ~top:!top ~bottom:!y ();
+      print_vertical_lines ~x:!left ~y:!top ~bottom:!y ();
       page_break_func ();
-      left := PDF.x doc;
-      top := PDF.y doc;
       x := PDF.x doc;
       y := PDF.y doc;
-      print_titles ~x ~y ();
+      left := !x;
+      top := !y;
+      let margin_top, _, _, _ = PDF.margins doc in
+      y_avail := margin_top +. page_header_height +. page_height -. PDF.y doc;
+      let hh, vp = print_titles ~x ~y () in
+      vlines_points := vp;
+      header_height := hh;
       x := !left;
     end;
     let ys = List.map begin fun (tag, col) ->
@@ -205,7 +326,7 @@ let print
         let old_size = PDF.font_size doc in
         let old_style = PDF.font_style doc in
         PDF.set_font ~style:cell.prop_font_style ?size:cell.prop_font_size doc;
-        PDF.set ~x:!x ~y:!y doc;
+        PDF.set ~x:!x ~y:(!y +. cellpadding) doc;
         let line_height = match cell.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
         begin
           match cell.prop_image with
@@ -216,10 +337,10 @@ let print
                 match cell.prop_bg_color with None -> ()
                 | Some (red, green, blue) ->
                   PDF.set_fill_color ~red ~green ~blue doc;
-                  PDF.rect ~x ~y(*:(PDF.y doc +. PDF.line_width doc /. 2.)*) ~width
-                    ~height:(line_height (*-. PDF.line_width doc*)) ~style:`Fill doc;
+                  PDF.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
               end;
-              PDF.multi_cell ~width ~line_height ~padding:0.5 ~align:cell.prop_align ~text:cell.prop_text doc;
+              PDF.multi_cell ~width:(width -. 2. *. cellpadding)
+                ~line_height ~align:cell.prop_align ~text:cell.prop_text doc;
             | Some image ->
               let asp = (float image.img_width) /. (float image.img_height) in
               PDF.image
@@ -233,7 +354,7 @@ let print
         PDF.set_font ~style:old_style ~size:old_size doc;
         x := !x +. width;
       end;
-      PDF.y doc
+      PDF.y doc +. cellpadding
     end columns in
     y := List.fold_left max 0.0 ys;
     (** Horizontal line between rows. *)
@@ -249,7 +370,7 @@ let print
     incr index;
   end rows;
   List.iter (fun f -> f ()) !cont;
-  print_vertical_lines ~left:!left ~top:!top ~bottom:!y ()
+  print_vertical_lines ~x:!left ~y:!top ~bottom:!y ()
 
 
 
