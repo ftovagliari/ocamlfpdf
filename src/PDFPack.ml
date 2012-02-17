@@ -68,12 +68,12 @@ class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
       let x = (x +. padding) in
       let y = ref (y +. padding) in
       let width = width -. 2. *. padding in
-      let height = ref (height -. (length -. 1.) *. spacing -. 2. (* *. length*) *. padding) in
+      let height = (*ref *)(height -. (length -. 1.) *. spacing -. 2. (* *. length*) *. padding) in
       Array.iter begin fun cb ->
         PDF.set ~x ~y:!y doc;
-        let previous_h = cb ~x ~y:!y ~width ~height:!height in
+        let previous_h = cb ~x ~y:!y ~width ~height(*:!height*) in
         y := !y +. previous_h +. spacing (* +. 2. *. padding*);
-        height := !height -. previous_h;
+        (*height := !height -. previous_h;*)
       end cbs
   end
 

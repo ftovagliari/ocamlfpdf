@@ -84,14 +84,16 @@ let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin
   let points = ref [] in (* starting points for vertical lines *)
   let rec draw_node x y = function
     | `Leaf id ->
-      let col = try List.assoc id columns with Not_found -> invalid_arg "header_draw" in
-      let width = col.col_width -. 2. *. padding in
-      let text = col.col_title in
-      PDF.set ~x:(x +. padding) ~y:(y +. padding) doc;
-      PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
-      let height = PDF.y doc -. y +. padding in
-      points := (x +. col.col_width, y, size_of_thickness `Thin) :: !points;
-      width +. 2. *. padding, height
+      let col = try List.assoc id columns with Not_found -> failwith "header_draw" in
+      if col.col_width > 0. then begin
+        let width = col.col_width -. 2. *. padding in
+        let text = col.col_title in
+        PDF.set ~x:(x +. padding) ~y:(y +. padding) doc;
+        PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
+        let height = PDF.y doc -. y +. padding in
+        points := (x +. col.col_width, y, size_of_thickness `Thin) :: !points;
+        width +. 2. *. padding, height
+      end else 0., 0.
     | `Node node ->
       let widths = List.map header_width (List.map (header_columns columns) node.h_children) in
       let width = List.fold_left (+.) 0.0 widths in
@@ -179,7 +181,9 @@ let print
     ?(page_break_func=ignore)
     ?caption
     ?(cellpadding=0.5)
+    ?(rowspacing=0.)
     ?(cell_func=default_cell_func)
+    ?(use_markup=false)
     doc =
   let margin_top, _, _, _ = PDF.margins doc in
   let has_border = has_border border in
@@ -284,26 +288,28 @@ let print
     } in
     let i = ref 0 in
     let heights = List.map begin fun (tag, col) ->
-      let row tag = row.(!! tag) in
-      let cell = cell_func ~index:!index ~row ~col:tag in
-      let maxh = match cell.prop_image with
-        | None ->
-          let text_width = PDF.get_string_width cell.prop_text doc in (* Works only with regular font *)
-          let line_height = match cell.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
-          if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
-        | Some image ->
-          let asp = (float image.img_width) /. (float image.img_height) in
-          if col.col_width > 0.0 then col.col_width /. asp else 0.0
-      in
-      cell_props.(!i) <- cell;
-      incr i;
-      maxh
+      try
+        let row tag = row.(!! tag) in
+        let cell = cell_func ~index:!index ~row ~col:tag in
+        let maxh = match cell.prop_image with
+          | None ->
+            let text_width = PDF.get_string_width cell.prop_text doc in (* Works only with regular font *)
+            let line_height = match cell.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
+            if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
+          | Some image ->
+            let asp = (float image.img_width) /. (float image.img_height) in
+            if col.col_width > 0.0 then col.col_width /. asp else 0.0
+        in
+        cell_props.(!i) <- cell;
+        incr i;
+        maxh
+      with Not_found -> failwith "PDFTable: no such column"
     end columns in
     let row_height = List.fold_left max 0.0 heights +. 2. *. cellpadding in
     (* Salto pagina se necessario. Se una riga sconfina su più righe e l'altezza totale
      * supera lo spazio restante a fine pagina allora viene forzato un salto pagina (invece
      * di spezzare la riga). *)
-    if !y -. !top +. row_height > !y_avail then begin
+    if !y -. !top +. row_height +. rowspacing > !y_avail then begin
       List.iter (fun f -> f ()) !cont;
       cont := [];
       print_vertical_lines ~x:!left ~y:!top ~bottom:!y ();
@@ -339,8 +345,13 @@ let print
                   PDF.set_fill_color ~red ~green ~blue doc;
                   PDF.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
               end;
-              PDF.multi_cell ~width:(width -. 2. *. cellpadding)
-                ~line_height ~align:cell.prop_align ~text:cell.prop_text doc;
+              if use_markup then begin
+                ignore (PDFMarkup.print ~x:(x +. cellpadding) ~y ~width:(width -. 2. *. cellpadding)
+                  ~padding:0. ~markup:cell.prop_text doc)
+              end else begin
+                PDF.multi_cell ~width:(width -. 2. *. cellpadding)
+                  ~line_height ~align:cell.prop_align ~text:cell.prop_text doc;
+              end
             | Some image ->
               let asp = (float image.img_width) /. (float image.img_height) in
               PDF.image
@@ -354,7 +365,7 @@ let print
         PDF.set_font ~style:old_style ~size:old_size doc;
         x := !x +. width;
       end;
-      PDF.y doc +. cellpadding
+      PDF.y doc +. cellpadding +. rowspacing
     end columns in
     y := List.fold_left max 0.0 ys;
     (** Horizontal line between rows. *)

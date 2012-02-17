@@ -86,6 +86,8 @@ val print :
   ?page_break_func:(unit -> unit) ->
   ?caption:string ->
   ?cellpadding:float ->
+  ?rowspacing:float ->
   ?cell_func:(index:int ->
               row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
+  ?use_markup:bool ->
   PDF.document -> unit
