@@ -23,7 +23,7 @@
 (** Layout containers. *)
 
 
-(** A horizontal container box.
+(** An horizontal container box.
     [hbox] is a container that organizes child boxes into a single row.
     @param x Abscissa of the upper-left corner.
     @param y Ordinate of the upper-left corner.
@@ -31,7 +31,7 @@
     @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (to be used for debugging purposes).
+    @param border Draw a red border around the container (for debugging purposes).
   *)
 class hbox :
   x:float ->
@@ -44,13 +44,22 @@ class hbox :
   PDF.document ->
   object
 
+    method width : float
+    method height : float
+    method padding : float
+    method spacing : float
+
+    (** [get_homogeneous_child_width n] returns {i (width - 2 * padding - (n - 1) * spacing) / n } *)
+    method get_homogeneous_child_width : int -> float
+
     (** Add a child box to the container and set the function to use to render inside it.
 
-        The rendering function receives arguments [x] and [y], which are the absolute
-        coordinates of the upper-left corner of the child box, and arguments
-        [width] and [height] providing the overall available space of the parent,
-        which can be used for rendering. The value returned by the function must be
-        the actual width of the child box.
+        The [x] and [y] arguments received by the rendering function are the absolute
+        coordinates of the upper-left corner of the child box; argument [width] is
+        the remaining width available for the child to use; argument [height] is
+        the overall available height of the parent (without considering padding).
+        The value returned by the function must be the actual width consumed by the
+        child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
@@ -67,7 +76,7 @@ class hbox :
     @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (to be used for debugging purposes).
+    @param border Draw a red border around the container (for debugging purposes).
 *)
 class vbox :
   x:float ->
@@ -80,19 +89,25 @@ class vbox :
   PDF.document ->
   object
 
+    method width : float
+    method height : float
+    method padding : float
+    method spacing : float
+
+    (** [get_homogeneous_child_height n] returns {i (height - 2 * padding - (n - 1) * spacing) / n } *)
+    method get_homogeneous_child_height : int -> float
+
     (** Add a child box to the container and set the function to use to render inside it.
 
-        The rendering function receives arguments [x] and [y], which are the absolute
-        coordinates of the upper-left corner of the child box, and arguments
-        [width] and [height] providing the overall available space of the parent,
-        which can be used for rendering. The value returned by the function must be
-        the actual height of the child box.
+        The [x] and [y] arguments received by the rendering function are the absolute
+        coordinates of the upper-left corner of the child box; argument [width] is
+        the overall available width of the parent (without considering padding);
+        argument [height] is the remaining height available for the child to use.
+        The value returned by the function must be the actual height consumed by the
+        child box.
     *)
     method add :
       (x:float -> y:float -> width:float -> height:float -> float) -> unit
-
-    (** @return The width of the container. *)
-    method dim : unit -> float
 
     (** Draw the content of all boxes that have been added to the container. *)
     method pack : unit -> unit

@@ -173,17 +173,17 @@ let print
     ~line_height
     ~columns
     ~rows
+    ?header_layout
     ?(grid_lines=`Both)
     ?(border=[`All])
     ?(border_width=`Thin)
-    ?header_layout
     ?(page_header_height=0.0)
     ?(page_break_func=ignore)
-    ?caption
     ?(cellpadding=0.5)
     ?(rowspacing=0.)
     ?(cell_func=default_cell_func)
     ?(use_markup=false)
+    ?caption
     doc =
   let margin_top, _, _, _ = PDF.margins doc in
   let has_border = has_border border in

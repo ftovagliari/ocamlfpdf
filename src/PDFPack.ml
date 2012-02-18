@@ -56,7 +56,13 @@ class virtual box ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=fals
 class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =
   object (self)
     inherit box ~x ~y ~width ~height ~spacing ~padding doc
-    method dim () = width
+    method width = width
+    method height = height
+    method padding = padding
+    method spacing = spacing
+    method get_homogeneous_child_height n =
+      let n = float n in
+      (width -. 2. *. padding -. (n -. 1.) *. spacing) /. n
     method pack () =
       let cbs = Array.of_list (List.rev callbacks) in
       let length = float (Array.length cbs) in
@@ -66,20 +72,28 @@ class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
         PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
       end;
       let x = (x +. padding) in
-      let y = ref (y +. padding) in
+      let y = y +. padding in
       let width = width -. 2. *. padding in
-      let height = (*ref *)(height -. (length -. 1.) *. spacing -. 2. (* *. length*) *. padding) in
-      Array.iter begin fun cb ->
-        PDF.set ~x ~y:!y doc;
-        let previous_h = cb ~x ~y:!y ~width ~height(*:!height*) in
-        y := !y +. previous_h +. spacing (* +. 2. *. padding*);
-        (*height := !height -. previous_h;*)
-      end cbs
+      let height = height -. (length -. 1.) *. spacing -. 2. *. padding in
+      ignore (Array.fold_left begin fun (y, height) cb ->
+        PDF.set ~x ~y doc;
+        let previous_h = cb ~x ~y ~width ~height in
+        let y = y +. previous_h +. spacing in
+        let height = height -. previous_h in
+        (y, height)
+      end (y, height) cbs)
   end
 
 class hbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =
   object (self)
     inherit box ~x ~y ~width ~height ~spacing ~padding doc
+    method width = width
+    method height = height
+    method padding = padding
+    method spacing = spacing
+    method get_homogeneous_child_width n =
+      let n = float n in
+      (width -. 2. *. padding -. (n -. 1.) *. spacing) /. n
     method pack () =
       let cbs = Array.of_list (List.rev callbacks) in
       let length = float (Array.length cbs) in
@@ -88,15 +102,17 @@ class hbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
         PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
         PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
       end;
-      let x = ref (x +. padding) in
-      let y = (y +. padding) in
-      let width = width -. (length -. 1.) *. spacing -. 2. (* *. length*) *. padding in
+      let x = x +. padding in
+      let y = y +. padding in
+      let width = width -. (length -. 1.) *. spacing -. 2. *. padding in
       let height = height -. 2. *. padding in
-      Array.iter begin fun cb ->
-        PDF.set ~x:!x ~y doc;
-        let previous_w = cb ~x:!x ~y ~width ~height in
-        x := !x +. previous_w +. spacing(* +. 2. *. padding*);
-      end cbs
+      ignore (Array.fold_left begin fun (x, width) cb ->
+        PDF.set ~x ~y doc;
+        let previous_w = cb ~x ~y ~width ~height in
+        let x = x +. previous_w +. spacing in
+        let width = width -. previous_w in
+        x, width
+      end (x, width) cbs)
   end
 
 

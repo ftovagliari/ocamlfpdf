@@ -53,21 +53,21 @@ and thickness = [`Thin | `Thick ]
   @param width Width of the table
   @param page_height Available height in the page body.
   @param line_height Height of the line of text.
-  @param columns Columns description. The first element of the pairs is a column identifier,
-         for example it may be a user defined variant tag.
+  @param columns Columns description. The first element of the pairs is a user defined column identifier.
   @param rows The list of rows.
-  @param caption Caption of the table.
+  @param header_layout Layout definition of the table header.
   @param grid_lines Whether grid lines should be drawn in the table body.
   @param border Which parts of the table border should be drawn.
   @param border_width Width of the table border.
-  @param header_layout Table header layout.
   @param page_header_height Height of the page header.
   @param page_break_func Function called when a page break occurs.
   @param cellpadding Extra space to put around cell contents.
   @param cell_func Function applied to every single cell of the table to set style properties.
          The [cell_properties] returned are applied to the cell identified by [index] and [col],
-         where [index] is the general row index starting from zero.
+         where [index] is the general row index starting from zero and
          [(row column_id)] returns the content of the cell at index [index] and column [column_id].
+  @param use_markup Whether the cell's content should be interpreted as markup (i.e. printed with [PDFMarkup]).
+  @param caption Caption of the table.
   @param doc A [PDF] document.
 *)
 val print :
@@ -78,16 +78,16 @@ val print :
   line_height:float ->
   columns:('a column_id * column) list ->
   rows:string option array list ->
+  ?header_layout:('a tree list) ->
   ?grid_lines : [`None | `Vertical | `Horizontal | `Both] ->
   ?border : PDF.border ->
   ?border_width:thickness ->
-  ?header_layout:('a tree list) ->
   ?page_header_height:float ->
   ?page_break_func:(unit -> unit) ->
-  ?caption:string ->
   ?cellpadding:float ->
   ?rowspacing:float ->
   ?cell_func:(index:int ->
               row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
   ?use_markup:bool ->
+  ?caption:string ->
   PDF.document -> unit
