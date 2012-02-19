@@ -20,16 +20,27 @@
 
 *)
 
-(** Fonts Description. *)
-type key
-type family =
-    [ `Courier | `Helvetica | `Symbol | `Times | `ZapfDingbats ]
-type style = [ `Bold | `Italic | `Underline ]
-val key_of_font :
-  [> `Bold | `Italic ] list -> [> `Courier | `Helvetica | `Times ] -> key
-val string_of_key : key -> string
-val core_fonts : (key * string) list
-val get_metric : key -> char -> int
-val get_name : key -> string
-val family_of_string : string -> family
-val style_of_string : string -> style
+type format = [ `A3 | `A4 | `A5 | `Letter | `Legal | `Custom_format of float * float ]
+
+type orientation = [`Portrait | `Landscape]
+
+type m_unit = [ `Mm | `Pt | `Cm | `In ]
+
+type layout = [ `Single | `Continuous | `Two | `Default_layout ]
+
+type zoom = [ `Fullpage | `Fullwidth | `Real | `Default_zoom | `Custom_zoom of float ]
+
+type line_cap_style = [`Butt | `Round | `Square]
+
+type line_join_style = [`Miter | `Round | `Bevel]
+
+type rect_style = [ `Fill | `Both | `Outline ]
+
+type border_part = [ `All | `L | `B | `R | `T ]
+
+type align = [ `Left | `Justified | `Center | `Right ]
+
+
+
+
+

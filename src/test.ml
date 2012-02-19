@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -165,6 +165,31 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       let width = (*50.*) width_avail /. 5. *. 3. +. 0.5 in
       let _, _ = PDFMarkup.print ~x ~y ~width ~markup
         ~bgcolor:"#fff0f0" (*~padding:2. ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc in
+
+      (** Graphics *)
+      PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Graphics" doc);
+      let width = width_avail in
+      let x = margin in
+      let y = margin +. height_header +. 10. in
+      PDF.set_line_width 1. doc;
+
+      PDF.push_graphics_state doc;
+      PDF.set_line_cap `Round doc;
+      PDF.set_line_width 0.1 doc;
+      PDF.set_line_dash [2; 2] ~phase:0 doc;
+      PDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
+      PDF.set_line_dash [3; 5] ~phase:6 doc;
+
+      let y = y +. 10. in
+      PDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
+      let y = y +. 10. in
+      PDF.rect ~x ~y ~width:(x +. width /. 2.) ~height:y doc;
+      PDF.pop_graphics_state doc;
+
+      let y = y +. 10. in
+      PDF.set_line_join `Bevel doc;
+      PDF.rect ~x:(x +. 3.) ~y ~width:(x +. width /. 3.) ~height:y doc;
 
       (** Vertical box *)
       PDF.add_page doc;

@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,113 +20,114 @@
 
 *)
 
-(*  *)
-
 open PDFUtil
 open Font
 open Image
 open Printf
+open PDFTypes
 
 type state = Begin_document | End_page | Begin_page | End_document
-and orientation = Portrait | Landscape
-and m_unit = Mm | Pt | Cm | In
-and format = A3 | A4 | A5 | Letter | Legal | Custom_format of float * float
-and zoom = Fullpage | Fullwidth | Real | Default_zoom | Custom_zoom of float
-and layout = Single | Continuous | Two | Default_layout
-and rect_style = [`Fill | `Both | `Outline]
-and border = [ `All | `L | `B | `R | `T ] list
-and align = [ `Left | `Justified | `Center | `Right ]
-and link = (float * float * float * float * link_ref) list
+
+type link = (float * float * float * float * link_ref) list
 and link_ref = Uri of string | Internal of int
 and internal_link = int * float
 and obj = {mutable obj_offset : int}
 and font = {
-  font_index : int; (* i *)
-  font_type : font_type;
-  font_name : string;
+  font_index     : int; (* i *)
+  font_type      : font_type;
+  font_name      : string;
   mutable font_n : int;
-  font_up : int;
-  font_ut : int;
-  font_cw : (char -> int)
+  font_up        : int;
+  font_ut        : int;
+  font_cw        : (char -> int)
 }
 and font_type = Core | Type1 | TrueType | Additional of string
 and font_file = {
-  ff_name : string;
-  ff_info : (string * string) list;
+  ff_name           : string;
+  ff_info           : (string * string) list;
   mutable ff_number : int
 }
 and page = {
-  mutable pg_buffer : Buffer.t;
+  mutable pg_buffer             : Buffer.t;
   mutable pg_change_orientation : bool;
-  mutable pg_link : link option
+  mutable pg_link               : link option
 }
 type document = {
-  mutable page : int;
+  mutable page                  : int;
   mutable current_object_number : int;
-  mutable objects : obj list;
-  mutable pages : page list;                     (* array containing pages *)
-  mutable state : state;                         (* current document state *)
-  mutable compress : bool;                       (* compression flag *)
-  mutable def_orientation : orientation;         (* default orientation *)
-  mutable cur_orientation : orientation;         (* current orientation *)
-  mutable k : float;                             (* scale factor (number of points in user unit) *)
-  mutable fw_pt : float;
-  mutable fh_pt : float;                         (* dimensions of page format in points *)
-  mutable fw : float;
-  mutable fh : float;                            (* dimensions of page format in user unit *)
-  mutable w_pt : float;
-  mutable h_pt : float;                          (* current dimensions of page in points *)
-  mutable w : float;
-  mutable h : float;                             (* current dimensions of page in user unit *)
-  mutable l_margin : float;                      (* left margin*)
-  mutable t_margin : float;                      (* top margin*)
-  mutable r_margin : float;                      (* right margin*)
-  mutable b_margin : float;                      (* page break margin *)
-  mutable c_margin : float;                      (* cell margin *)
-  mutable pos_x : float;
-  mutable pos_y : float;                         (* current position in user unit for cell positioning *)
-  mutable lasth : float;                         (* height of last cell printed *)
-  mutable line_width : float; (*0.1 /. scale*)   (* line width in user unit (0.567 = 0.2 mm) *)
-  mutable fonts : (Font.key * font) list;        (* array of used fonts [(key, font) list] *)
-  mutable font_files : font_file list;           (* array of font files *)
-  mutable diffs : string list;                   (* array of encoding differences *)
-  mutable images : Image.t list;                 (* array of used images *)
-  mutable links : (int * float) list;            (* array of internal links *)
-  mutable font_family : Font.family option;      (* current font family *)
-  mutable font_style : Font.style list;          (* current font style *)
-  mutable underline : bool;                      (* underlining flag *)
-  mutable current_font : font option;            (* current font info *)
-  mutable font_size_pt : float;                  (* current font size in points *)
-  mutable font_size : float;                     (* current font size in user unit *)
-  mutable drawColor : string;                    (* commands for drawing color *)
-  mutable fillColor : string;                    (* commands for filling color *)
-  mutable textColor : string;                    (* commands for text color *)
-  mutable colorFlag : bool;                      (* indicates whether fill and text colors are different *)
-  mutable ws : float;                            (* word spacing *)
-  mutable auto_page_break : bool;                  (* automatic page breaking *)
-  mutable pageBreakTrigger : float;              (* threshold used to trigger page breaks *)
-  mutable inFooter : bool;                       (* flag set when processing footer *)
-  mutable zoomMode : zoom;                       (* zoom display mode *)
-  mutable layoutMode : layout;                   (* layout display mode *)
-  mutable title : string;                        (* title *)
-  mutable subject : string;                      (* subject *)
-  mutable author : string;                       (* author *)
-  mutable keywords : string list;                (* keywords *)
-  mutable creator : string;                      (* creator *)
-  mutable aliasNbPages : string;                 (* alias for total number of pages *)
-  mutable pdfVersionMajor : int;                 (* PDF version number *)
-  mutable pdfVersionMinor : int;                 (* PDF version number *)
-  mutable header : (unit -> unit);
-  mutable footer : (unit -> unit);
-  mutable double_sided : bool;
-  mutable current_length : int;
-  mutable outchan : out_channel;
-  mutable print_resources : (unit -> unit) list;
-  mutable print_catalog : (unit -> unit) list;
-  mutable text_color_rgb : int * int * int;
-  mutable fill_color_rgb : int * int * int;
-  mutable draw_color_rgb : int * int * int;
+  mutable objects               : obj list;
+  mutable pages                 : page list;                (* array containing pages *)
+  mutable state                 : state;                    (* current document state *)
+  mutable compress              : bool;                     (* compression flag *)
+  mutable def_orientation       : orientation;              (* default orientation *)
+  mutable cur_orientation       : orientation;              (* current orientation *)
+  mutable k                     : float;                    (* scale factor (number of points in user unit) *)
+  mutable fw_pt                 : float;
+  mutable fh_pt                 : float;                    (* dimensions of page format in points *)
+  mutable fw                    : float;
+  mutable fh                    : float;                    (* dimensions of page format in user unit *)
+  mutable w_pt                  : float;
+  mutable h_pt                  : float;                    (* current dimensions of page in points *)
+  mutable w                     : float;
+  mutable h                     : float;                    (* current dimensions of page in user unit *)
+  mutable l_margin              : float;                    (* left margin*)
+  mutable t_margin              : float;                    (* top margin*)
+  mutable r_margin              : float;                    (* right margin*)
+  mutable b_margin              : float;                    (* page break margin *)
+  mutable c_margin              : float;                    (* cell margin *)
+  mutable pos_x                 : float;
+  mutable pos_y                 : float;                    (* current position in user unit for cell positioning *)
+  mutable lasth                 : float;                    (* height of last cell printed *)
+  mutable line_width            : float; (*0.1 /. scale*)   (* line width in user unit (0.567 = 0.2 mm) *)
+  mutable line_cap              : line_cap_style;           (*  *)
+  mutable line_join             : line_join_style;          (*  *)
+  mutable line_dash             : (int list * int);         (*  *)
+  mutable fonts                 : (Font.key * font) list;   (* array of used fonts [(key, font) list] *)
+  mutable font_files            : font_file list;           (* array of font files *)
+  mutable diffs                 : string list;              (* array of encoding differences *)
+  mutable images                : Image.t list;             (* array of used images *)
+  mutable links                 : (int * float) list;       (* array of internal links *)
+  mutable font_family           : Font.family option;       (* current font family *)
+  mutable font_style            : Font.style list;          (* current font style *)
+  mutable underline             : bool;                     (* underlining flag *)
+  mutable current_font          : font option;              (* current font info *)
+  mutable font_size_pt          : float;                    (* current font size in points *)
+  mutable font_size             : float;                    (* current font size in user unit *)
+  mutable drawColor             : string;                   (* commands for drawing color *)
+  mutable fillColor             : string;                   (* commands for filling color *)
+  mutable textColor             : string;                   (* commands for text color *)
+  mutable colorFlag             : bool;                     (* indicates whether fill and text colors are different *)
+  mutable ws                    : float;                    (* word spacing *)
+  mutable auto_page_break       : bool;                     (* automatic page breaking *)
+  mutable pageBreakTrigger      : float;                    (* threshold used to trigger page breaks *)
+  mutable inFooter              : bool;                     (* flag set when processing footer *)
+  mutable zoomMode              : zoom;                     (* zoom display mode *)
+  mutable layoutMode            : layout;                   (* layout display mode *)
+  mutable title                 : string;                   (* title *)
+  mutable subject               : string;                   (* subject *)
+  mutable author                : string;                   (* author *)
+  mutable keywords              : string list;              (* keywords *)
+  mutable creator               : string;                   (* creator *)
+  mutable aliasNbPages          : string;                   (* alias for total number of pages *)
+  mutable pdfVersionMajor       : int;                      (* PDF version number *)
+  mutable pdfVersionMinor       : int;                      (* PDF version number *)
+  mutable header                : (unit -> unit);
+  mutable footer                : (unit -> unit);
+  mutable double_sided          : bool;
+  mutable current_length        : int;
+  mutable outchan               : out_channel;
+  mutable print_resources       : (unit -> unit) list;
+  mutable print_catalog         : (unit -> unit) list;
+  mutable text_color_rgb        : int * int * int;
+  mutable fill_color_rgb        : int * int * int;
+  mutable draw_color_rgb        : int * int * int;
 }
+
+let int_of_linecap = function `Butt -> 0 | `Round -> 1 | `Square -> 2
+let linecap_of_int = function 0 -> `Butt | 1 -> `Round | 2 -> `Square | _ -> assert false
+
+let int_of_linejoin = function `Miter -> 0 | `Round -> 1 | `Bevel -> 2
+let linejoin_of_int = function 0 -> `Miter | 1 -> `Round | 2 -> `Bevel | _ -> assert false
 
 let set ?x ?y doc =
   begin match x with None -> () | Some x -> doc.pos_x <- if x >= 0. then x else doc.w +. x end;
@@ -182,7 +183,7 @@ let set_auto_page_break ?(margin=0.) auto doc =
 (*    b_margin <- margin;*)
   doc.pageBreakTrigger <- (doc.h -. doc.b_margin)
 
-let set_display_mode ?(layout=Continuous) zoom doc =
+let set_display_mode ?(layout=`Continuous) zoom doc =
   (* Set display mode in viewer *)
   doc.zoomMode <- zoom;
   doc.layoutMode <- layout
@@ -191,99 +192,102 @@ let set_compression x doc =
   if x then (invalid_arg "PDF.set_compression: Compression not yet implemented");
   doc.compress <- x
 
-let create ?(orientation=Portrait) ?(m_unit=Mm) ?(format=A4) ~outchan () =
+let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
 (*  //Some checks (LOCALE) $this->_dochecks();*)
   (* Scale factor *)
   let scale = match m_unit with
-    | Pt -> 1.
-    | Mm -> 72. /. 25.4
-    | Cm -> 72. /. 2.54
-    | In -> 72. in
+    | `Pt -> 1.
+    | `Mm -> 72. /. 25.4
+    | `Cm -> 72. /. 2.54
+    | `In -> 72. in
   let default_fw_pt, default_fh_pt = match format with
-    | A3 -> 841.89, 1190.55
-    | A4 -> 595.28, 841.89
-    | A5 -> 420.94, 595.28
-    | Letter -> 612., 792.
-    | Legal -> 612., 1008.
-    | Custom_format (w, h) -> w *. scale, h *. scale in
+    | `A3 -> 841.89, 1190.55
+    | `A4 -> 595.28, 841.89
+    | `A5 -> 420.94, 595.28
+    | `Letter -> 612., 792.
+    | `Legal -> 612., 1008.
+    | `Custom_format (w, h) -> w *. scale, h *. scale in
   let default_orientation, default_w_pt, default_h_pt = match orientation with
-    | Portrait -> Portrait, default_fw_pt, default_fh_pt
-    | Landscape -> Landscape, default_fh_pt, default_fw_pt
+    | `Portrait -> `Portrait, default_fw_pt, default_fh_pt
+    | `Landscape -> `Landscape, default_fh_pt, default_fw_pt
   in
   (* Page margins (1 cm) *)
   let margin0 = 28.35 /. scale in
-  let doc = {
-    page = -1;
+  let doc               = {
+    page                  = -1;
     current_object_number = 2;
-    objects = [{obj_offset = -1}; {obj_offset = -1}];
-    pages = [];
-    state = Begin_document;
-    compress = false;
-    def_orientation = default_orientation;
-    cur_orientation = default_orientation;
-    k = scale;
-    fw_pt = default_fw_pt;
-    fh_pt = default_fh_pt;
-    fw = default_fw_pt /. scale;
-    fh = default_fh_pt /. scale;
-    w_pt = default_w_pt;
-    h_pt = default_h_pt;
-    w = default_w_pt /. scale;
-    h = default_h_pt /. scale;
-    l_margin = 0.;
-    t_margin = 0.;
-    r_margin = 0.;
-    b_margin = 0.;
-    c_margin = margin0 /. 10.;
-    pos_x = 0.;
-    pos_y = 0.;
-    lasth = 0.0;
-    line_width =  0.1;
-    fonts = [];
-    font_files = [];
-    diffs = [];
-    images = [];
-    links = [];
-    font_family = Some `Courier;
-    font_style = [];
-    underline = false;
-    current_font = None;
-    font_size_pt = 12.;
-    font_size = 0.;
-    drawColor = "0 G";
-    fillColor = "0 g";
-    textColor = "0 g";
-    colorFlag = false;
-    ws = 0.0;
-    auto_page_break = true;
-    pageBreakTrigger = 0.;
-    inFooter = false;
-    zoomMode = Default_zoom;
-    layoutMode = Default_layout;
-    title = "";
-    subject = "";
-    author = "";
-    keywords = [];
-    creator = "";
-    aliasNbPages = "{nb}";
-    pdfVersionMajor = 1;
-    pdfVersionMinor = 3;
-    header = (fun () -> ());
-    footer = (fun () -> ());
-    double_sided = false;
-    current_length = 0;
-    outchan = outchan;
-    print_resources = [];
-    print_catalog = [];
-    text_color_rgb = (0, 0, 0);
-    fill_color_rgb = (0, 0, 0);
-    draw_color_rgb = (0, 0, 0);
+    objects               = [{obj_offset = -1}; {obj_offset = -1}];
+    pages                 = [];
+    state                 = Begin_document;
+    compress              = false;
+    def_orientation       = default_orientation;
+    cur_orientation       = default_orientation;
+    k                     = scale;
+    fw_pt                 = default_fw_pt;
+    fh_pt                 = default_fh_pt;
+    fw                    = default_fw_pt /. scale;
+    fh                    = default_fh_pt /. scale;
+    w_pt                  = default_w_pt;
+    h_pt                  = default_h_pt;
+    w                     = default_w_pt /. scale;
+    h                     = default_h_pt /. scale;
+    l_margin              = 0.;
+    t_margin              = 0.;
+    r_margin              = 0.;
+    b_margin              = 0.;
+    c_margin              = margin0 /. 10.;
+    pos_x                 = 0.;
+    pos_y                 = 0.;
+    lasth                 = 0.0;
+    line_width            = 0.1;
+    line_cap              = `Square;
+    line_join             = `Miter;
+    line_dash             = ([], 0);
+    fonts                 = [];
+    font_files            = [];
+    diffs                 = [];
+    images                = [];
+    links                 = [];
+    font_family           = Some `Courier;
+    font_style            = [];
+    underline             = false;
+    current_font          = None;
+    font_size_pt          = 12.;
+    font_size             = 0.;
+    drawColor             = "0 G";
+    fillColor             = "0 g";
+    textColor             = "0 g";
+    colorFlag             = false;
+    ws                    = 0.0;
+    auto_page_break       = true;
+    pageBreakTrigger      = 0.;
+    inFooter              = false;
+    zoomMode              = `Default_zoom;
+    layoutMode            = `Default_layout;
+    title                 = "";
+    subject               = "";
+    author                = "";
+    keywords              = [];
+    creator               = "";
+    aliasNbPages          = "{nb}";
+    pdfVersionMajor       = 1;
+    pdfVersionMinor       = 3;
+    header                = (fun () -> ());
+    footer                = (fun () -> ());
+    double_sided          = false;
+    current_length        = 0;
+    outchan               = outchan;
+    print_resources       = [];
+    print_catalog         = [];
+    text_color_rgb        = (0, 0, 0);
+    fill_color_rgb        = (0, 0, 0);
+    draw_color_rgb        = (0, 0, 0);
   } in
   set_margins ~left:margin0 ~top:margin0 doc;
   (* Automatic page break *)
   set_auto_page_break true doc;
   (* Full width display mode *)
-  set_display_mode Fullwidth doc;
+  set_display_mode `Fullwidth doc;
   (* Enable compression *)
   set_compression false doc;
   doc
@@ -375,16 +379,16 @@ let print_catalog doc =
   print doc "/Type /Catalog\n";
   print doc "/Pages 1 0 R\n";
   begin match doc.zoomMode with
-    | Fullpage -> print doc "/OpenAction [3 0 R /Fit]\n"
-    | Fullwidth -> print doc "/OpenAction [3 0 R /FitH null]\n"
-    | Real -> print doc "/OpenAction [3 0 R /XYZ null null 1]\n"
-    | Custom_zoom z -> print doc "/OpenAction [3 0 R /XYZ null null %f]\n" (z /. 100.)
+    | `Fullpage -> print doc "/OpenAction [3 0 R /Fit]\n"
+    | `Fullwidth -> print doc "/OpenAction [3 0 R /FitH null]\n"
+    | `Real -> print doc "/OpenAction [3 0 R /XYZ null null 1]\n"
+    | `Custom_zoom z -> print doc "/OpenAction [3 0 R /XYZ null null %f]\n" (z /. 100.)
     | _ -> () (*    | Default_zoom -> ""*)
   end;
   begin match doc.layoutMode with
-    | Single -> print doc "/PageLayout /SinglePage\n"
-    | Continuous -> print doc "/PageLayout /OneColumn\n"
-    | Two -> print doc "/PageLayout /TwoColumnLeft\n"
+    | `Single -> print doc "/PageLayout /SinglePage\n"
+    | `Continuous -> print doc "/PageLayout /OneColumn\n"
+    | `Two -> print doc "/PageLayout /TwoColumnLeft\n"
     | _ -> () (*| Default_layout*)
   end;
   List.iter (fun f -> f()) (List.rev doc.print_catalog);
@@ -409,8 +413,8 @@ let print_pages doc =
       Buffer.add_string pg.pg_buffer pg_content
     end doc.pages;
   let w_pt, h_pt = match doc.def_orientation with
-    | Portrait -> doc.fw_pt, doc.fh_pt
-    | Landscape -> doc.fh_pt, doc.fw_pt in
+    | `Portrait -> doc.fw_pt, doc.fh_pt
+    | `Landscape -> doc.fh_pt, doc.fw_pt in
   let filter = if doc.compress then "/Filter /FlateDecode " else "" in
   List.iter begin fun page ->
     (* Page *)
@@ -666,12 +670,12 @@ let begin_page ?orientation doc =
   if orientation <> doc.cur_orientation then begin
     (* Change orientation *)
     begin match orientation with
-      | Portrait ->
+      | `Portrait ->
         doc.w_pt <- doc.fw_pt;
         doc.h_pt <- doc.fh_pt;
         doc.w <- doc.fw;
         doc.h <- doc.fh
-      | Landscape ->
+      | `Landscape ->
         doc.w_pt <- doc.fh_pt;
         doc.h_pt <- doc.fw_pt;
         doc.w <- doc.fh;
@@ -771,6 +775,32 @@ let set_line_width width doc =
 (** line_width *)
 let line_width doc = doc.line_width
 
+(** line_cap *)
+let set_line_cap style doc =
+  doc.line_cap <- style;
+  if doc.page >= 0 then (print_buffer doc "%d J\n" (int_of_linecap style));;
+
+let line_cap doc = doc.line_cap
+
+(** line_join *)
+let set_line_join style doc =
+  doc.line_join <- style;
+  if doc.page >= 0 then (print_buffer doc "%d j\n" (int_of_linejoin style));;
+
+let line_join doc = doc.line_join
+
+(** Line dash pattern *)
+let set_line_dash pattern ?(phase=0) doc =
+  doc.line_dash <- (pattern, phase);
+  if doc.page >= 0 then (print_buffer doc "[%s] %d d\n"
+    (String.concat " " (List.map string_of_int pattern)) phase);;
+
+let line_dash doc = doc.line_dash
+
+(** Graphics state stack *)
+let push_graphics_state doc = if doc.page >= 0 then (print_buffer doc "q\n")
+let pop_graphics_state doc = if doc.page >= 0 then (print_buffer doc "Q\n")
+
 (** Start a new page *)
 let add_page ?orientation doc =
   if doc.state = Begin_document then open_document doc;
@@ -805,7 +835,8 @@ let add_page ?orientation doc =
   end;
   begin_page ?orientation doc;
   (* Set line cap style to square *)
-  print_buffer doc "2 J\n";
+  set_line_cap (line_cap doc) doc;
+  (*print_buffer doc "2 J\n";*)
   call_and_restore ~pre:save doc.header () ~post:restore;
   set_line_width old_lw doc
 
@@ -876,7 +907,8 @@ let text_color doc = doc.text_color_rgb
 
 (** line *)
 let line ~x1 ~y1 ~x2 ~y2 doc =
-  print_buffer doc "%.2f %.2f m %.2f %.2f l S\n" (x1 *. doc.k) ((doc.h -. y1) *. doc.k) (x2 *. doc.k) ((doc.h -. y2) *. doc.k)
+  print_buffer doc "%.2f %.2f m %.2f %.2f l S\n"
+    (x1 *. doc.k) ((doc.h -. y1) *. doc.k) (x2 *. doc.k) ((doc.h -. y2) *. doc.k)
 
 let newline ?height doc =
   doc.pos_x <- doc.l_margin;
@@ -888,7 +920,7 @@ let cell
     ~width
     ?(height=0.)
     ?(text="")
-    ?(border : border option)
+    ?(border : border_part list option)
     ?padding
     ?(ln=(`Right : [`Right | `Next_line | `Bottom]))
     ?(align=`Left)

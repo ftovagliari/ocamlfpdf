@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 
 open Printf
 
-(** include_javascript *)  
+(** include_javascript *)
 let include_javascript javascript doc =
   let js_object_number = ref 0 in
   if String.length javascript > 0 then begin

@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,12 @@
 
 *)
 
+open PDFTypes
+
 (** Layout for printing tabular material. *)
 type cell_properties = {
   mutable prop_text       : string;
-  mutable prop_align      : PDF.align;
+  mutable prop_align      : align;
   mutable prop_font_style : Font.style list;
   mutable prop_font_size  : float option;
   mutable prop_bg_color   : (int * int * int) option;
@@ -80,7 +82,7 @@ val print :
   rows:string option array list ->
   ?header_layout:('a tree list) ->
   ?grid_lines : [`None | `Vertical | `Horizontal | `Both] ->
-  ?border : PDF.border ->
+  ?border : border_part list ->
   ?border_width:thickness ->
   ?page_header_height:float ->
   ?page_break_func:(unit -> unit) ->

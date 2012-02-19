@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,10 +21,11 @@
 *)
 
 open Printf
+open PDFTypes
 
 type cell_properties = {
   mutable prop_text       : string;
-  mutable prop_align      : PDF.align;
+  mutable prop_align      : align;
   mutable prop_font_style : Font.style list;
   mutable prop_font_size  : float option;
   mutable prop_bg_color   : (int * int * int) option;
@@ -148,7 +149,7 @@ let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin
   height, points
 ;;
 
-let has_border (border : PDF.border) which =
+let has_border (border : border_part list) which =
   List.mem `All border || List.mem which border
 
 let rec list_pos ?(pos=0) ll x = match ll with

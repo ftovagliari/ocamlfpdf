@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010 Francesco Tovagliari
+  Copyright (C) 2010-2012 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,22 +20,16 @@
 
 *)
 
+open PDFTypes
+
 (** PDF Document. *)
-type orientation = Portrait | Landscape
-and m_unit = Mm | Pt | Cm | In
-and format = A3 | A4 | A5 | Letter | Legal | Custom_format of float * float
-and zoom = Fullpage | Fullwidth | Real | Default_zoom | Custom_zoom of float
-and layout = Single | Continuous | Two | Default_layout
-and rect_style = [ `Both | `Fill | `Outline ]
-and border = [ `All | `B | `L | `R | `T ] list
-and align = [ `Center | `Justified | `Left | `Right ]
-and link = (float * float * float * float * link_ref) list
+type link = (float * float * float * float * link_ref) list
 and link_ref = Uri of string | Internal of int
 and internal_link = int * float
 
 type document
 
-(** {6 PDF Document} *)
+(** {4 PDF Document} *)
 
 (**
   @param m_unit Default is [Mm].
@@ -69,7 +63,7 @@ val title : document -> string
 val set_author : string -> document -> unit
 val set_title : string -> document -> unit
 
-(** {6 Page Properties } *)
+(** {4 Page Properties } *)
 
 val page_width : document -> float
 val page_height : document -> float
@@ -84,7 +78,8 @@ val set_margins :
 (** Returns the current page number. *)
 val page_no : document -> int
 
-(** {6 Page Header and Footer} *)
+
+(** {4 Page Header and Footer} *)
 
 (** Set the drawing function for the header. *)
 val set_header_func : (unit -> unit) -> document -> unit
@@ -92,7 +87,8 @@ val set_header_func : (unit -> unit) -> document -> unit
 (** Set the drawing function for the footer. *)
 val set_footer_func : (unit -> unit) -> document -> unit
 
-(** {6 Positioning} *)
+
+(** {4 Positioning} *)
 
 (** Return the current absolute {i x} position. *)
 val x : document -> float
@@ -104,7 +100,7 @@ val y : document -> float
 val set : ?x:float -> ?y:float -> document -> unit
 
 
-(** {6 Text} *)
+(** {4 Text} *)
 
 val font_style : document -> Font.style list
 val font_size : document -> float
@@ -120,24 +116,24 @@ val multi_cell :
   width:float ->
   line_height:float ->
   text:string ->
-  ?border:[ `All | `B | `L | `R | `T ] list ->
+  ?border:border_part list ->
   ?padding:float -> ?align:align -> ?fill:bool -> document -> unit
 
 val multi_cell_lines :
   width:float ->
   line_height:float ->
   text:string ->
-  ?border:[ `All | `B | `L | `R | `T ] list ->
+  ?border:border_part list ->
   ?padding:float -> ?align:align -> ?fill:bool -> document -> string list
 
 val cell :
   width:float ->
   ?height:float ->
   ?text:string ->
-  ?border:border ->
+  ?border:border_part list ->
   ?padding:float ->
   ?ln:[ `Bottom | `Next_line | `Right ] ->
-  ?align:[< `Center | `Justified | `Left | `Right > `Left ] ->
+  ?align:align ->
   ?fill:bool -> ?link:string -> document -> unit
 
 val write :
@@ -148,16 +144,42 @@ val text : x:float -> y:float -> text:string -> document -> unit
 
 val newline : ?height:float -> document -> unit
 
-(** {6 Drawing} *)
+
+(** {4 Graphics} *)
+
+(** {6 Graphics state operators} *)
+
+(** Save the current graphics state on the graphics state stack *)
+val push_graphics_state : document -> unit
+
+(** Restore the graphics state by removing the most recently saved state from
+    the stack and making it the current state *)
+val pop_graphics_state : document -> unit
 
 (** Default value is 0.1 *)
 val set_line_width : float -> document -> unit
 
 val line_width : document -> float
 
+val set_line_cap : line_cap_style -> document -> unit
+
+val line_cap : document -> line_cap_style
+
+val set_line_join : line_join_style -> document -> unit
+
+val line_join : document -> line_join_style
+
+val set_line_dash : int list -> ?phase:int -> document -> unit
+
+val line_dash : document -> int list * int
+
 val set_draw_color : red:int -> ?green:int -> ?blue:int -> document -> unit
 val draw_color : document -> int * int * int
 val set_fill_color : red:int -> ?green:int -> ?blue:int -> document -> unit
+val fill_color : document -> int * int * int
+
+(** {6 Drawing} *)
+
 val line : x1:float -> y1:float -> x2:float -> y2:float -> document -> unit
 
 (** Draw a rectangle.
@@ -174,7 +196,7 @@ val rect :
   width:float ->
   height:float -> ?radius:float -> ?style:rect_style -> document -> unit
 
-(** {6 Images } *)
+(** {6 Images} *)
 
 (** Put an image in the document.
   @param name Filename with format [<id>.\{jpg|jpeg|png\}] (for example: {i myimage.jpg}).
@@ -196,13 +218,14 @@ val image :
   ?width:float ->
   ?height:float -> ?format:string -> ?link:'a -> document -> unit
 
-(** {6 Miscellaneous Functions} *)
+
+(** {4 Miscellaneous Functions} *)
 
 (** Return the width of a string in user units computed with the current font. *)
 val get_string_width : string -> document -> float
 
 
-(** {6 Private} *)
+(** {4 Private} *)
 
 val add_resource : (unit -> unit) -> document -> unit
 val add_catalog : (unit -> unit) -> document -> unit
@@ -210,7 +233,8 @@ val new_obj : document -> unit
 val current_object_number : document -> int
 val print : document -> ('a, unit, string, unit) format4 -> 'a
 
-(** {6 Hyperlinks } *)
+
+(** {4 Hyperlinks } *)
 
 (**
     @deprecated
