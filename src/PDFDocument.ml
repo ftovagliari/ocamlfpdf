@@ -122,6 +122,12 @@ type t = {
   mutable draw_color_rgb        : int * int * int;
 }
 
+let open_document doc = match doc.state with
+  | End_document -> failwith "PDF.open_document: document already closed."
+  | _ -> doc.state <- End_page
+
+let n_pages doc = List.length doc.pages
+
 let string_of_style style =
   let bold = List.mem `Bold style in
   let italic = List.mem `Italic style in
@@ -551,4 +557,7 @@ let add_resource func doc = doc.print_resources <- func :: doc.print_resources
 let current_object_number doc = doc.current_object_number
 
 let add_catalog func doc = doc.print_catalog <- func :: doc.print_catalog
+
+(** TODO: add_link *)
+let add_link ~x ~y ~width ~height ~link () = ()
 

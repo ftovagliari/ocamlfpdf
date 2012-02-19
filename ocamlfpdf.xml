@@ -11,15 +11,17 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="942" active="true">PDF.ml</filename>
+    <filename offset="6502" active="true">PDF.ml</filename>
     <filename offset="1443" active="false">PDFTypes.ml</filename>
-    <filename offset="6408" active="false">PDF.mli</filename>
+    <filename offset="915" active="false">PDF.mli</filename>
     <filename offset="8211" active="false">test.ml</filename>
-    <filename offset="1252" active="false">PDFGraphicsState.ml</filename>
-    <filename offset="840" active="false">PDFDocument.ml</filename>
+    <filename offset="0" active="false">PDFGraphicsState.ml</filename>
+    <filename offset="7003" active="false">PDFDocument.ml</filename>
     <filename offset="0" active="false">PDFTypes.mli</filename>
     <filename offset="943" active="false">PDFJavascript.ml</filename>
-    <filename offset="0" active="false">PDFJavascript.mli</filename>
+    <filename offset="0" active="false">PDFBookmark.mli</filename>
+    <filename offset="915" active="false">PDFGraphics.ml</filename>
+    <filename offset="7065" active="false">PDFText.ml</filename>
   </open_files>
   <runtime>
     <configuration>

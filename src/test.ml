@@ -73,7 +73,7 @@ let main () = begin
         PDF.set_font ~family:`Helvetica ~size:10. doc;
         PDF.set ~x:(margin +. width_avail -. width_page_num) ~y:margin doc;
         PDF.multi_cell ~width:width_page_num ~line_height:height ~align:`Right
-          ~text:(sprintf "%s - %d/{nb}" (Filename.basename filename) (PDF.n_pages doc)) doc;
+          ~text:(sprintf "%s - %d/{nb}" (Filename.basename filename) (PDF.page_count doc)) doc;
       end doc;
 
       (** Markup *)

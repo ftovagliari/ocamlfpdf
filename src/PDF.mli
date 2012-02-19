@@ -45,7 +45,7 @@ val create :
   *)
 val add_page : ?orientation:orientation -> t -> unit
 
-val n_pages : t -> int
+val page_count : t -> int
 
 (** Close the PDF document.
     After this point, no further operation is possible on the document. *)
@@ -75,7 +75,7 @@ val set_margins :
   ?right:float -> top:float -> ?bottom:float -> t -> unit
 
 (** Returns the current page number. *)
-val page_no : t -> int
+val page_num : t -> int
 
 
 (** {4 Page Header and Footer} *)
