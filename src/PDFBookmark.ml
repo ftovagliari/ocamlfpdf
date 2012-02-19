@@ -163,7 +163,7 @@ let add ?(text="") ?page ?(y=0.0) ?(parent=0) doc =
     id       = id;
     text     = text;
     y        = (PDF.page_height doc -. y) *. PDF.scale doc;
-    page     = (match page with None -> PDF.page_count doc | Some p -> p);
+    page     = (match page with None -> PDF.page_num doc | Some p -> p);
     obj      = 0;
     children = [];
   } in

@@ -11,17 +11,20 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="6502" active="true">PDF.ml</filename>
-    <filename offset="1443" active="false">PDFTypes.ml</filename>
-    <filename offset="915" active="false">PDF.mli</filename>
-    <filename offset="8211" active="false">test.ml</filename>
+    <filename offset="13" active="false">PDF.ml</filename>
+    <filename offset="1442" active="false">PDFTypes.ml</filename>
+    <filename offset="1496" active="false">PDF.mli</filename>
+    <filename offset="7474" active="false">test.ml</filename>
     <filename offset="0" active="false">PDFGraphicsState.ml</filename>
-    <filename offset="7003" active="false">PDFDocument.ml</filename>
+    <filename offset="1100" active="true">PDFDocument.ml</filename>
     <filename offset="0" active="false">PDFTypes.mli</filename>
-    <filename offset="943" active="false">PDFJavascript.ml</filename>
+    <filename offset="1150" active="false">PDFJavascript.ml</filename>
     <filename offset="0" active="false">PDFBookmark.mli</filename>
-    <filename offset="915" active="false">PDFGraphics.ml</filename>
-    <filename offset="7065" active="false">PDFText.ml</filename>
+    <filename offset="3250" active="false">PDFGraphics.ml</filename>
+    <filename offset="1746" active="false">PDFText.ml</filename>
+    <filename offset="13" active="false">PDFPage.ml</filename>
+    <filename offset="892" active="false">PDFFont.ml</filename>
+    <filename offset="5157" active="false">PDFBookmark.ml</filename>
   </open_files>
   <runtime>
     <configuration>

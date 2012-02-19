@@ -27,10 +27,10 @@ open Image
 
 type state = Begin_document | End_page | Begin_page | End_document
 
-type link = (float * float * float * float * link_ref) list
-and link_ref = Uri of string | Internal of int
-and internal_link = int * float
-and obj = {mutable obj_offset : int}
+type link_source = (float * float * float * float * link_target) list
+and link_target = Uri of string | Internal of int 
+
+type obj = {mutable obj_offset : int}
 and font = {
   font_index     : int; (* i *)
   font_type      : font_type;
@@ -49,7 +49,7 @@ and font_file = {
 and page = {
   mutable pg_buffer             : Buffer.t;
   mutable pg_change_orientation : bool;
-  mutable pg_link               : link option
+  mutable pg_link               : link_source option
 }
 type t = {
   mutable page                  : int;
