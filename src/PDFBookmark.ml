@@ -23,17 +23,17 @@
 open Printf
 
 type t = {
-  doc                  : PDF.document;
+  doc                  : PDFDocument.t;
   mutable root_obj     : int;
   mutable tree         : node list;
   mutable length       : int;
 }
 
 and node = {
-  id       : int;
-  text     : string;
-  page     : int;
-  y        : float;
+  id               : int;
+  text             : string;
+  page             : int;
+  y                : float;
   mutable obj      : int;
   mutable children : node list;
 }
@@ -86,62 +86,62 @@ let create doc =
     tree         = [];
     length       = 0;
   } in
-  PDF.add_resource begin fun () ->
+  PDFDocument.add_resource begin fun () ->
     if List.length bookmark.tree > 0 then begin
-      bookmark.root_obj <- 1 + bookmark.length + PDF.current_object_number doc;
+      bookmark.root_obj <- 1 + bookmark.length + PDFDocument.current_object_number doc;
       (* Print Resources *)
       let prev_sibling = ref [] in
       tree_iter begin fun (i, last) level node ->
-        PDF.new_obj doc;
-        node.obj <- PDF.current_object_number doc;
-        PDF.print doc "<</Title %s " (PDFUtil.pdf_string node.text);
+        PDFDocument.new_obj doc;
+        node.obj <- PDFDocument.current_object_number doc;
+        PDFDocument.print doc "<</Title %s " (PDFUtil.pdf_string node.text);
         let parent =
           try (List.assoc (level - 1) !prev_sibling).obj
           with Not_found -> bookmark.root_obj
         in
-        PDF.print doc "/Parent %d 0 R " parent;
+        PDFDocument.print doc "/Parent %d 0 R " parent;
         if node.children <> [] then begin
-          PDF.print doc "/First %d 0 R " (PDF.current_object_number doc + 1);
-          PDF.print doc "/Last %d 0 R " (PDF.current_object_number doc + List.length node.children);
+          PDFDocument.print doc "/First %d 0 R " (PDFDocument.current_object_number doc + 1);
+          PDFDocument.print doc "/Last %d 0 R " (PDFDocument.current_object_number doc + List.length node.children);
         end;
         if i > 0 && i <= last && !prev_sibling <> [] then begin
           let prev_sibling_length =
             try tree_length (List.assoc level !prev_sibling).children
             with Not_found -> assert false
           in
-          PDF.print doc "/Prev %d 0 R " (PDF.current_object_number doc - prev_sibling_length - 1);
+          PDFDocument.print doc "/Prev %d 0 R " (PDFDocument.current_object_number doc - prev_sibling_length - 1);
         end;
         if i >= 0 && i < last then begin
-          PDF.print doc "/Next %d 0 R " (PDF.current_object_number doc + tree_length node.children + 1);
+          PDFDocument.print doc "/Next %d 0 R " (PDFDocument.current_object_number doc + tree_length node.children + 1);
         end;
-        PDF.print doc "/Dest [%d 0 R /XYZ 0 %.2f null] " (3 + 2 * node.page) node.y;
-        PDF.print doc "/Count 0>>";
-        PDF.print doc "endobj\n";
+        PDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %.2f null] " (3 + 2 * node.page) node.y;
+        PDFDocument.print doc "/Count 0>>";
+        PDFDocument.print doc "endobj\n";
         prev_sibling := (level, node) :: !prev_sibling;
       end 0 bookmark.tree;
       (* Outline root *)
-      PDF.new_obj doc;
+      PDFDocument.new_obj doc;
       let first =
         match bookmark.tree with
           | [] -> assert false
           | items -> (List.hd (List.rev items)).obj
       in
       (* The first toplevel item *)
-      PDF.print doc "<</Type /Outlines /First %d 0 R " first;
+      PDFDocument.print doc "<</Type /Outlines /First %d 0 R " first;
       let last =
         match bookmark.tree with
           | [] -> assert false
           | items -> (List.hd items).obj
       in
       (* The last toplevel item *)
-      PDF.print doc "/Last %d 0 R>>endobj\n" last;
+      PDFDocument.print doc "/Last %d 0 R>>endobj\n" last;
     end
   end doc;
   (* Add catalog *)
-  PDF.add_catalog begin fun () ->
+  PDFDocument.add_catalog begin fun () ->
     if List.length bookmark.tree > 0 then begin
-      PDF.print doc "/Outlines %d 0 R " bookmark.root_obj;
-      PDF.print doc "/PageMode /UseOutlines\n"
+      PDFDocument.print doc "/Outlines %d 0 R " bookmark.root_obj;
+      PDFDocument.print doc "/PageMode /UseOutlines\n"
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;

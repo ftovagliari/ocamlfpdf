@@ -43,4 +43,4 @@ val print :
   ?border_width:float ->
   ?border_color:string ->
   ?border_radius:float ->
-  ?padding:float -> PDF.document -> float * float
+  ?padding:float -> PDF.t -> float * float

@@ -22,12 +22,11 @@
 
 open PDFTypes
 
-(** PDF Document. *)
-type link = (float * float * float * float * link_ref) list
-and link_ref = Uri of string | Internal of int
-and internal_link = int * float
+(** PDF document creation and operators. *)
 
-type document
+
+(** The PDF document type. *)
+type t = PDFDocument.t
 
 (** {4 PDF Document} *)
 
@@ -39,92 +38,92 @@ type document
   *)
 val create :
   ?orientation:orientation ->
-  ?m_unit:m_unit -> ?format:format -> outchan:out_channel -> unit -> document
+  ?m_unit:m_unit -> ?format:format -> outchan:out_channel -> unit -> t
 
 (** Append a new page to the document.
     @param orientation Default value is the document orientation passed to [create].
   *)
-val add_page : ?orientation:orientation -> document -> unit
+val add_page : ?orientation:orientation -> t -> unit
 
-val n_pages : document -> int
+val n_pages : t -> int
 
 (** Close the PDF document.
     After this point, no further operation is possible on the document. *)
-val close_document : document -> unit
+val close_document : t -> unit
 
-val double_sided : document -> bool
-val scale : document -> float
-val set_double_sided : bool -> document -> unit
-val set_auto_page_break : ?margin:float -> bool -> document -> unit
-val set_display_mode : ?layout:layout -> zoom -> document -> unit
+val double_sided : t -> bool
+val scale : t -> float
+val set_double_sided : bool -> t -> unit
+val set_auto_page_break : ?margin:float -> bool -> t -> unit
+val set_display_mode : ?layout:layout -> zoom -> t -> unit
 
-val author : document -> string
-val title : document -> string
-val set_author : string -> document -> unit
-val set_title : string -> document -> unit
+val author : t -> string
+val title : t -> string
+val set_author : string -> t -> unit
+val set_title : string -> t -> unit
 
 (** {4 Page Properties } *)
 
-val page_width : document -> float
-val page_height : document -> float
+val page_width : t -> float
+val page_height : t -> float
 
 (** Top, right, bottom and left margin. *)
-val margins : document -> float * float * float * float
+val margins : t -> float * float * float * float
 
 val set_margins :
   left:float ->
-  ?right:float -> top:float -> ?bottom:float -> document -> unit
+  ?right:float -> top:float -> ?bottom:float -> t -> unit
 
 (** Returns the current page number. *)
-val page_no : document -> int
+val page_no : t -> int
 
 
 (** {4 Page Header and Footer} *)
 
 (** Set the drawing function for the header. *)
-val set_header_func : (unit -> unit) -> document -> unit
+val set_header_func : (unit -> unit) -> t -> unit
 
 (** Set the drawing function for the footer. *)
-val set_footer_func : (unit -> unit) -> document -> unit
+val set_footer_func : (unit -> unit) -> t -> unit
 
 
 (** {4 Positioning} *)
 
 (** Return the current absolute {i x} position. *)
-val x : document -> float
+val x : t -> float
 
 (** Return the current absolute {i y} positions. *)
-val y : document -> float
+val y : t -> float
 
 (** Set the current absolute {i x} and {i y} position. *)
-val set : ?x:float -> ?y:float -> document -> unit
+val set : ?x:float -> ?y:float -> t -> unit
 
 
 (** {4 Text} *)
 
-val font_style : document -> Font.style list
-val font_size : document -> float
-val font_family : document -> Font.family option
+val font_style : t -> Font.style list
+val font_size : t -> float
+val font_family : t -> Font.family option
 val set_font :
   ?family:Font.family ->
-  ?style:Font.style list -> ?size:float -> document -> unit
-val set_text_color : red:int -> ?green:int -> ?blue:int -> document -> unit
-val text_color : document -> int * int * int
-val fill_color : document -> int * int * int
+  ?style:Font.style list -> ?size:float -> t -> unit
+val set_text_color : red:int -> ?green:int -> ?blue:int -> t -> unit
+val text_color : t -> int * int * int
+val fill_color : t -> int * int * int
 
 val multi_cell :
   width:float ->
   line_height:float ->
   text:string ->
   ?border:border_part list ->
-  ?padding:float -> ?align:align -> ?fill:bool -> document -> unit
+  ?padding:float -> ?align:align -> ?fill:bool -> t -> unit
 
 val multi_cell_lines :
   width:float ->
   line_height:float ->
   text:string ->
   ?border:border_part list ->
-  ?padding:float -> ?align:align -> ?fill:bool -> document -> string list
+  ?padding:float -> ?align:align -> ?fill:bool -> t -> string list
 
 val cell :
   width:float ->
@@ -134,15 +133,15 @@ val cell :
   ?padding:float ->
   ?ln:[ `Bottom | `Next_line | `Right ] ->
   ?align:align ->
-  ?fill:bool -> ?link:string -> document -> unit
+  ?fill:bool -> ?link:string -> t -> unit
 
 val write :
   height:float ->
-  ?padding:float -> text:string -> ?link:string -> document -> unit
+  ?padding:float -> text:string -> ?link:string -> t -> unit
 
-val text : x:float -> y:float -> text:string -> document -> unit
+val text : x:float -> y:float -> text:string -> t -> unit
 
-val newline : ?height:float -> document -> unit
+val newline : ?height:float -> t -> unit
 
 
 (** {4 Graphics} *)
@@ -150,37 +149,37 @@ val newline : ?height:float -> document -> unit
 (** {6 Graphics state operators} *)
 
 (** Save the current graphics state on the graphics state stack *)
-val push_graphics_state : document -> unit
+val push_graphics_state : t -> unit
 
 (** Restore the graphics state by removing the most recently saved state from
     the stack and making it the current state *)
-val pop_graphics_state : document -> unit
+val pop_graphics_state : t -> unit
 
 (** Default value is 0.1 *)
-val set_line_width : float -> document -> unit
+val set_line_width : float -> t -> unit
 
-val line_width : document -> float
+val line_width : t -> float
 
-val set_line_cap : line_cap_style -> document -> unit
+val set_line_cap : line_cap_style -> t -> unit
 
-val line_cap : document -> line_cap_style
+val line_cap : t -> line_cap_style
 
-val set_line_join : line_join_style -> document -> unit
+val set_line_join : line_join_style -> t -> unit
 
-val line_join : document -> line_join_style
+val line_join : t -> line_join_style
 
-val set_line_dash : int list -> ?phase:int -> document -> unit
+val set_line_dash : int list -> ?phase:int -> t -> unit
 
-val line_dash : document -> int list * int
+val line_dash : t -> int list * int
 
-val set_draw_color : red:int -> ?green:int -> ?blue:int -> document -> unit
-val draw_color : document -> int * int * int
-val set_fill_color : red:int -> ?green:int -> ?blue:int -> document -> unit
-val fill_color : document -> int * int * int
+val set_draw_color : red:int -> ?green:int -> ?blue:int -> t -> unit
+val draw_color : t -> int * int * int
+val set_fill_color : red:int -> ?green:int -> ?blue:int -> t -> unit
+val fill_color : t -> int * int * int
 
 (** {6 Drawing} *)
 
-val line : x1:float -> y1:float -> x2:float -> y2:float -> document -> unit
+val line : x1:float -> y1:float -> x2:float -> y2:float -> t -> unit
 
 (** Draw a rectangle.
   @param x Absolute abscissa of the upper-left corner.
@@ -194,7 +193,7 @@ val rect :
   ?x:float ->
   ?y:float ->
   width:float ->
-  height:float -> ?radius:float -> ?style:rect_style -> document -> unit
+  height:float -> ?radius:float -> ?style:rect_style -> t -> unit
 
 (** {6 Images} *)
 
@@ -216,35 +215,11 @@ val image :
   image_width:int ->
   image_height:int ->
   ?width:float ->
-  ?height:float -> ?format:string -> ?link:'a -> document -> unit
+  ?height:float -> ?format:string -> ?link:'a -> t -> unit
 
 
 (** {4 Miscellaneous Functions} *)
 
 (** Return the width of a string in user units computed with the current font. *)
-val get_string_width : string -> document -> float
-
-
-(** {4 Private} *)
-
-val add_resource : (unit -> unit) -> document -> unit
-val add_catalog : (unit -> unit) -> document -> unit
-val new_obj : document -> unit
-val current_object_number : document -> int
-val print : document -> ('a, unit, string, unit) format4 -> 'a
-
-
-(** {4 Hyperlinks } *)
-
-(**
-    @deprecated
-  *)
-val get_link : int -> document -> int * float
-
-(**
-    @deprecated
-  *)
-val add_link :
-  x:'a -> y:'b -> width:'c -> height:'d -> link:'e -> unit -> unit
-
+val get_string_width : string -> t -> float
 

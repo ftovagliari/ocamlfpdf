@@ -92,4 +92,4 @@ val print :
               row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
   ?use_markup:bool ->
   ?caption:string ->
-  PDF.document -> unit
+  PDF.t -> unit

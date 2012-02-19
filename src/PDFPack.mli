@@ -41,7 +41,7 @@ class hbox :
   ?spacing:float ->
   ?padding:float ->
   ?border:bool ->
-  PDF.document ->
+  PDF.t ->
   object
 
     method width : float
@@ -86,7 +86,7 @@ class vbox :
   ?spacing:float ->
   ?padding:float ->
   ?border:bool ->
-  PDF.document ->
+  PDF.t ->
   object
 
     method width : float
@@ -134,7 +134,7 @@ class table :
   columns:int ->
   ?spacing:float ->
   ?padding:float ->
-  PDF.document ->
+  PDF.t ->
   object
 
     (** [set row column f] sets [f] as the function to use to render the content

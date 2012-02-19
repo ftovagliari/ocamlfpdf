@@ -34,5 +34,5 @@ type index
   @param y The {i y} position of the bookmark destination in the page. [-1] means the current position. Default value: [0].
   @return An index representing the bookmark, for use in subsequent calls as parameter "parent" to append child elements.
 *)
-val add : ?text:string -> ?page:int -> ?y:float -> ?parent:index -> PDF.document -> index
+val add : ?text:string -> ?page:int -> ?y:float -> ?parent:index -> PDF.t -> index
 
