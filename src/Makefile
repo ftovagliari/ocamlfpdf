@@ -11,7 +11,7 @@ gtk_pdfmarkup_editor:
 	ocamlbuild -cflags $(INCLUDES),-w,sy $@.cma $@.cmxa
 
 test_pdfmarkup_editor: gtk_pdfmarkup_editor
-	cd _build && ocamlc -o $@ -I +lablgtk2 unix.cma str.cma lablgtk.cma gtk_pdfmarkup_editor.cma gtkInit.cmo ../$@.ml
+	cd _build && ocamlc -o $@ -I +lablgtk2 -I +xml-light unix.cma str.cma lablgtk.cma xml-light.cma gtk_pdfmarkup_editor.cma gtkInit.cmo ../$@.ml
 	_build/$@
 
 doc: all
