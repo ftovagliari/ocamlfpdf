@@ -50,7 +50,15 @@ let set_fill_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
 
 let fill_color doc = doc.fill_color_rgb
 
-(** name ::= image_name.image_type, i.e. "myimage.jpg" *)
+(** Images *)
+let find_image name doc =
+  let equals = fun {Image.image_name = name'} -> name' = name in
+  let rec find i = function
+    | a :: b -> if equals a then (i, a) else find (i + 1) b
+    | [] -> raise Not_found
+  in
+  find 1 doc.images
+
 let image ~name ~data ~x ~y ~image_width ~image_height ?(width=0.) ?(height=0.) ?format ?link doc =
   let index, info =
     try find_image name doc

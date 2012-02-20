@@ -27,8 +27,8 @@ open Image
 
 type state = Begin_document | End_page | Begin_page | End_document
 
-type link_source = (float * float * float * float * link_target) list
-and link_target = Uri of string | Internal of int 
+type link = (float * float * float * float * link_dest) list
+and link_dest = Uri of string | Internal of int
 
 type obj = {mutable obj_offset : int}
 and font = {
@@ -49,7 +49,7 @@ and font_file = {
 and page = {
   mutable pg_buffer             : Buffer.t;
   mutable pg_change_orientation : bool;
-  mutable pg_link               : link_source option
+  mutable pg_link               : link option
 }
 type t = {
   mutable page                  : int;
@@ -156,14 +156,6 @@ let get_buffer ~create doc =
 let font_exists key doc =
   try ignore(List.assoc key doc.fonts); true
   with Not_found -> false
-
-let find_image name doc =
-  let equals = fun {Image.image_name = name'} -> name' = name in
-  let rec find i = function
-    | a :: b -> if equals a then (i, a) else find (i + 1) b
-    | [] -> raise Not_found
-  in
-  find 1 doc.images
 
 let print_buffer doc =
   let current = (get_current_page doc).pg_buffer in
