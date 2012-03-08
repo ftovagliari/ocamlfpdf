@@ -1,7 +1,7 @@
 <!-- OCamlEditor XML Project -->
 <project>
   <ocaml_home></ocaml_home>
-  <ocamllib>C:\Objective Caml\lib</ocamllib>
+  <ocamllib></ocamllib>
   <encoding>UTF-8</encoding>
   <name>ocamlfpdf</name>
   <author>Francesco Tovagliari</author>
@@ -11,20 +11,23 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="13" active="false">PDF.ml</filename>
+    <filename offset="6147" active="false">PDF.ml</filename>
     <filename offset="1442" active="false">PDFTypes.ml</filename>
     <filename offset="1496" active="false">PDF.mli</filename>
     <filename offset="7474" active="false">test.ml</filename>
-    <filename offset="0" active="false">PDFGraphicsState.ml</filename>
-    <filename offset="1100" active="true">PDFDocument.ml</filename>
+    <filename offset="1260" active="false">PDFGraphicsState.ml</filename>
+    <filename offset="8040" active="false">PDFDocument.ml</filename>
     <filename offset="0" active="false">PDFTypes.mli</filename>
     <filename offset="1150" active="false">PDFJavascript.ml</filename>
     <filename offset="0" active="false">PDFBookmark.mli</filename>
     <filename offset="3250" active="false">PDFGraphics.ml</filename>
     <filename offset="1746" active="false">PDFText.ml</filename>
-    <filename offset="13" active="false">PDFPage.ml</filename>
+    <filename offset="2959" active="false">PDFPage.ml</filename>
     <filename offset="892" active="false">PDFFont.ml</filename>
     <filename offset="5157" active="false">PDFBookmark.ml</filename>
+    <filename offset="498" active="false">Makefile</filename>
+    <filename offset="0" active="false">/home/fran/ocamlfpdf/README</filename>
+    <filename offset="170" active="true">fpdf.mllib</filename>
   </open_files>
   <runtime>
     <configuration>

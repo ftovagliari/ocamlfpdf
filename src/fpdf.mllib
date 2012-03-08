@@ -10,3 +10,9 @@ PDFUtil
 Font
 Font_metrics
 PDFTypes
+PDFDocument
+PDFFont
+PDFGraphicsState
+PDFPage
+PDFGraphics
+PDFText
