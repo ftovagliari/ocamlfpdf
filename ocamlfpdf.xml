@@ -1,7 +1,7 @@
 <!-- OCamlEditor XML Project -->
 <project>
   <ocaml_home></ocaml_home>
-  <ocamllib></ocamllib>
+  <ocamllib>C:\Objective Caml\lib</ocamllib>
   <encoding>UTF-8</encoding>
   <name>ocamlfpdf</name>
   <author>Francesco Tovagliari</author>
@@ -11,12 +11,12 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <open_files>
-    <filename offset="6147" active="false">PDF.ml</filename>
+    <filename offset="4846" active="false">PDF.ml</filename>
     <filename offset="1442" active="false">PDFTypes.ml</filename>
     <filename offset="1496" active="false">PDF.mli</filename>
-    <filename offset="7474" active="false">test.ml</filename>
+    <filename offset="16992" active="false">test.ml</filename>
     <filename offset="1260" active="false">PDFGraphicsState.ml</filename>
-    <filename offset="8040" active="false">PDFDocument.ml</filename>
+    <filename offset="392" active="true">PDFDocument.ml</filename>
     <filename offset="0" active="false">PDFTypes.mli</filename>
     <filename offset="1150" active="false">PDFJavascript.ml</filename>
     <filename offset="0" active="false">PDFBookmark.mli</filename>
@@ -25,8 +25,6 @@
     <filename offset="2959" active="false">PDFPage.ml</filename>
     <filename offset="892" active="false">PDFFont.ml</filename>
     <filename offset="5157" active="false">PDFBookmark.ml</filename>
-    <filename offset="498" active="false">Makefile</filename>
-    <filename offset="0" active="false">/home/fran/ocamlfpdf/README</filename>
   </open_files>
   <runtime>
     <configuration>
@@ -39,33 +37,6 @@
         <var>TEST=1</var>
         <var>OCAMLRUNPARAM=b</var>
       </env>
-      <args></args>
-    </configuration>
-    <configuration>
-      <id>2</id>
-      <id_build>4</id_build>
-      <name>Test_barcode</name>
-      <default>false</default>
-      <build_task>&lt;NONE&gt;</build_task>
-      <env replace="false"/>
-      <args></args>
-    </configuration>
-    <configuration>
-      <id>1</id>
-      <id_build>3</id_build>
-      <name>Test_barcode_2</name>
-      <default>false</default>
-      <build_task>&lt;COMPILE&gt;</build_task>
-      <env replace="false"/>
-      <args></args>
-    </configuration>
-    <configuration>
-      <id>0</id>
-      <id_build>2</id_build>
-      <name>Test2</name>
-      <default>false</default>
-      <build_task>&lt;NONE&gt;</build_task>
-      <env replace="false"/>
       <args></args>
     </configuration>
     <configuration>
@@ -119,66 +90,6 @@
           <phase>After_compile</phase>
         </task>
       </external_tasks>
-    </configuration>
-    <configuration>
-      <id>2</id>
-      <name>Test2</name>
-      <default>false</default>
-      <byt>true</byt>
-      <opt>true</opt>
-      <libs>str unix nums cryptokit</libs>
-      <other_objects></other_objects>
-      <files>test_0.ml</files>
-      <includes></includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <cflags></cflags>
-      <lflags></lflags>
-      <outkind>Executable</outkind>
-      <outname>test_0</outname>
-      <lib_install_path></lib_install_path>
-      <external_tasks/>
-    </configuration>
-    <configuration>
-      <id>3</id>
-      <name>Test_barcode_2</name>
-      <default>false</default>
-      <byt>false</byt>
-      <opt>true</opt>
-      <libs>str unix nums cryptokit</libs>
-      <other_objects></other_objects>
-      <files>test_barcode_2.ml</files>
-      <includes></includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <cflags></cflags>
-      <lflags></lflags>
-      <outkind>Executable</outkind>
-      <outname>test_barcode_2</outname>
-      <lib_install_path></lib_install_path>
-      <external_tasks/>
-    </configuration>
-    <configuration>
-      <id>4</id>
-      <name>Test_barcode</name>
-      <default>false</default>
-      <byt>true</byt>
-      <opt>true</opt>
-      <libs>str unix nums cryptokit</libs>
-      <other_objects></other_objects>
-      <files>test_barcode.ml</files>
-      <includes></includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <cflags></cflags>
-      <lflags></lflags>
-      <outkind>Executable</outkind>
-      <outname>test_barcode</outname>
-      <lib_install_path></lib_install_path>
-      <external_tasks/>
     </configuration>
     <configuration>
       <id>6</id>

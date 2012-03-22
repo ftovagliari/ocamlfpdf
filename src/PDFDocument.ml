@@ -239,7 +239,7 @@ let print_pages doc =
   let filter = if doc.compress then "/Filter /FlateDecode " else "" in
   List.iter begin fun page ->
     (* Page *)
-    new_obj doc;
+    new_obj doc;  
     print doc "<</Type /Page\n";
     print doc "/Parent 1 0 R\n";
     if page.pg_change_orientation then print doc "/MediaBox [0 0 %.2f %.2f]\n" h_pt w_pt;
