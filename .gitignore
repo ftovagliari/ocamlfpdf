@@ -17,3 +17,4 @@ Thumbs.db
 src/_build
 ocamlfpdf.cache
 doc/*
+*.project.local
