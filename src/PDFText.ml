@@ -127,8 +127,8 @@ let cell
     code := String.concat "" border_code
   end;
   (* Text *)
-  (*let posy = doc.pos_y +. 0.5 *. height +. 0.3 *. doc.font_size in*)
-  let posy = doc.pos_y +. 0.75 *. height in
+  let posy = doc.pos_y +. 0.5 *. height +. 0.3 *. doc.font_size in
+  (*let posy = doc.pos_y +. 0.75 *. height in*)
   if (String.length text) > 0 then begin
     let dx = match align with
       | `Left | `Justified -> padding

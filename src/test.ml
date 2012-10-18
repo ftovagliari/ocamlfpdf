@@ -261,6 +261,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"Images" doc);
       let name = "Lena.jpg" in
+      (*let name = "Lena.png" in*)
       let data = Buffer.contents (PDFUtil.fread name) in
       let image_width = 220 in
       let image_height = 220 in

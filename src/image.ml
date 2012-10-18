@@ -78,18 +78,22 @@ let parse ?format ~width ~height name data =
   let format = String.lowercase format in
   match format with
     | "jpg" | "jpeg" -> parse_jpg ~name ~width ~height data
-    | "png" -> {
-      image_name = "";
-      image_obj = -1;
-      image_width = -1;
-      image_height = -1;
-      image_colorspace = "";
-      image_bits = 8;
-      image_f = Some "DCTDecode";
-      image_palette = "";
-      image_params = None;
-      image_trns = None;
-      image_data = "";
+    | "png" ->
+      (*if true then (failwith ".png not supported.");*)
+      let bpc = 8 in
+      let ct = 2 in
+      let ct = if ct = 2 then "DeviceRGB" else assert false in {
+      image_name       = "";
+      image_obj        = -1;
+      image_width      = width;
+      image_height     = height;
+      image_colorspace = ct;
+      image_bits       = bpc;
+      image_f          = Some "DCTDecode";
+      image_palette    = "";
+      image_params     = Some (Printf.sprintf "/Predictor 15 /Colors 3 /BitsPerComponent %d /Columns %d" bpc width);
+      image_trns       = None;
+      image_data       = data;
     } (*parse_png filename*)
     | _ -> failwith ("Unsupported image format \"" ^ format ^ "\".")
 

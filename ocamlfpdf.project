@@ -11,62 +11,26 @@
   </description>
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
-  <runtime>
-    <configuration name="Test" default="true" id_build="6" id="3">
-      <id>3</id>
-      <id_build>6</id_build>
-      <name>Test</name>
-      <default>true</default>
-      <build_task>&lt;COMPILE&gt;</build_task>
-      <env replace="false">
-        <var enabled="true">TEST=1</var>
-        <var enabled="true">OCAMLRUNPARAM=b</var>
-      </env>
-      <args/>
-    </configuration>
-    <configuration name="Test Editor" default="false" id_build="7" id="5">
-      <id>5</id>
-      <id_build>7</id_build>
-      <name>Test Editor</name>
-      <default>false</default>
-      <build_task>&lt;COMPILE&gt;</build_task>
-      <env replace="false">
-        <var enabled="true">OCAMLRUNPARAM=b</var>
-      </env>
-      <args/>
-    </configuration>
-    <configuration name="New Run Configuration 6" default="false" id_build="6" id="6">
-      <id>6</id>
-      <id_build>6</id_build>
-      <name>New Run Configuration 6</name>
-      <default>false</default>
-      <build_task>&lt;COMPILE&gt;</build_task>
-      <env replace="false"/>
-      <args/>
-    </configuration>
-  </runtime>
-  <build>
-    <configuration name="fpdf library" default="false" id="0">
-      <id>0</id>
-      <name>fpdf library</name>
-      <default>false</default>
+  <targets>
+    <target name="fpdf library" default="false" id="0">
       <byt>true</byt>
       <opt>true</opt>
       <libs>xml-light</libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml</files>
+      <package></package>
       <includes>+xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
+      <inline></inline>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
-      <outkind>Library</outkind>
+      <target_type>Library</target_type>
       <outname>fpdf</outname>
       <lib_install_path>fpdf</lib_install_path>
       <external_tasks>
         <task name="ocamldoc">
-          <name>ocamldoc</name>
           <always_run_in_project>true</always_run_in_project>
           <always_run_in_script>true</always_run_in_script>
           <env replace="false"/>
@@ -86,28 +50,27 @@
         </task>
       </external_tasks>
       <restrictions></restrictions>
-    </configuration>
-    <configuration name="Test" default="false" id="6">
-      <id>6</id>
-      <name>Test</name>
-      <default>false</default>
+      <dependencies></dependencies>
+    </target>
+    <target name="Test" default="false" id="6">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light</libs>
       <other_objects></other_objects>
       <files>test.ml</files>
+      <package></package>
       <includes>+xml-light </includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
+      <inline></inline>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
-      <outkind>Executable</outkind>
+      <target_type>Executable</target_type>
       <outname>test</outname>
       <lib_install_path></lib_install_path>
       <external_tasks>
         <task name="ocamldoc">
-          <name>ocamldoc</name>
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>true</always_run_in_script>
           <env replace="false"/>
@@ -125,70 +88,98 @@
         </task>
       </external_tasks>
       <restrictions></restrictions>
-    </configuration>
-    <configuration name="Test Markup Editor" default="false" id="7">
-      <id>7</id>
-      <name>Test Markup Editor</name>
-      <default>false</default>
+      <dependencies></dependencies>
+    </target>
+    <target name="Test Markup Editor" default="false" id="7">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light lablgtk gtkInit.o </libs>
       <other_objects></other_objects>
       <files>test_pdfmarkup_editor.ml</files>
+      <package></package>
       <includes>+xml-light +lablgtk2</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
+      <inline></inline>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
-      <outkind>Executable</outkind>
+      <target_type>Executable</target_type>
       <outname>test_pdfmarkup_editor</outname>
       <lib_install_path></lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-    </configuration>
-    <configuration name="Markup Editor" default="false" id="8">
-      <id>8</id>
-      <name>Markup Editor</name>
-      <default>false</default>
+      <dependencies></dependencies>
+    </target>
+    <target name="Markup Editor" default="false" id="8">
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
       <files>gtk_pdfmarkup_editor.ml</files>
+      <package></package>
       <includes>+lablgtk2 +xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
+      <inline></inline>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
-      <outkind>Library</outkind>
+      <target_type>Library</target_type>
       <outname>gtk_pdfmarkup_editor</outname>
       <lib_install_path>fpdf</lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-    </configuration>
-    <configuration name="fpdf library (bytecode)" default="true" id="9">
-      <id>9</id>
-      <name>fpdf library (bytecode)</name>
-      <default>true</default>
+      <dependencies></dependencies>
+    </target>
+    <target name="fpdf library (bytecode)" default="true" id="9">
       <byt>true</byt>
       <opt>false</opt>
       <libs>xml-light</libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml</files>
+      <package></package>
       <includes>+xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
+      <inline></inline>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
-      <outkind>Library</outkind>
+      <target_type>Library</target_type>
       <outname>fpdf</outname>
       <lib_install_path>fpdf</lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-    </configuration>
-  </build>
-  <build_script filename="_build.ml"/>
+      <dependencies></dependencies>
+    </target>
+  </targets>
+  <executables>
+    <executable name="Test" default="true" target_id="6" id="3">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false">
+        <var enabled="true">TEST=1</var>
+        <var enabled="true">OCAMLRUNPARAM=b</var>
+      </env>
+      <args/>
+    </executable>
+    <executable name="Test Editor" default="false" target_id="7" id="5">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false">
+        <var enabled="true">OCAMLRUNPARAM=b</var>
+      </env>
+      <args/>
+    </executable>
+  </executables>
+  <build_script filename="_build.ml">
+    <targets>
+      <target target_id="0" show="true"/>
+      <target target_id="6" show="true"/>
+      <target target_id="7" show="true"/>
+      <target target_id="8" show="true"/>
+      <target target_id="9" show="true"/>
+    </targets>
+    <args/>
+    <commands/>
+  </build_script>
 </project>
