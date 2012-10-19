@@ -1,0 +1,68 @@
+(*
+
+  OCaml-FPDF
+  Copyright (C) 2010-2012 Francesco Tovagliari
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version,
+  with the special exception on linking described in file LICENSE.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+
+open Printf
+
+let main () = begin
+  let filename = Sys.argv.(0) ^ ".pdf" in
+  let outchan = open_out_bin filename in
+  let close_file () = close_out outchan in
+  begin
+    try
+      let doc = PDF.create ~outchan () in
+
+      let margin = 20. in
+      PDF.set_margins ~left:margin ~top:margin doc;
+      PDF.add_page doc;
+
+      (** Form fields *)
+      PDF.set_font ~family:`Helvetica ~size:20. doc;
+      let x = margin in
+      let y = margin in
+      let width = PDF.page_width doc -. margin *. 2. in
+      let height = PDF.page_height doc -. margin *. 2. in
+      PDF.set ~x ~y doc;
+      let hbox = new PDFPack.hbox ~border:true ~x ~y ~width ~height:50. doc in
+      hbox#add begin fun ~x ~y ~width ~height ->
+        let width = width *. 0.5 in
+        let _ = PDFMarkup.print ~x ~y ~width ~markup:"Test" doc in
+        width
+      end;
+      hbox#add begin fun ~x ~y ~width ~height ->
+        (*let _ = PDFMarkup.print ~x ~y ~width ~markup:"Test" doc in*)
+        let field = PDFForm.add doc in
+        width
+      end;
+      hbox#pack();
+
+      (** Close PDF document *)
+      PDF.close_document doc;
+      close_file();
+    with ex -> begin
+      close_file();
+      raise ex
+    end
+  end;
+  if Sys.os_type = "Win32" then ignore (Sys.command filename);
+end
+
+let _ = main ()

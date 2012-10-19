@@ -161,6 +161,8 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
   set_display_mode `Fullwidth doc;
   (* Enable compression *)
   set_compression false doc;
+  (* Set the default font *)
+  PDFFont.set_font ~family:`Courier doc;
   doc;;
 
 let add_page            = PDFPage.add_page

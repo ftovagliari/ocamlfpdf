@@ -257,6 +257,14 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       ignore (PDFBookmark.add ~text:"Code128C" (*~level:1*) ~y ~parent doc);
       Barcode.Code128C.write ~x ~y ~barcode:"123456" doc;
 
+      (** Form fields *)
+      PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Form" doc);
+      let x = margin in
+      let y = margin +. height_header in
+      PDF.set ~x ~y doc;
+      let field = PDFForm.add doc in
+
       (** Images *)
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"Images" doc);

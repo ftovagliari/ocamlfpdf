@@ -38,7 +38,7 @@ and font = {
   mutable font_n : int;
   font_up        : int;
   font_ut        : int;
-  font_cw        : (char -> int)
+  font_cw        : (char -> int);
 }
 and font_type = Core | Type1 | TrueType | Additional of string
 and font_file = {
@@ -49,9 +49,14 @@ and font_file = {
 and page = {
   mutable pg_buffer             : Buffer.t;
   mutable pg_change_orientation : bool;
-  mutable pg_link               : link option
+  mutable pg_link               : link option;
+  mutable pg_annots             : annot;
+  mutable pg_obj                : int;
 }
-type t = {
+and annot = {
+  mutable annot_obj  : int list;
+  mutable annot_func : (unit -> int list) list
+} and t = {
   mutable page                  : int;
   mutable current_object_number : int;
   mutable objects               : obj list;
@@ -183,33 +188,33 @@ let print_trailer doc =
   print doc "/Info %d 0 R\n" (doc.current_object_number - 1) (* object_index[Info] *)
 
 let print_info doc =
-  print doc "/Producer %s\n" (pdf_string "OCaml-FPDF");
+  print doc "/Producer %s" (pdf_string "OCaml-FPDF");
   if doc.title <> "" then
-    print doc "/Title %s\n" (pdf_string doc.title);
+    print doc "/Title %s" (pdf_string doc.title);
   if doc.subject <> "" then
-    print doc "/Subject %s\n" (pdf_string doc.subject);
+    print doc "/Subject %s" (pdf_string doc.subject);
   if doc.author <> "" then
-    print doc "/Author %s\n" (pdf_string doc.author);
+    print doc "/Author %s" (pdf_string doc.author);
   if List.length doc.keywords <> 0 then
-    print doc "/Keywords %s\n" (pdf_string (String.concat " " doc.keywords));
+    print doc "/Keywords %s" (pdf_string (String.concat " " doc.keywords));
   if doc.creator <> "" then
-    print doc "/Creator %s\n" (pdf_string doc.creator)(*;
-  print doc "/CreationDate %s\n" (pdf_string "D:20051226121800")*)
+    print doc "/Creator %s" (pdf_string doc.creator)(*;
+  print doc "/CreationDate %s" (pdf_string "D:20051226121800")*)
 
 let print_catalog doc =
-  print doc "/Type /Catalog\n";
-  print doc "/Pages 1 0 R\n";
+  print doc "/Type /Catalog ";
+  print doc "/Pages 1 0 R ";
   begin match doc.zoomMode with
-    | `Fullpage -> print doc "/OpenAction [3 0 R /Fit]\n"
-    | `Fullwidth -> print doc "/OpenAction [3 0 R /FitH null]\n"
-    | `Real -> print doc "/OpenAction [3 0 R /XYZ null null 1]\n"
-    | `Custom_zoom z -> print doc "/OpenAction [3 0 R /XYZ null null %f]\n" (z /. 100.)
+    | `Fullpage -> print doc "/OpenAction [3 0 R /Fit] "
+    | `Fullwidth -> print doc "/OpenAction [3 0 R /FitH null] "
+    | `Real -> print doc "/OpenAction [3 0 R /XYZ null null 1] "
+    | `Custom_zoom z -> print doc "/OpenAction [3 0 R /XYZ null null %f] " (z /. 100.)
     | _ -> () (*    | Default_zoom -> ""*)
   end;
   begin match doc.layoutMode with
-    | `Single -> print doc "/PageLayout /SinglePage\n"
-    | `Continuous -> print doc "/PageLayout /OneColumn\n"
-    | `Two -> print doc "/PageLayout /TwoColumnLeft\n"
+    | `Single -> print doc "/PageLayout /SinglePage "
+    | `Continuous -> print doc "/PageLayout /OneColumn "
+    | `Two -> print doc "/PageLayout /TwoColumnLeft "
     | _ -> () (*| Default_layout*)
   end;
   List.iter (fun f -> f()) (List.rev doc.print_catalog);
@@ -220,7 +225,7 @@ let new_obj doc =
    doc.current_object_number <- doc.current_object_number + 1;
    let obj = {obj_offset = doc.current_length} in
    doc.objects <- obj :: doc.objects;
-   print doc "%d 0 obj\n" doc.current_object_number
+   print doc "%d 0 obj" doc.current_object_number
 
 (** Print pages *)
 let print_pages doc =
@@ -239,13 +244,14 @@ let print_pages doc =
   let filter = if doc.compress then "/Filter /FlateDecode " else "" in
   List.iter begin fun page ->
     (* Page *)
-    new_obj doc;  
-    print doc "<</Type /Page\n";
-    print doc "/Parent 1 0 R\n";
-    if page.pg_change_orientation then print doc "/MediaBox [0 0 %.2f %.2f]\n" h_pt w_pt;
-    print doc "/Resources 2 0 R\n";
-    (* Links *)
-    begin match page.pg_link with
+    new_obj doc;
+    page.pg_obj <- doc.current_object_number;
+    print doc "<</Type /Page ";
+    print doc "/Parent 1 0 R ";
+    if page.pg_change_orientation then print doc "/MediaBox [0 0 %.2f %.2f] " h_pt w_pt;
+    print doc "/Resources 2 0 R ";
+    (* Links (NOT IMPLEMEMTED) *)
+    (*begin match page.pg_link with
       | None -> ()
       | Some page_links ->
         let annots = ref "/Annots [" in
@@ -263,8 +269,11 @@ let print_pages doc =
           end;
           print doc "%s]\n" !annots;
         end page_links;
+    end;*)
+    if page.pg_annots.annot_obj <> [] then begin
+      print doc "/Annots [ %s ] " (String.concat " " (List.map (sprintf "%d 0 R") page.pg_annots.annot_obj))
     end;
-    print doc "/Contents %d 0 R>>\n" (doc.current_object_number + 1);
+    print doc "/Contents %d 0 R>>" (doc.current_object_number + 1);
     print doc "endobj\n";
     (* Page content *)
     let p = Buffer.contents page.pg_buffer in
@@ -277,23 +286,22 @@ let print_pages doc =
   end (List.rev doc.pages);
   (* Pages root *)
   (find_object 1 doc).obj_offset <- doc.current_length;
-  print doc "1 0 obj\n";
-  print doc "<</Type /Pages\n";
-  print doc "/Kids [";
-  for i = 0 to nb do print doc "%d 0 R " (3 + 2 * i) done;
-  print doc "]\n";
-  print doc "/Count %d\n" (nb + 1);
-  print doc "/MediaBox [0 0 %.2f %.2f]\n" w_pt h_pt;
-  print doc ">>\n";
-  print doc "endobj\n"
+  print doc "1 0 obj";
+  print doc "<</Type /Pages ";
+  print doc "/Kids [ %s ] " (String.concat " " (List.map (fun page -> sprintf "%d 0 R" page.pg_obj) (List.rev doc.pages)));
+
+  (*for i = 0 to nb do print doc "%d 0 R " (3 + 2 * i) done;
+  print doc "] ";*)
+  print doc "/Count %d " (nb + 1);
+  print doc "/MediaBox [0 0 %.2f %.2f] " w_pt h_pt;
+  print doc ">>endobj\n"
 
 let get_font_path () = failwith "get_font_path" (*"../fpdf153/font"*)
 
 let print_fonts doc =
   List.iter begin fun diff ->
     new_obj doc;
-    print doc "<</Type /Encoding /BaseEncoding /WindAnsiEncoding /Differences [%s]>>\n" diff;
-    print doc "endobj\n"
+    print doc "<</Type /Encoding /BaseEncoding /WindAnsiEncoding /Differences [%s]>>endobj\n" diff;
   end doc.diffs;
   (*let mqr = get_magic_quotes_runtime(); set_magic_quotes_runtime(0) in*)
   List.iter begin fun ({ff_name = file; ff_info = info} as ff) ->
@@ -342,13 +350,12 @@ let print_fonts doc =
       | Core ->
         (* Standard font *)
         new_obj doc;
-        print doc "<</Type /Font\n";
-        print doc "/BaseFont /%s\n" name;
-        print doc "/Subtype /Type1\n";
+        print doc "<</Type /Font ";
+        print doc "/BaseFont /%s " name;
+        print doc "/Subtype /Type1 ";
         if name <> "Symbol" && name <> "ZapfDingbats" then
-          print doc "/Encoding /WinAnsiEncoding\n";
-        print doc ">>\n";
-        print doc "endobj\n";
+          print doc "/Encoding /WinAnsiEncoding ";
+        print doc ">>endobj\n";
       | Type1 | TrueType -> failwith "print_font (Type1 | TrueType)"
 (*  //Additional Type1 or TrueType font
   $this->_newobj();
@@ -445,13 +452,13 @@ let print_xobject_dict doc =
 
 (** print_resource_dict *)
 let print_resource_dict doc =
-  print doc "/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n";
-  print doc "/Font <<\n";
+  print doc "\n/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n";
+  print doc "/Font <<";
   List.iter begin fun (_, f) ->
-    print doc "/F%d %d 0 R\n" f.font_index f.font_n
+    print doc "/F%d %d 0 R " f.font_index f.font_n
   end doc.fonts;
   print doc ">>\n";
-  print doc "/XObject <<\n";
+  print doc "/XObject <<";
   print_xobject_dict doc;
   print doc ">>\n"
 
@@ -460,11 +467,9 @@ let print_resources doc =
   print_images doc;
   (* Resource dictionary *)
   (find_object 2 doc).obj_offset <- doc.current_length;
-  print doc "2 0 obj\n";
-  print doc "<<\n";
+  print doc "2 0 obj<<";
   print_resource_dict doc;
-  print doc ">>\n";
-  print doc "endobj\n";
+  print doc ">>endobj\n";
   List.iter (fun f -> f()) (List.rev doc.print_resources);
   doc.print_resources <- []
 
@@ -484,7 +489,10 @@ let begin_page ?orientation doc =
   let new_page = {
     pg_buffer = Buffer.create 1000;
     pg_change_orientation = (orientation <> doc.def_orientation);
-    pg_link = None} in
+    pg_link = None;
+    pg_annots = {annot_obj=[]; annot_func=[]};
+    pg_obj = 0;
+  } in
   doc.pages <- new_page :: doc.pages;
   doc.state <- Begin_page;
   doc.pos_x <- doc.l_margin;
@@ -513,20 +521,21 @@ let end_page doc = doc.state <- End_page
 (** print_document *)
 let print_document doc =
   print_header doc;
+  List.iter begin fun page ->
+    page.pg_annots.annot_obj <- List.flatten (List.map (fun f -> f()) page.pg_annots.annot_func)
+  end (List.rev doc.pages);
   print_pages doc;  (* 1 obj *)
   print_resources doc; (* 2 obj *)
   (* Info *)
   new_obj doc;
-  print doc "<<\n";
+  print doc "<<";
   print_info doc;
-  print doc ">>\n";
-  print doc "endobj\n";
+  print doc ">>endobj\n";
   (* Catalog *)
   new_obj doc;
-  print doc "<<\n";
+  print doc "<<";
   print_catalog doc;
-  print doc ">>\n";
-  print doc "endobj\n";
+  print doc ">>endobj\n";
   (* Cross-ref *)
   let start_xref = Int32.of_int doc.current_length in
   print doc "xref\n";
@@ -544,6 +553,10 @@ let print_document doc =
   print doc "%%%%EOF\n";
   doc.state <- End_document
 ;;
+
+let add_annot doc func =
+  let page = get_current_page doc in
+  page.pg_annots.annot_func <- func :: page.pg_annots.annot_func;;
 
 let add_resource func doc = doc.print_resources <- func :: doc.print_resources
 let current_object_number doc = doc.current_object_number

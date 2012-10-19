@@ -132,7 +132,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="fpdf library (bytecode)" default="true" id="9">
+    <target name="fpdf library (bytecode)" default="false" id="9">
       <byt>true</byt>
       <opt>false</opt>
       <libs>xml-light</libs>
@@ -153,9 +153,30 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
+    <target name="TestForm" default="true" id="10">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs>unix str nums cryptokit xml-light</libs>
+      <other_objects></other_objects>
+      <files>testForm.ml</files>
+      <package></package>
+      <includes>+xml-light</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <cflags>-w y -g</cflags>
+      <lflags></lflags>
+      <target_type>Executable</target_type>
+      <outname>testForm</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
   </targets>
   <executables>
-    <executable name="Test" default="true" target_id="6" id="3">
+    <executable name="Test" default="false" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -168,6 +189,11 @@
       <env replace="false">
         <var enabled="true">OCAMLRUNPARAM=b</var>
       </env>
+      <args/>
+    </executable>
+    <executable name="TestForm" default="true" target_id="10" id="6">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false"/>
       <args/>
     </executable>
   </executables>
