@@ -52,65 +52,6 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="Test" default="false" id="6">
-      <byt>false</byt>
-      <opt>true</opt>
-      <libs>unix str nums cryptokit xml-light</libs>
-      <other_objects></other_objects>
-      <files>test.ml</files>
-      <package></package>
-      <includes>+xml-light </includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <inline></inline>
-      <cflags>-w y -g</cflags>
-      <lflags></lflags>
-      <target_type>Executable</target_type>
-      <outname>test</outname>
-      <lib_install_path></lib_install_path>
-      <external_tasks>
-        <task name="ocamldoc">
-          <always_run_in_project>false</always_run_in_project>
-          <always_run_in_script>true</always_run_in_script>
-          <env replace="false"/>
-          <dir></dir>
-          <cmd>ocamldoc</cmd>
-          <args>
-            <arg enabled="true">-d</arg>
-            <arg enabled="true">../doc</arg>
-            <arg enabled="true">-html</arg>
-            <arg enabled="true">*.mli</arg>
-            <arg enabled="true">-t</arg>
-            <arg enabled="true">&quot;ocamlfpdf&quot;</arg>
-          </args>
-          <phase>After_compile</phase>
-        </task>
-      </external_tasks>
-      <restrictions></restrictions>
-      <dependencies></dependencies>
-    </target>
-    <target name="Test Markup Editor" default="false" id="7">
-      <byt>false</byt>
-      <opt>true</opt>
-      <libs>unix str nums cryptokit xml-light lablgtk gtkInit.o </libs>
-      <other_objects></other_objects>
-      <files>test_pdfmarkup_editor.ml</files>
-      <package></package>
-      <includes>+xml-light +lablgtk2</includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <inline></inline>
-      <cflags>-w sy -g</cflags>
-      <lflags>-g</lflags>
-      <target_type>Executable</target_type>
-      <outname>test_pdfmarkup_editor</outname>
-      <lib_install_path></lib_install_path>
-      <external_tasks/>
-      <restrictions></restrictions>
-      <dependencies></dependencies>
-    </target>
     <target name="Markup Editor" default="false" id="8">
       <byt>true</byt>
       <opt>true</opt>
@@ -153,14 +94,14 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="TestForm" default="true" id="10">
+    <target name="Test ocamlfpdf" default="false" id="6">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light</libs>
       <other_objects></other_objects>
-      <files>testForm.ml</files>
+      <files>tests/test.ml</files>
       <package></package>
-      <includes>+xml-light</includes>
+      <includes>+xml-light tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
@@ -168,15 +109,74 @@
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
-      <outname>testForm</outname>
+      <outname>tests/test</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks>
+        <task name="ocamldoc">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>true</always_run_in_script>
+          <env replace="false"/>
+          <dir></dir>
+          <cmd>ocamldoc</cmd>
+          <args>
+            <arg enabled="true">-d</arg>
+            <arg enabled="true">../doc</arg>
+            <arg enabled="true">-html</arg>
+            <arg enabled="true">*.mli</arg>
+            <arg enabled="true">-t</arg>
+            <arg enabled="true">&quot;ocamlfpdf&quot;</arg>
+          </args>
+          <phase>After_compile</phase>
+        </task>
+      </external_tasks>
+      <restrictions></restrictions>
+      <dependencies>0</dependencies>
+    </target>
+    <target name="Test Markup Editor" default="false" id="7">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs>unix str nums cryptokit xml-light lablgtk gtkInit.o </libs>
+      <other_objects></other_objects>
+      <files>tests/test_pdfmarkup_editor.ml</files>
+      <package></package>
+      <includes>+xml-light +lablgtk2 tests</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <cflags>-w sy -g</cflags>
+      <lflags>-g</lflags>
+      <target_type>Executable</target_type>
+      <outname>tests/test_pdfmarkup_editor</outname>
       <lib_install_path></lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-      <dependencies></dependencies>
+      <dependencies>0,8</dependencies>
+    </target>
+    <target name="Test Interactive Forms" default="true" id="10">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs>unix str nums cryptokit xml-light</libs>
+      <other_objects></other_objects>
+      <files>tests/testForm.ml</files>
+      <package></package>
+      <includes>+xml-light tests</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <cflags>-w y -g</cflags>
+      <lflags></lflags>
+      <target_type>Executable</target_type>
+      <outname>tests/testForm</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies>0</dependencies>
     </target>
   </targets>
   <executables>
-    <executable name="Test" default="false" target_id="6" id="3">
+    <executable name="Test ocamlfpdf" default="false" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -191,7 +191,7 @@
       </env>
       <args/>
     </executable>
-    <executable name="TestForm" default="true" target_id="10" id="6">
+    <executable name="Test Interactive Forms" default="true" target_id="10" id="6">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
@@ -204,6 +204,7 @@
       <target target_id="7" show="true"/>
       <target target_id="8" show="true"/>
       <target target_id="9" show="true"/>
+      <target target_id="10" show="true"/>
     </targets>
     <args/>
     <commands/>

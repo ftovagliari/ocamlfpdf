@@ -23,6 +23,8 @@
 open Printf
 open PDFTypes
 
+let (//) = Filename.concat
+
 let main () = begin
   let filename = Sys.argv.(0) ^ ".pdf" in
   let outchan = open_out_bin filename in
@@ -48,7 +50,7 @@ let main () = begin
       let width = PDF.page_width doc -. margin *. 2. in
       let height = PDF.page_height doc -. margin *. 2. in
       let _ = PDFMarkup.print ~x ~y:(y +. 50.) ~width ~markup:"Test" doc in
-      let field = PDFForm.add ~x ~y ~width:80. (*~height:margin*) ~value:"" ~default_value:"0" ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc in
+      let field = PDFForm.add ~x ~y ~width:80. (*~height:margin*) ~name:"test_field" ~value:"" ~default_value:"0" ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc in
 
       (** Close PDF document *)
       PDF.close_document doc;

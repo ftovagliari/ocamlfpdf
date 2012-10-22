@@ -88,13 +88,13 @@ let targets = [
   "Test", {
     num                  = 2;
     id                   = 6;
-    output_name          = "test";
+    output_name          = "tests/test";
     target_type          = Executable;
     compilation_bytecode = false;
     compilation_native   = true;
-    toplevel_modules     = "test.ml";
+    toplevel_modules     = "tests/test.ml";
     package              = "";
-    search_path          = "+xml-light "; (* -I *)
+    search_path          = "+xml-light tests"; (* -I *)
     required_libraries   = "unix str nums cryptokit xml-light";
     compiler_flags       = "-w y -g";
     linker_flags         = "";
@@ -106,7 +106,7 @@ let targets = [
     other_objects        = "";
     external_tasks       = [1];
     restrictions         = [];
-    dependencies         = [];
+    dependencies         = [0];
     show                 = true;
     installer_task       = None;
   };
@@ -188,6 +188,33 @@ let targets = [
     external_tasks       = [];
     restrictions         = [];
     dependencies         = [];
+    show                 = true;
+    installer_task       = None;
+  };
+  
+  (* 6 *)
+  "TestForm", {
+    num                  = 6;
+    id                   = 10;
+    output_name          = "tests/testForm";
+    target_type          = Executable;
+    compilation_bytecode = false;
+    compilation_native   = true;
+    toplevel_modules     = "tests/testForm.ml";
+    package              = "";
+    search_path          = "+xml-light tests"; (* -I *)
+    required_libraries   = "unix str nums cryptokit xml-light";
+    compiler_flags       = "-w y -g";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [0];
     show                 = true;
     installer_task       = None;
   };

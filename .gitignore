@@ -18,3 +18,4 @@ src/_build
 ocamlfpdf.cache
 doc/*
 *.project.local
+*.manifest

@@ -42,6 +42,7 @@ type t = {
   font_family      : Font.family option;
   font_size        : float;
   font_style       : Font.style list;
+  name             : string;
   value            : string;
   default_value    : string;
   border           : ([`Solid | `Underline | `Dashed] * string) option;
@@ -105,8 +106,8 @@ let create doc =
 
         PDFDocument.print doc "/FT /Tx ";
         (*PDFDocument.print doc "/F 4 ";*)
-        PDFDocument.print doc "/T(field_name) "; (* Partial field name *)
-        PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value); 
+        PDFDocument.print doc "/T(%s) " (PDFUtil.escape field.name);
+        PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value);
         PDFDocument.print doc "/V(%s) " (PDFUtil.escape field.value);
         PDFDocument.print doc "/DA (50 Tz /F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
         (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
@@ -161,7 +162,7 @@ let create doc =
   form;;
 
 (** add *)
-let add ~x ~y ~width ?height ?parent ?font_family ?font_size ?font_style ?border ?bgcolor ?fgcolor ?tooltip ?(value="") ?(default_value="") doc =
+let add ~x ~y ~width ~name ?height ?parent ?font_family ?font_size ?font_style ?border ?bgcolor ?fgcolor ?tooltip ?(value="") ?(default_value="") doc =
   let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
   let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
   let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
@@ -183,7 +184,7 @@ let add ~x ~y ~width ?height ?parent ?font_family ?font_size ?font_style ?border
     width = width *. scale;
     height = height *. scale;
     border; bgcolor; fgcolor;
-    id; obj = 0; parent; font_family; font_size; font_style; value; default_value; tooltip; page } in
+    id; obj = 0; parent; font_family; font_size; font_style; name; value; default_value; tooltip; page } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;
   field;;
