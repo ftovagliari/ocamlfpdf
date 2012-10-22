@@ -21,6 +21,7 @@
 *)
 
 open Printf
+open PDFTypes
 
 let main () = begin
   let filename = Sys.argv.(0) ^ ".pdf" in
@@ -29,6 +30,11 @@ let main () = begin
   begin
     try
       let doc = PDF.create ~outchan () in
+      PDF.set_display_mode (`Custom_zoom 300.) doc;
+      PDF.set_open_actions [
+        `ResetForm;
+        `GoTo {dest_page = 0; dest_display = `FitV None}
+      ] doc;
 
       let margin = 20. in
       PDF.set_margins ~left:margin ~top:margin doc;
@@ -38,21 +44,11 @@ let main () = begin
       PDF.set_font ~family:`Helvetica ~size:20. doc;
       let x = margin in
       let y = margin in
+      PDFGraphics.rect ~x ~y ~width:(PDF.page_width doc -. 2. *. margin) ~height:(PDF.page_height doc -. 2. *. margin) doc;
       let width = PDF.page_width doc -. margin *. 2. in
       let height = PDF.page_height doc -. margin *. 2. in
-      PDF.set ~x ~y doc;
-      let hbox = new PDFPack.hbox ~border:true ~x ~y ~width ~height:50. doc in
-      hbox#add begin fun ~x ~y ~width ~height ->
-        let width = width *. 0.5 in
-        let _ = PDFMarkup.print ~x ~y ~width ~markup:"Test" doc in
-        width
-      end;
-      hbox#add begin fun ~x ~y ~width ~height ->
-        (*let _ = PDFMarkup.print ~x ~y ~width ~markup:"Test" doc in*)
-        let field = PDFForm.add doc in
-        width
-      end;
-      hbox#pack();
+      let _ = PDFMarkup.print ~x ~y:(y +. 50.) ~width ~markup:"Test" doc in
+      let field = PDFForm.add ~x ~y ~width:80. (*~height:margin*) ~value:"" ~default_value:"0" ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc in
 
       (** Close PDF document *)
       PDF.close_document doc;

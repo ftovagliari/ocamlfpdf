@@ -1,8 +1,5 @@
 (** Print text containing markup. *)
 
-val rgb_of_hex : string -> int * int * int
-val hex_of_rgb : int * int * int -> string
-
 (** Print text containing markup.
     Recognized tags are [<span>] and [<br/>], attributes for the [<span>] tag are:
 

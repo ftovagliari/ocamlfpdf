@@ -40,7 +40,20 @@ type border_part = [ `All | `L | `B | `R | `T ]
 
 type align = [ `Left | `Justified | `Center | `Right ]
 
+type destination = {
+  dest_page    : int; (** Destination page number. *)
+  dest_display : [
+    | `XYZ of float option * float option * float
+    | `Fit
+    | `FitH of float option
+    | `FitV of float option
+  ];  (** Display mode *)
+}
 
+type action = [
+  | `ResetForm
+  | `GoTo of destination
+]
 
 
 

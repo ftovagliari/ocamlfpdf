@@ -75,10 +75,6 @@ let group_by f ll =
       | _ -> assert false
   end ll [];;
 
-let rgb_of_hex name = Scanf.sscanf name "#%2x%2x%2x" (fun r g b -> (r, g, b));;
-
-let hex_of_rgb (r, g, b) = Printf.sprintf "#%02X%02X%02X" r g b;;
-
 let underline_of_string name =
   let name = String.lowercase name in
   match name with
@@ -123,7 +119,7 @@ let markup_to_blocks ~markup doc =
     style     = [];
     size      = PDF.font_size doc;
     underline = `NONE;
-    color     = (hex_of_rgb (PDF.text_color doc));
+    color     = (PDFUtil.hex_of_rgb (PDF.text_color doc));
     bgcolor   = None;
     align     = 0.0;
     line_spacing = 0.0;
@@ -155,7 +151,7 @@ let markup_to_blocks ~markup doc =
         style     = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> []);
         size      = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
         underline = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
-        color     = (try List.assoc "color" attrs with Not_found -> hex_of_rgb (PDF.text_color doc));
+        color     = (try List.assoc "color" attrs with Not_found -> PDFUtil.hex_of_rgb (PDF.text_color doc));
         bgcolor   = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
         align     = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
         line_spacing = (try float_of_string (List.assoc "line_spacing" attrs) with Not_found -> 0.0);
@@ -418,7 +414,7 @@ let print_text ~x ~y ~width ~markup ~analysis ?(padding=0.) ?(border_width=0.) d
       List.iter begin fun cell ->
         if cell.cell_width > 0.0 then begin
           let text = cell.text in
-          let red, green, blue = rgb_of_hex cell.attr.color in
+          let red, green, blue = PDFUtil.rgb_of_hex cell.attr.color in
           PDF.set_text_color ~red ~green ~blue doc;
           PDF.set_font ~family:cell.attr.family ~style:cell.attr.style ~size:cell.attr.size doc;
           PDF.set ~x:!x ~y:!y doc;
@@ -440,8 +436,8 @@ let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_rad
   let old_draw_color = PDF.draw_color doc in
   let old_line_width = PDF.line_width doc in
   begin
-    (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
-    (match border_color with None -> () | Some color -> let red, green, blue = rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
+    (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = PDFUtil.rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
+    (match border_color with None -> () | Some color -> let red, green, blue = PDFUtil.rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
     (match border_width with None -> () | Some line_width -> PDF.set_line_width line_width doc);
     let style = match bgcolor, (border_color, border_width) with
       | None, (None, None) -> None

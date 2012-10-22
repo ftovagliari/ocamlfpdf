@@ -6,9 +6,12 @@ val rtrim : string -> string
 val ltrim : string -> string
 val may : f:('a -> 'b) -> 'a option -> unit
 val remove_dupl : 'a list -> 'a list
-val gz_compress : string -> string
-val gz_uncompress : string -> string
+val gz_compress : 'a -> 'a
+val gz_uncompress : 'a -> 'a
 val escape : string -> string
+val rgb_of_hex : string -> int * int * int
+val hex_of_rgb : int * int * int -> string
+val rg_of_hex : string -> string
 val pdf_string : string -> string
 val call_and_restore :
   pre:(unit -> 'a) -> ('b -> 'c) -> 'b -> post:('a -> 'd) -> 'c

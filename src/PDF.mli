@@ -57,6 +57,9 @@ val set_double_sided : bool -> t -> unit
 val set_auto_page_break : ?margin:float -> bool -> t -> unit
 val set_display_mode : ?layout:layout -> zoom -> t -> unit
 
+(** Set a sequence of actions to be performed when the document is opened. *)
+val set_open_actions : action list -> t -> unit
+
 val author : t -> string
 val title : t -> string
 val set_author : string -> t -> unit

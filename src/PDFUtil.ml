@@ -71,12 +71,20 @@ let gz_compress txt = txt
 let gz_uncompress txt = txt
 
 
-(** excape *)
+(** escape *)
 let escape =
   let ro, rc, rbs = Str.regexp "(", Str.regexp ")", Str.regexp "\\" in fun s ->
     Str.global_replace rc "\\)"
       (Str.global_replace ro "\\("
         (Str.global_replace rbs "\\\\" s))
+
+(** Color *)
+let rgb_of_hex name = Scanf.sscanf name "#%2x%2x%2x" (fun r g b -> (r, g, b));;
+let hex_of_rgb (r, g, b) = Printf.sprintf "#%02X%02X%02X" r g b;;
+let rg_of_hex name =
+  let r, g, b = rgb_of_hex name in
+  Printf.sprintf "%.3f %.3f %.3f" ((float r) /. 255.) ((float g) /. 255.) ((float b) /. 255.);;
+
 
 (** pdf_string *)
 let pdf_string s = "(" ^ (escape s) ^ ")"

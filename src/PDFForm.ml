@@ -34,10 +34,20 @@ type t = {
 } and field = {
   id               : int;
   mutable obj      : int;
+  x                : float;
+  y                : float;
+  width            : float;
+  height           : float;
   parent           : field option;
   font_family      : Font.family option;
   font_size        : float;
   font_style       : Font.style list;
+  value            : string;
+  default_value    : string;
+  border           : ([`Solid | `Underline | `Dashed] * string) option;
+  bgcolor          : string option;
+  fgcolor          : string;
+  tooltip          : string option;
   page             : page;
 }
 
@@ -65,37 +75,61 @@ let create doc =
       PDFDocument.new_obj doc;
       let appearance_obj = PDFDocument.current_object_number doc in
       PDFDocument.print doc "<<";
-      (*PDFDocument.print doc "/Type /XObject ";*)
+      PDFDocument.print doc "/Type /XObject ";
       PDFDocument.print doc "/Subtype /Form ";
-      PDFDocument.print doc "/BBox [ 0 0 100 12.5 ] ";
-      PDFDocument.print doc "/Resources << /ProcSet [ /PDF /Text ] /Font << /F%d %d 0 R >> >> "
-        doc_default_font.font_index doc_default_font.font_n;
-      (*let stream = " /Tx BMC q 0 0 100 12.5 re W n 0 g BT /F1 10.5 Tf 0 g 2 3.026 Td
-(Data of new form field) Tj
- ET Q EMC" in*)
+      (*PDFDocument.print doc "/BBox [ 0 0 100 12.5 ] ";*)
+      (*PDFDocument.print doc "/Resources << /ProcSet [ /PDF /Text ] /Font << /F1 8 0 R >> >> "
+        (*doc_default_font.font_index doc_default_font.font_n*);*)
+
+      let stream = "/Tx BMC q 0 0 100 12.5 re W n 0 g BT /F1 10.5 Tf 0 0 0 rg 2 3.026 Td (Data of new form field) Tj ET Q EMC" in
+      let stream = "0 0 10 10 re" in
       let stream = "" in
+
       PDFDocument.print doc "\n/Length %d\n" (String.length stream);
       PDFDocument.print_stream stream doc;
       PDFDocument.print doc ">>endobj\n";
       (* Fields *)
       form.fields <- List.rev form.fields;
+      let page_height = PDF.page_height doc *. PDF.scale doc in
       let fields = List.map begin fun field ->
+        let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
         let font = (*doc_default_font*) find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
         PDFDocument.new_obj doc;
         field.obj <- PDFDocument.current_object_number doc;
         PDFDocument.print doc "<<";
         PDFDocument.print doc "/Type /Annot /Subtype /Widget ";
-        PDFDocument.print doc "/Rect [ 20 600 120 612.5 ] ";
+
+        let x = field.x in
+        let y = page_height -.field.y in
+        PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f] " x y (x +. field.width) (y -. field.height);
+
         PDFDocument.print doc "/FT /Tx ";
         (*PDFDocument.print doc "/F 4 ";*)
         PDFDocument.print doc "/T(field_name) "; (* Partial field name *)
-        PDFDocument.print doc "/DV(Default value) "; (* Default value (for reset) *)
-        PDFDocument.print doc "/V(Actual value) "; (* Value *)
-        PDFDocument.print doc "/DA (/F%d 12 Tf 1 0 0 rg) " font.font_index;
+        PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value); 
+        PDFDocument.print doc "/V(%s) " (PDFUtil.escape field.value);
+        PDFDocument.print doc "/DA (50 Tz /F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
         (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
         (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
-        (*PDFDocument.print doc "/BS<</Type /Border /W 1 /S /S>> ";*)
-        PDFDocument.print doc "/MK <</BC [ 1 0 0 ] /BG [0.9 0.9 0.9]>> ";
+        (* Border *)
+        let w, s, c =
+          match field.border with
+            | Some (`Solid, color) -> 1, "/S/S", Some color
+            | Some (`Underline, color) -> 1, "/S/U", Some color
+            | Some (`Dashed, color) -> 1, "/S/D", Some color
+            | _ -> 0, "/S/S", None
+        in
+        let border_color = match c with
+          | Some color -> sprintf "/BC[%s]" (PDFUtil.rg_of_hex color)
+          | _ -> ""
+        in
+        let bg_color = match field.bgcolor with
+          | Some color -> sprintf "/BG[%s]" (PDFUtil.rg_of_hex color)
+          | _ -> ""
+        in
+        PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s%s>> " w s
+          (match field.tooltip with Some x -> sprintf "/CA%s " (PDFUtil.pdf_string x) | _ -> "")
+          border_color bg_color;
         PDFDocument.print doc ">>endobj\n";
         field.obj
       end form.fields in
@@ -111,7 +145,7 @@ let create doc =
         (String.concat " " (List.map (fun f -> sprintf "%d 0 R" f.obj) form.fields));
       PDFDocument.print doc "/DR <</Font <</F%d %d 0 R>>>> " (* Default resource dictionary *)
         doc_default_font.font_index doc_default_font.font_n;
-      PDFDocument.print doc "/DA (/F%d 12 Tf 0 0 0 rg)" doc_default_font.font_index; (* Default appearance string *)
+      PDFDocument.print doc "/DA ()"; (* Default appearance string *)
       PDFDocument.print doc ">>endobj\n";
       form.root_obj <- PDFDocument.current_object_number doc;
     end
@@ -120,16 +154,19 @@ let create doc =
   PDFDocument.add_catalog begin fun () ->
     if form.length > 0 then begin
       PDFDocument.print doc "/AcroForm %d 0 R " form.root_obj;
+      (*PDFDocument.print doc "/OpenAction " form.root_obj;*)
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;
   form;;
 
 (** add *)
-let add ?parent ?font_family ?font_size ?font_style doc =
+let add ~x ~y ~width ?height ?parent ?font_family ?font_size ?font_style ?border ?bgcolor ?fgcolor ?tooltip ?(value="") ?(default_value="") doc =
   let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
   let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
   let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
+  let fgcolor = match fgcolor with Some c -> c | _ -> PDFUtil.hex_of_rgb (PDF.text_color doc) in
+  let height = match height with Some h -> h | _ -> font_size /. PDF.scale doc +. 1.5 in
   let form =
     try List.assq doc !instances
     with Not_found ->
@@ -139,7 +176,14 @@ let add ?parent ?font_family ?font_size ?font_style doc =
   in
   let id = form.length + 1 in
   let page = PDFDocument.get_current_page doc in
-  let field = { id; obj = 0; parent; font_family; font_size; font_style; page } in
+  let scale = PDF.scale doc in
+  let field = {
+    x = x *. scale;
+    y = y *. scale;
+    width = width *. scale;
+    height = height *. scale;
+    border; bgcolor; fgcolor;
+    id; obj = 0; parent; font_family; font_size; font_style; value; default_value; tooltip; page } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;
   field;;

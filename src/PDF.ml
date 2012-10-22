@@ -52,6 +52,8 @@ let set_display_mode ?(layout=`Continuous) zoom doc =
   doc.zoomMode <- zoom;
   doc.layoutMode <- layout
 
+let set_open_actions actions doc = doc.open_actions <- actions
+
 let set_compression x doc =
   if x then (invalid_arg "PDF.set_compression: Compression not yet implemented");
   doc.compress <- x
@@ -153,12 +155,12 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     text_color_rgb        = (0, 0, 0);
     fill_color_rgb        = (0, 0, 0);
     draw_color_rgb        = (0, 0, 0);
+    open_action_obj       = None;
+    open_actions          = [];
   } in
   set_margins ~left:margin0 ~top:margin0 doc;
   (* Automatic page break *)
   set_auto_page_break true doc;
-  (* Full width display mode *)
-  set_display_mode `Fullwidth doc;
   (* Enable compression *)
   set_compression false doc;
   (* Set the default font *)

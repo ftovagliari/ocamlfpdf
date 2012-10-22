@@ -125,6 +125,8 @@ and annot = {
   mutable text_color_rgb        : int * int * int;
   mutable fill_color_rgb        : int * int * int;
   mutable draw_color_rgb        : int * int * int;
+  mutable open_action_obj       : int option;
+  mutable open_actions          : action list;
 }
 
 let open_document doc = match doc.state with
@@ -204,13 +206,21 @@ let print_info doc =
 let print_catalog doc =
   print doc "/Type /Catalog ";
   print doc "/Pages 1 0 R ";
-  begin match doc.zoomMode with
-    | `Fullpage -> print doc "/OpenAction [3 0 R /Fit] "
-    | `Fullwidth -> print doc "/OpenAction [3 0 R /FitH null] "
-    | `Real -> print doc "/OpenAction [3 0 R /XYZ null null 1] "
-    | `Custom_zoom z -> print doc "/OpenAction [3 0 R /XYZ null null %f] " (z /. 100.)
-    | _ -> () (*    | Default_zoom -> ""*)
-  end;
+  (match doc.open_action_obj with Some x -> print doc "/OpenAction %d 0 R " x | _ -> ());
+(*  begin
+    try
+      let first_page = List.nth doc.pages (n_pages doc - 1) in
+      let first_page_obj = first_page.pg_obj in
+      begin
+        match doc.zoomMode with
+          | `Fullpage -> print doc "/OpenAction [%d 0 R /Fit] " first_page_obj
+          | `Fullwidth -> print doc "/OpenAction [%d 0 R /FitH null] " first_page_obj
+          | `Real -> print doc "/OpenAction [%d 0 R /XYZ null null 1] " first_page_obj
+          | `Custom_zoom z -> print doc "/OpenAction [%d 0 R /XYZ null null %f] " first_page_obj (z /. 100.)
+          | `Default_zoom -> ()
+      end;
+    with Not_found -> ()
+  end;*)
   begin match doc.layoutMode with
     | `Single -> print doc "/PageLayout /SinglePage "
     | `Continuous -> print doc "/PageLayout /OneColumn "
@@ -289,9 +299,6 @@ let print_pages doc =
   print doc "1 0 obj";
   print doc "<</Type /Pages ";
   print doc "/Kids [ %s ] " (String.concat " " (List.map (fun page -> sprintf "%d 0 R" page.pg_obj) (List.rev doc.pages)));
-
-  (*for i = 0 to nb do print doc "%d 0 R " (3 + 2 * i) done;
-  print doc "] ";*)
   print doc "/Count %d " (nb + 1);
   print doc "/MediaBox [0 0 %.2f %.2f] " w_pt h_pt;
   print doc ">>endobj\n"
@@ -407,7 +414,7 @@ let print_images doc =
   let images = (Array.of_list (List.rev doc.images)) in
   for index = 0 to Array.length images - 1 do
     let image = images.(index) in
-    new_obj doc; (* Incrementa current_object_number *)
+    new_obj doc;
     image.image_obj <- doc.current_object_number;
     print doc "<</Type /XObject\n";
     print doc "/Subtype /Image\n";
@@ -471,7 +478,47 @@ let print_resources doc =
   print_resource_dict doc;
   print doc ">>endobj\n";
   List.iter (fun f -> f()) (List.rev doc.print_resources);
-  doc.print_resources <- []
+  doc.print_resources <- [];;
+
+let print_open_actions doc =
+  let actions =
+    let first_page = n_pages doc - 1 in
+    match doc.zoomMode with
+      | `Fullpage -> (`GoTo {dest_page = first_page; dest_display = `Fit}) :: doc.open_actions
+      | `Fullwidth -> (`GoTo {dest_page = first_page; dest_display = `FitH None}) :: doc.open_actions
+      | `Real -> (`GoTo {dest_page = first_page; dest_display = (`XYZ (None, None, 1.0))}) :: doc.open_actions
+      | `Custom_zoom z -> (`GoTo {dest_page = first_page; dest_display = (`XYZ (None, None, z /. 100.))}) :: doc.open_actions
+      | `Default_zoom -> doc.open_actions
+  in
+  let i = ref 0 in
+  List.fold_left begin fun first action ->
+    new_obj doc;
+    let obj = doc.current_object_number in
+    let next = if !i = List.length actions - 1 then "" else sprintf "/Next %d 0 R " (obj + 1) in
+    print doc "<<%s" next;
+    begin
+      match action with
+        | `GoTo {dest_page; dest_display} ->
+          let pg_obj = (List.nth doc.pages dest_page).pg_obj in
+          print doc "/S/GoTo/D[%d 0 R " pg_obj;
+          begin
+            match dest_display with
+              | `XYZ (left, top, zoom) -> print doc "/XYZ %s %s %f]"
+                (match left with Some x -> string_of_float x | _ -> "null")
+                (match top with Some x -> string_of_float x | _ -> "null") zoom
+              | `Fit -> print doc "/Fit]"
+              | `FitH top -> print doc "/FitH %s]"
+                (match top with Some x -> string_of_float x | _ -> "null")
+              | `FitV left -> print doc "/FitV %s]"
+                (match left with Some x -> string_of_float x | _ -> "null")
+          end;
+        | `ResetForm -> print doc "/S/ResetForm";
+    end;
+    print doc ">>endobj\n";
+    incr i;
+    match first with None -> Some obj | _ -> first
+  end None actions
+;;
 
 (** begin_page *)
 let begin_page ?orientation doc =
@@ -524,13 +571,15 @@ let print_document doc =
   List.iter begin fun page ->
     page.pg_annots.annot_obj <- List.flatten (List.map (fun f -> f()) page.pg_annots.annot_func)
   end (List.rev doc.pages);
-  print_pages doc;  (* 1 obj *)
-  print_resources doc; (* 2 obj *)
+  print_pages doc;  (* 1 obj = Pages *)
+  print_resources doc;
   (* Info *)
   new_obj doc;
   print doc "<<";
   print_info doc;
   print doc ">>endobj\n";
+  (* OpenAction *)
+  doc.open_action_obj <- print_open_actions doc;
   (* Catalog *)
   new_obj doc;
   print doc "<<";
