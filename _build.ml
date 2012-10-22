@@ -58,7 +58,7 @@ let external_tasks = [
 let targets = [
   
   (* 1 *)
-  "fpdf library", {
+  "fpdf", {
     num                  = 1;
     id                   = 0;
     output_name          = "fpdf";
@@ -85,89 +85,8 @@ let targets = [
   };
   
   (* 2 *)
-  "Test", {
+  "fpdf-byt", {
     num                  = 2;
-    id                   = 6;
-    output_name          = "tests/test";
-    target_type          = Executable;
-    compilation_bytecode = false;
-    compilation_native   = true;
-    toplevel_modules     = "tests/test.ml";
-    package              = "";
-    search_path          = "+xml-light tests"; (* -I *)
-    required_libraries   = "unix str nums cryptokit xml-light";
-    compiler_flags       = "-w y -g";
-    linker_flags         = "";
-    thread               = false;
-    vmthread             = false;
-    pp                   = "";
-    inline               = None;
-    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
-    other_objects        = "";
-    external_tasks       = [1];
-    restrictions         = [];
-    dependencies         = [0];
-    show                 = true;
-    installer_task       = None;
-  };
-  
-  (* 3 *)
-  "Test Markup Editor", {
-    num                  = 3;
-    id                   = 7;
-    output_name          = "test_pdfmarkup_editor";
-    target_type          = Executable;
-    compilation_bytecode = false;
-    compilation_native   = true;
-    toplevel_modules     = "test_pdfmarkup_editor.ml";
-    package              = "";
-    search_path          = "+xml-light +lablgtk2"; (* -I *)
-    required_libraries   = "unix str nums cryptokit xml-light lablgtk gtkInit.o ";
-    compiler_flags       = "-w sy -g";
-    linker_flags         = "-g";
-    thread               = false;
-    vmthread             = false;
-    pp                   = "";
-    inline               = None;
-    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
-    other_objects        = "";
-    external_tasks       = [];
-    restrictions         = [];
-    dependencies         = [];
-    show                 = true;
-    installer_task       = None;
-  };
-  
-  (* 4 *)
-  "Markup Editor", {
-    num                  = 4;
-    id                   = 8;
-    output_name          = "gtk_pdfmarkup_editor";
-    target_type          = Library;
-    compilation_bytecode = true;
-    compilation_native   = true;
-    toplevel_modules     = "gtk_pdfmarkup_editor.ml";
-    package              = "";
-    search_path          = "+lablgtk2 +xml-light"; (* -I *)
-    required_libraries   = "";
-    compiler_flags       = "-w sy -g";
-    linker_flags         = "-g";
-    thread               = false;
-    vmthread             = false;
-    pp                   = "";
-    inline               = None;
-    library_install_dir  = "fpdf"; (* Relative to the Standard Library Directory *)
-    other_objects        = "";
-    external_tasks       = [];
-    restrictions         = [];
-    dependencies         = [];
-    show                 = true;
-    installer_task       = None;
-  };
-  
-  (* 5 *)
-  "fpdf library (bytecode)", {
-    num                  = 5;
     id                   = 9;
     output_name          = "fpdf";
     target_type          = Library;
@@ -192,8 +111,89 @@ let targets = [
     installer_task       = None;
   };
   
+  (* 3 *)
+  "markup-editor", {
+    num                  = 3;
+    id                   = 8;
+    output_name          = "gtk_pdfmarkup_editor";
+    target_type          = Library;
+    compilation_bytecode = true;
+    compilation_native   = true;
+    toplevel_modules     = "gtk_pdfmarkup_editor.ml";
+    package              = "";
+    search_path          = "+lablgtk2 +xml-light"; (* -I *)
+    required_libraries   = "";
+    compiler_flags       = "-w sy -g";
+    linker_flags         = "-g";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    library_install_dir  = "fpdf"; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [];
+    show                 = true;
+    installer_task       = None;
+  };
+  
+  (* 4 *)
+  "test", {
+    num                  = 4;
+    id                   = 6;
+    output_name          = "tests/test";
+    target_type          = Executable;
+    compilation_bytecode = false;
+    compilation_native   = true;
+    toplevel_modules     = "tests/test.ml";
+    package              = "";
+    search_path          = "+xml-light tests"; (* -I *)
+    required_libraries   = "unix str nums cryptokit xml-light";
+    compiler_flags       = "-w y -g";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [1];
+    restrictions         = [];
+    dependencies         = [0];
+    show                 = true;
+    installer_task       = None;
+  };
+  
+  (* 5 *)
+  "test-markup-editor", {
+    num                  = 5;
+    id                   = 7;
+    output_name          = "tests/test_pdfmarkup_editor";
+    target_type          = Executable;
+    compilation_bytecode = false;
+    compilation_native   = true;
+    toplevel_modules     = "tests/test_pdfmarkup_editor.ml";
+    package              = "";
+    search_path          = "+xml-light +lablgtk2 tests"; (* -I *)
+    required_libraries   = "unix str nums cryptokit xml-light lablgtk gtkInit.o ";
+    compiler_flags       = "-w sy -g";
+    linker_flags         = "-g";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [0; 8];
+    show                 = true;
+    installer_task       = None;
+  };
+  
   (* 6 *)
-  "TestForm", {
+  "test-form", {
     num                  = 6;
     id                   = 10;
     output_name          = "tests/testForm";

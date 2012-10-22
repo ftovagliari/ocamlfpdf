@@ -281,7 +281,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       PDF.image ~x ~y ~name ~data ~height:height_image ~image_width ~image_height doc;
       PDF.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-        (Str.string_before (Buffer.contents (PDFUtil.fread (Filename.concat "tests" "test.ml"))) 1000) in
+        (Str.string_before (Buffer.contents (PDFUtil.fread "test.ml")) 1000) in
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
       PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
@@ -418,7 +418,16 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       raise ex
     end
   end;
-  if Sys.os_type = "Win32" then ignore (Sys.command filename);
+  Printf.printf "
+  +-----------------------------------------------------------------------------
+  |
+  | Please see output file %s
+  |
+  +-----------------------------------------------------------------------------
+
+%!" filename;
+  if Sys.os_type = "Win32" then ignore (Sys.command filename)
+  else ignore (kprintf Sys.command "xpdf %s" filename)
 end
 
 let _ = main ()

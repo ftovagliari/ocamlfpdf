@@ -13,36 +13,30 @@ COPYRIGHT:
 
 DEPENDENCIES:
 
-  * Objective Caml 3.11;
+  * OCaml 4.00.0;
   * Xml-light;
-  * LablGtk2 (optional, only for the markup editor widget).
+  * LablGtk2 (optional, for the markup editor widget).
 
 
-HOW TO COMPILE:
+INSTALL:
 
-    cd src
-    make
+  Change to the ocamlfpdf toplevel directory and execute:
 
-  Create the documentation in doc/ with
-
-    make doc
-
-  and the test program with
-
-    make test
+    ocaml _build.ml build fpdf
+    ocaml _build.ml build test && pushd src/tests && ./test.opt && popd
 
   Install (as root) with:
 
-    make install
+    ocaml _build.ml install fpdf
 
   By default, the library will be installed in the `ocamlc -where`/fpdf
   directory.
 
   You can generate a LablGtk2 markup editor (for use with PDFMarkup) with:
 
-    make gtk_pdfmarkup_editor
-    make test_pdfmarkup_editor
-
+    ocaml _build.ml build markup-editor
+    ocaml _build.ml build markup-editor && src/tests/test_pdfmarkup_editor.opt
+    ocaml _build.ml install markup-editor
 
 HOW TO USE:
 

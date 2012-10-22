@@ -12,7 +12,7 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="fpdf library" default="false" id="0">
+    <target name="fpdf" default="false" id="0">
       <byt>true</byt>
       <opt>true</opt>
       <libs>xml-light</libs>
@@ -52,28 +52,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="Markup Editor" default="false" id="8">
-      <byt>true</byt>
-      <opt>true</opt>
-      <libs></libs>
-      <other_objects></other_objects>
-      <files>gtk_pdfmarkup_editor.ml</files>
-      <package></package>
-      <includes>+lablgtk2 +xml-light</includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <inline></inline>
-      <cflags>-w sy -g</cflags>
-      <lflags>-g</lflags>
-      <target_type>Library</target_type>
-      <outname>gtk_pdfmarkup_editor</outname>
-      <lib_install_path>fpdf</lib_install_path>
-      <external_tasks/>
-      <restrictions></restrictions>
-      <dependencies></dependencies>
-    </target>
-    <target name="fpdf library (bytecode)" default="false" id="9">
+    <target name="fpdf-byt" default="false" id="9">
       <byt>true</byt>
       <opt>false</opt>
       <libs>xml-light</libs>
@@ -94,7 +73,28 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="Test ocamlfpdf" default="false" id="6">
+    <target name="markup-editor" default="false" id="8">
+      <byt>true</byt>
+      <opt>true</opt>
+      <libs></libs>
+      <other_objects></other_objects>
+      <files>gtk_pdfmarkup_editor.ml</files>
+      <package></package>
+      <includes>+lablgtk2 +xml-light</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <cflags>-w sy -g</cflags>
+      <lflags>-g</lflags>
+      <target_type>Library</target_type>
+      <outname>gtk_pdfmarkup_editor</outname>
+      <lib_install_path>fpdf</lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
+    <target name="test" default="false" id="6">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light</libs>
@@ -132,7 +132,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="Test Markup Editor" default="false" id="7">
+    <target name="test-markup-editor" default="false" id="7">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light lablgtk gtkInit.o </libs>
@@ -153,7 +153,7 @@
       <restrictions></restrictions>
       <dependencies>0,8</dependencies>
     </target>
-    <target name="Test Interactive Forms" default="true" id="10">
+    <target name="test-form" default="true" id="10">
       <byt>false</byt>
       <opt>true</opt>
       <libs>unix str nums cryptokit xml-light</libs>
@@ -176,7 +176,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test ocamlfpdf" default="false" target_id="6" id="3">
+    <executable name="Test fpdf" default="false" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -200,10 +200,10 @@
   <build_script filename="_build.ml">
     <targets>
       <target target_id="0" show="true"/>
+      <target target_id="9" show="true"/>
+      <target target_id="8" show="true"/>
       <target target_id="6" show="true"/>
       <target target_id="7" show="true"/>
-      <target target_id="8" show="true"/>
-      <target target_id="9" show="true"/>
       <target target_id="10" show="true"/>
     </targets>
     <args/>
