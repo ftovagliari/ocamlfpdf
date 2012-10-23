@@ -50,6 +50,30 @@ let external_tasks = [
     et_always_run_in_project = false;
     et_always_run_in_script  = true;
   });
+  
+  2, (fun () -> {
+    et_name                  = "findlib-install";
+    et_env                   = [];
+    et_env_replace           = false;
+    et_dir                   = "";
+    et_cmd                   = "ocaml";
+    et_args                  = [true,"../tools/findlib_install.ml"];
+    et_phase                 = Some After_compile;
+    et_always_run_in_project = false;
+    et_always_run_in_script  = false;
+  });
+  
+  3, (fun () -> {
+    et_name                  = "distclean";
+    et_env                   = [];
+    et_env_replace           = false;
+    et_dir                   = "";
+    et_cmd                   = "ocaml";
+    et_args                  = [true,"../tools/distclean.ml"];
+    et_phase                 = Some After_compile;
+    et_always_run_in_project = false;
+    et_always_run_in_script  = false;
+  });
 ];;
 
 
@@ -65,7 +89,7 @@ let targets = [
     target_type          = Library;
     compilation_bytecode = true;
     compilation_native   = true;
-    toplevel_modules     = "PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml";
+    toplevel_modules     = "PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml";
     package              = "";
     search_path          = "+xml-light"; (* -I *)
     required_libraries   = "xml-light";
@@ -92,7 +116,7 @@ let targets = [
     target_type          = Library;
     compilation_bytecode = true;
     compilation_native   = false;
-    toplevel_modules     = "PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml";
+    toplevel_modules     = "PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml";
     package              = "";
     search_path          = "+xml-light"; (* -I *)
     required_libraries   = "xml-light";
@@ -120,8 +144,8 @@ let targets = [
     compilation_bytecode = true;
     compilation_native   = true;
     toplevel_modules     = "gtk_pdfmarkup_editor.ml";
-    package              = "";
-    search_path          = "+lablgtk2 +xml-light"; (* -I *)
+    package              = "lablgtk2";
+    search_path          = "+xml-light"; (* -I *)
     required_libraries   = "";
     compiler_flags       = "-w sy -g";
     linker_flags         = "-g";
@@ -149,7 +173,7 @@ let targets = [
     toplevel_modules     = "tests/test.ml";
     package              = "";
     search_path          = "+xml-light tests"; (* -I *)
-    required_libraries   = "unix str nums cryptokit xml-light";
+    required_libraries   = "str xml-light";
     compiler_flags       = "-w y -g";
     linker_flags         = "";
     thread               = false;
@@ -174,9 +198,9 @@ let targets = [
     compilation_bytecode = false;
     compilation_native   = true;
     toplevel_modules     = "tests/test_pdfmarkup_editor.ml";
-    package              = "";
-    search_path          = "+xml-light +lablgtk2 tests"; (* -I *)
-    required_libraries   = "unix str nums cryptokit xml-light lablgtk gtkInit.o ";
+    package              = "lablgtk2.auto-init";
+    search_path          = "+xml-light  tests"; (* -I *)
+    required_libraries   = "str xml-light";
     compiler_flags       = "-w sy -g";
     linker_flags         = "-g";
     thread               = false;
@@ -203,9 +227,9 @@ let targets = [
     toplevel_modules     = "tests/testForm.ml";
     package              = "";
     search_path          = "+xml-light tests"; (* -I *)
-    required_libraries   = "unix str nums cryptokit xml-light";
+    required_libraries   = "str xml-light";
     compiler_flags       = "-w y -g";
-    linker_flags         = "";
+    linker_flags         = "-g";
     thread               = false;
     vmthread             = false;
     pp                   = "";
@@ -215,6 +239,33 @@ let targets = [
     external_tasks       = [];
     restrictions         = [];
     dependencies         = [0];
+    show                 = true;
+    installer_task       = None;
+  };
+  
+  (* 7 *)
+  "Tools", {
+    num                  = 7;
+    id                   = 11;
+    output_name          = "";
+    target_type          = Executable;
+    compilation_bytecode = true;
+    compilation_native   = false;
+    toplevel_modules     = "";
+    package              = "";
+    search_path          = ""; (* -I *)
+    required_libraries   = "";
+    compiler_flags       = "";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [2; 3];
+    restrictions         = [];
+    dependencies         = [];
     show                 = true;
     installer_task       = None;
   };

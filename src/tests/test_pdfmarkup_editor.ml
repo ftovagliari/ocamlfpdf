@@ -39,9 +39,9 @@ let main () = begin
   let markup = Str.global_replace (Str.regexp_string "region") "<SPAN style='bold,italic,underline'>region</SPAN>" markup in
   let markup = Str.global_replace (Str.regexp_string "editable") "<SPAN size='12' style='bold,italic,underline'>editable</SPAN>" markup in
   let markup = Str.global_replace (Str.regexp_string "@") "<BR/>" markup in
-  let markup = "<SPAN align='0.5'>aaa </SPAN><SPAN size='18.5'>bbbbb</SPAN><SPAN> cccc
+  (*let markup = "<SPAN align='0.5'>aaa </SPAN><SPAN size='18.5'>bbbbb</SPAN><SPAN> cccc
 
-kdfssfhsjkfjksf</SPAN>" in
+kdfssfhsjkfjksf</SPAN>" in*)
   editor#set_markup markup;
   let button_ok = GButton.button ~stock:`OK ~packing:vbox#pack () in
   button_ok#connect#clicked ~callback:begin fun () ->

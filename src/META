@@ -1,0 +1,16 @@
+name="fpdf"
+version="1.0"
+description="Library for generating PDF documents."
+requires="str"
+archive(byte)="fpdf.cma"
+archive(native)="fpdf.cmxa"
+
+package "editor" (
+  version="1.0"
+  description="Lablgtk widget for editing PDFMarkup."
+  requires = "fpdf,lablgtk2"
+  archive(byte)="gtk_pdfmarkup_editor.cma"
+  archive(native)="gtk_pdfmarkup_editor.cmxa"
+)
+
+

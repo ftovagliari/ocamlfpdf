@@ -158,7 +158,6 @@ let create doc =
   PDFDocument.add_catalog begin fun () ->
     if form.length > 0 then begin
       PDFDocument.print doc "/AcroForm %d 0 R " form.root_obj;
-      (*PDFDocument.print doc "/OpenAction " form.root_obj;*)
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;

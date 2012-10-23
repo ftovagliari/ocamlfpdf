@@ -13,8 +13,9 @@ COPYRIGHT:
 
 DEPENDENCIES:
 
-  * OCaml 4.00.0;
+  * OCaml-4.00.0;
   * Xml-light;
+  * Findlib-1.3.3;
   * LablGtk2 (optional, for the markup editor widget).
 
 
@@ -25,25 +26,32 @@ INSTALL:
     ocaml _build.ml build fpdf
     ocaml _build.ml build test && pushd src/tests && ./test.opt && popd
 
-  Install (as root) with:
-
-    ocaml _build.ml install fpdf
-
-  By default, the library will be installed in the `ocamlc -where`/fpdf
-  directory.
-
-  You can generate a LablGtk2 markup editor (for use with PDFMarkup) with:
+  You can generate a LablGtk markup editor (for use with PDFMarkup) with:
 
     ocaml _build.ml build markup-editor
-    ocaml _build.ml build markup-editor && src/tests/test_pdfmarkup_editor.opt
+    ocaml _build.ml build test-markup-editor && src/tests/test_pdfmarkup_editor.opt
+
+  Install (as root) with:
+
+    ocaml tools/findlib_install.ml
+
+  Alternatively, you may install the library without using Findlib:
+
+    ocaml _build.ml install fpdf
     ocaml _build.ml install markup-editor
+
+  By default, the library will be installed at "+fpdf".
+
 
 HOW TO USE:
 
   Compile your program as follows:
 
-  ocamlc -o ??? -I +fpdf -I +xml-light str.cma unix.cma xml-light.cma fpdf.cma ???.ml
+    ocamlfind ocamlc -o ??? -package fpdf -linkpkg str.cma xml-light.cma ???.ml
 
+  or, without using Findlib:
+
+    ocamlc -o ??? -I +fpdf str.cma xml-light.cma fpdf.cma ???.ml
 
 AUTHOR:
 
