@@ -2,8 +2,8 @@ name="fpdf"
 version="1.0"
 description="Library for generating PDF documents."
 requires="str"
-archive(byte)="+xml-light.cma,fpdf.cma"
-archive(native)="+xml-light.cmxa,fpdf.cmxa"
+archive(byte)="+xml-light/xml-light.cma,fpdf.cma"
+archive(native)="+xml-light/xml-light.cmxa,fpdf.cmxa"
 
 package "editor" (
   version="1.0"
