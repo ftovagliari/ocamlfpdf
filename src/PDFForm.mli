@@ -26,7 +26,21 @@
     A collection of fields for gathering information interactively from the user. *)
 
 
+(** The abstract type for forms. *)
+type t
+
+(** The abstract type for fields. *)
 type field
+
+(** Javascript actions that can be triggered by specific events. *)
+type action = [
+  | `Keystroke of string
+  | `Value_changed  of string
+  | `Calculate of string
+]
+
+(** [create doc] creates a new empty form for document [doc]. *)
+val create : PDF.t -> t
 
 (**
   @param x Absolute abscissa of the upper-left corner.
@@ -47,13 +61,13 @@ type field
   @param comb See {i PDF Reference version 1.7, table 8.77}
   @param readonly Whether the user may change the value of the field.
   @param hidden If set, do not display or print the field or allow it to interact with the user.
-  @param numeric Whether non-numeric characters should be ignored.
   @param justification Justification;
   @param value Field value
   @param value_ap Field value
   @param default_value Default value.
+  @param actions Form field's additional-actions
   @param parent Parent element.
-  @return An object representing the text field, for use in subsequent calls as parameter "parent" to append child elements.
+  @return An object representing the text field.
 *)
 val add_text_field :
   x:float ->
@@ -74,8 +88,13 @@ val add_text_field :
   ?comb:int ->
   ?readonly:bool ->
   ?hidden:bool ->
-  ?numeric:bool ->
   ?justification:[ `Center | `Left | `Right ] ->
   ?value:string ->
-  ?value_ap:string -> 
-  ?default_value:string -> ?parent:field -> PDF.t -> field
+  ?value_ap:string ->
+  ?default_value:string ->
+  ?actions:action list ->
+  ?parent:field -> t -> field
+
+(** [set_calculation_order fields form] Sets the calculation order for fileds with calculation action. *)
+val set_calculation_order : field list -> t -> unit
+

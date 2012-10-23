@@ -27,39 +27,44 @@ open PDFTypes
 open PDFDocument
 
 type t = {
-  doc              : PDFDocument.t;
-  mutable root_obj : int;
-  mutable fields   : field list;
-  mutable length   : int;
+  doc                       : PDFDocument.t;
+  mutable root_obj          : int;
+  mutable fields            : field list;
+  mutable calculation_order : field list option;
+  mutable length            : int;
 } and field = {
-  id               : int;
-  mutable obj      : int;
-  x                : float;
-  y                : float;
-  width            : float;
-  height           : float;
-  parent           : field option;
-  font_family      : Font.family option;
-  font_size        : float;
-  font_style       : Font.style list;
-  name             : string;
-  alt_name         : string option;
-  value            : string;
-  value_ap         : string;
-  default_value    : string;
-  maxlength        : int option;
-  comb             : int option;
-  readonly         : bool;
-  hidden           : bool;
-  numeric          : bool;
-  justification    : [`Left | `Center | `Right];
-  border           : ([`Solid | `Underline | `Dashed] * string) option;
-  bgcolor          : string option;
-  fgcolor          : string;
-  bgcolor_ap       : string option;
-  fgcolor_ap       : string;
-  page             : page;
-}
+  id                        : int;
+  mutable obj               : int;
+  x                         : float;
+  y                         : float;
+  width                     : float;
+  height                    : float;
+  parent                    : field option;
+  font_family               : Font.family option;
+  font_size                 : float;
+  font_style                : Font.style list;
+  name                      : string;
+  alt_name                  : string option;
+  value                     : string;
+  value_ap                  : string;
+  default_value             : string;
+  maxlength                 : int option;
+  comb                      : int option;
+  readonly                  : bool;
+  hidden                    : bool;
+  actions                   : action list;
+  justification             : [`Left | `Center | `Right];
+  border                    : ([`Solid | `Underline | `Dashed] * string) option;
+  bgcolor                   : string option;
+  fgcolor                   : string;
+  bgcolor_ap                : string option;
+  fgcolor_ap                : string;
+  page                      : page;
+} and action = [
+  | `Keystroke of string
+  | `Value_changed  of string
+  | `Calculate of string
+]
 
 let (!!) = List.fold_left (fun acc (v, c) -> acc lor (if c then v else 0)) 0;;
 
@@ -71,16 +76,39 @@ let find_font ~fonts ~family ~style =
 (** instances *)
 let instances = ref []
 
+(** js_validation_numeric *)
 let js_validation_numeric = PDFUtil.escape "event.rc = event.change.toString().length <= 0 || event.change.match(\"[-.0-9]\")"
-let flag_hidden = 0b00000000_00000000_00000000_00000010
+
+(** get_calculation_order_default *)
+let get_calculation_order_default form =
+  List.rev (List.filter begin fun field ->
+    List.exists (function `Calculate _ -> true | _ -> false) field.actions
+  end form.fields);;
+
+(** print_actions *)
+let print_actions actions doc =
+  if actions <> [] then begin
+    PDFDocument.print doc "/AA<<";
+    List.iter begin fun action ->
+      let js =
+        match action with
+        | `Keystroke js -> PDFDocument.print doc "/K"; js
+        | `Value_changed js -> PDFDocument.print doc "/V"; js
+        | `Calculate js -> PDFDocument.print doc "/C"; js
+      in
+      PDFDocument.print doc "<</S/JavaScript/JS(%s)>>" (PDFUtil.escape js);
+    end actions;
+    PDFDocument.print doc ">>";
+  end;;
 
 (** create *)
 let create doc =
-  let form = {
-    doc      = doc;
-    root_obj = 0;
-    fields   = [];
-    length   = 0;
+  let form          = {
+    doc               = doc;
+    root_obj          = 0;
+    fields            = [];
+    calculation_order = None;
+    length            = 0;
   } in
   let _, doc_default_font = match List.rev doc.fonts with f :: _ -> f | _ -> assert false in
   (** Add resource *)
@@ -93,6 +121,15 @@ let create doc =
       PDFDocument.print doc "/DR <</Font <</F%d %d 0 R>>>> " (* Default resource dictionary *)
         doc_default_font.font_index doc_default_font.font_n;
       PDFDocument.print doc "/DA ()"; (* Default appearance string *)
+      (* Calculation Order *)
+      let co =
+        match form.calculation_order with
+          | Some co -> co
+          | _ -> get_calculation_order_default form
+      in
+      let co = List.map (fun field -> sprintf "%d 0 R" field.obj) co in
+      if co <> [] then (PDFDocument.print doc "/CO[%s]" (String.concat " " co));
+      (*  *)
       PDFDocument.print doc ">>endobj\n";
       form.root_obj <- PDFDocument.current_object_number doc;
     end
@@ -106,18 +143,23 @@ let create doc =
   end doc;
   form;;
 
+(** set_calculation_order *)
+let set_calculation_order fields form = form.calculation_order <- Some fields
+
 (** add_text_field *)
 let add_text_field ~x ~y ~width ~height ~name ?alt_name
     ?border
     ?bgcolor ?fgcolor
     ?bgcolor_ap ?fgcolor_ap
     ?font_family ?(font_size(*=0.0*)) ?font_style
-    ?maxlength ?comb ?(readonly=false) ?(hidden=false) ?(numeric=false)
+    ?maxlength ?comb ?(readonly=false) ?(hidden=false)
     ?(justification=`Left)
     ?(value="")
     ?value_ap
     ?(default_value="")
-    ?parent doc =
+    ?(actions=[])
+    ?parent form =
+  let doc = form.doc in
   let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
   let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
   let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
@@ -143,7 +185,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     height = height *. scale;
     obj    = 0;
     border; bgcolor; fgcolor; bgcolor_ap; fgcolor_ap; id; parent; font_family; font_size; font_style;
-    name; alt_name; value; value_ap; default_value; maxlength; comb; readonly; hidden; numeric;
+    name; alt_name; value; value_ap; default_value; maxlength; comb; readonly; hidden; actions;
     justification; page;
   } in
   form.fields <- field :: form.fields;
@@ -220,9 +262,10 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     PDFDocument.print doc "/DA(/F%d %.2f Tf %s rg)" font.font_index field.font_size fg_color;
     (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
     (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
-    (if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>>");
+    print_actions field.actions doc;
+    (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>>");*)
     (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(%s)>>>> " js_validation_numeric);*)
-    (* Border *)
+    (** Border *)
     let w, s, c =
       match field.border with
         | Some (`Solid, color) -> 1, "/S/S", Some color

@@ -41,6 +41,7 @@ let main () = begin
         `GoTo {dest_page = 0; dest_display = `FitH None}
       ] doc;
 
+      let form = PDFForm.create doc in
 
       let create_page default_value =
         PDF.add_page doc;
@@ -48,24 +49,39 @@ let main () = begin
         let y = margin in
         PDFGraphics.rect ~x ~y ~width:(PDF.page_width doc -. 2. *. margin) ~height:(PDF.page_height doc -. 2. *. margin) doc;
         let name = sprintf "text_field_%d_1" (PDF.page_count doc) in
-        ignore (PDFForm.add_text_field ~x ~y ~width:160. ~height:80.
-          ~maxlength:5 ~readonly:false ~numeric:true ~hidden:false ~justification:`Center
-          ~name
-          ~value:"" ~value_ap:"Enter a number here..."
-          ~default_value:""
-          ~bgcolor:"#f0f0f0" ~fgcolor_ap:"#c0c0c0"
-          (*~border:(`Dashed, "#000000")*) doc);
+        let field_1 =
+          PDFForm.add_text_field ~x ~y ~width:160. ~height:20.
+            ~maxlength:5 ~readonly:false ~hidden:false ~justification:`Center
+            ~name ~alt_name:name
+            ~value:"" ~value_ap:"Enter a number here..."
+            ~default_value:""
+            ~bgcolor:"#f0f0f0" ~fgcolor_ap:"#c0c0c0"
+            ~actions:[
+              `Keystroke "AFNumber_Keystroke(0,1,0,0,\"\",false);";
+            ]
+            (*~border:(`Dashed, "#000000")*) form
+        in
         ignore (PDFMarkup.print ~x:(x +. 80.) ~y ~width:50. ~markup:"3" doc);
-        let y = y +. 80. in
+        let y = y +. 30. in
         let name = sprintf "text_field_%d_2" (PDF.page_count doc) in
-        ignore (PDFForm.add_text_field ~x ~y ~width:100. ~height:5. ~font_size:8.
-          ~readonly:false ~numeric:false ~hidden:false ~justification:`Left
-          ~name ~value:default_value ~default_value
-          ~bgcolor:"#fff0f0" (*~border:(`Dashed, "#000000")*) doc);
+        let field_2 =
+          PDFForm.add_text_field ~x ~y ~width:100. ~height:5. ~font_size:8.
+            ~readonly:false ~hidden:false ~justification:`Left
+            ~name ~alt_name:name
+            ~value:default_value ~default_value
+            ~actions:(
+              (if PDF.page_count doc = 2 then [`Calculate "AFSimple_Calculate(\"SUM\", new Array (\"text_field_1_1\", \"text_field_1_2\"));"] else [])
+              @ [`Keystroke "AFNumber_Keystroke(0,1,0,0,\"\",false);";]
+            )
+            ~bgcolor:"#fff0f0" (*~border:(`Dashed, "#000000")*) form
+        in
+        field_1, field_2
       in
-      create_page "3";
-      create_page "555";
-      create_page "88888";
+      ignore (create_page "");
+      let _, field_calc = create_page "" in
+      ignore (create_page "88888");
+
+      PDFForm.set_calculation_order [field_calc] form;
 
       PDF.close_document doc;
       close_file();

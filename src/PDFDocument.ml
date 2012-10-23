@@ -247,7 +247,7 @@ let print_pages doc =
   List.iter begin fun page ->
     (* Page *)
     let page_obj_num = doc.current_object_number + 1 + 2 * (List.length page.pg_annots.annot_func) in
-    page.pg_annots.annot_obj <- List.map (fun f -> f page_obj_num) page.pg_annots.annot_func;
+    page.pg_annots.annot_obj <- List.rev_map (fun f -> f page_obj_num) page.pg_annots.annot_func;
     new_obj doc;
     page.pg_obj <- doc.current_object_number;
     print doc "<</Type /Page ";
