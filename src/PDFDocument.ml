@@ -112,6 +112,7 @@ and annot = {
   mutable author                : string;                   (* author *)
   mutable keywords              : string list;              (* keywords *)
   mutable creator               : string;                   (* creator *)
+  mutable creation_date         : string;                   (* creationDate *)
   mutable aliasNbPages          : string;                   (* alias for total number of pages *)
   mutable pdfVersionMajor       : int;                      (* PDF version number *)
   mutable pdfVersionMinor       : int;                      (* PDF version number *)
@@ -200,8 +201,8 @@ let print_info doc =
   if List.length doc.keywords <> 0 then
     print doc "/Keywords %s" (pdf_string (String.concat " " doc.keywords));
   if doc.creator <> "" then
-    print doc "/Creator %s" (pdf_string doc.creator)(*;
-  print doc "/CreationDate %s" (pdf_string "D:20051226121800")*)
+    print doc "/Creator %s" (pdf_string doc.creator);
+  print doc "/CreationDate %s" doc.creation_date
 
 let print_catalog doc =
   print doc "/Type /Catalog ";

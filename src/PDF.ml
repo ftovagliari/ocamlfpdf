@@ -36,6 +36,18 @@ let author doc = doc.author
 let set_title x doc = doc.title <- x
 let title doc = doc.title
 
+let set_subject x doc = doc.subject <- x
+let subject doc = doc.subject
+
+let set_creator x doc = doc.creator <- x
+let creator doc = doc.creator
+
+let set_creation_date x doc = doc.creation_date <- x
+let creation_date doc = doc.creation_date
+
+let set_keywords x doc = doc.keywords <- x
+let keywords doc = doc.keywords
+
 let set_double_sided x doc = doc.double_sided <- x
 let double_sided doc = doc.double_sided
 
@@ -142,9 +154,10 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     author                = "";
     keywords              = [];
     creator               = "";
+    creation_date         = "";
     aliasNbPages          = "{nb}";
     pdfVersionMajor       = 1;
-    pdfVersionMinor       = 3;
+    pdfVersionMinor       = 7;
     header                = (fun () -> ());
     footer                = (fun () -> ());
     double_sided          = false;

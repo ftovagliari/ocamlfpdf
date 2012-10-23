@@ -45,25 +45,41 @@ val create :
   *)
 val add_page : ?orientation:orientation -> t -> unit
 
-val page_count : t -> int
-
 (** Close the PDF document.
     After this point, no further operation is possible on the document. *)
 val close_document : t -> unit
 
-val double_sided : t -> bool
 val scale : t -> float
+val page_count : t -> int
+
 val set_double_sided : bool -> t -> unit
+val double_sided : t -> bool
 val set_auto_page_break : ?margin:float -> bool -> t -> unit
 val set_display_mode : ?layout:layout -> zoom -> t -> unit
 
 (** Set a sequence of actions to be performed when the document is opened. *)
 val set_open_actions : action list -> t -> unit
 
-val author : t -> string
-val title : t -> string
+(** {6 Document information } *)
+
 val set_author : string -> t -> unit
 val set_title : string -> t -> unit
+val set_subject : string -> t -> unit
+val set_creator : string -> t -> unit
+
+(** [(D:YYYYMMDDHHmmSSOHH'mm')]
+  @see "PDF Reference version 1.7, section 3.8.3" for more information.
+  *)
+val set_creation_date : string -> t -> unit
+val set_keywords : string list -> t -> unit
+
+val author : t -> string
+val title : t -> string
+val subject : t -> string
+val creator : t -> string
+val creation_date : t -> string
+val keywords : t -> string list
+
 
 (** {4 Page Properties } *)
 

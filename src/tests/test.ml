@@ -56,6 +56,9 @@ let main () = begin
       let margin = 20. in
       PDF.set_margins ~left:margin ~top:margin doc;
       PDF.set_title title doc;
+      PDF.set_creator "ocamlfpdf" doc;
+      PDF.set_subject "test" doc;
+      PDF.set_creation_date "(D:20121023)" doc;
       let family = `Helvetica in
       let spacing = 1.0 in
       let padding = 1.0 in
