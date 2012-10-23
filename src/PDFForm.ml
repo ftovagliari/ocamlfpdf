@@ -43,6 +43,7 @@ type t = {
   font_size        : float;
   font_style       : Font.style list;
   name             : string;
+  alt_name         : string option;
   value            : string;
   default_value    : string;
   maxlength        : int option;
@@ -76,84 +77,7 @@ let create doc =
     fields   = [];
     length   = 0;
   } in
-  (** Add annot *)
   let _, doc_default_font = match List.rev doc.fonts with f :: _ -> f | _ -> assert false in
-  PDFDocument.add_annot doc begin fun () ->
-    if form.length > 0 then begin
-      (* Appearance object *)
-      PDFDocument.new_obj doc;
-      let appearance_obj = PDFDocument.current_object_number doc in
-      PDFDocument.print doc "<<";
-      PDFDocument.print doc "/Type /XObject ";
-      PDFDocument.print doc "/Subtype /Form ";
-      (*PDFDocument.print doc "/BBox [ 0 0 100 12.5 ] ";*)
-      (*PDFDocument.print doc "/Resources << /ProcSet [ /PDF /Text ] /Font << /F1 8 0 R >> >> "
-        (*doc_default_font.font_index doc_default_font.font_n*);*)
-      let stream = "" in
-      PDFDocument.print doc "\n/Length %d\n" (String.length stream);
-      PDFDocument.print_stream stream doc;
-      PDFDocument.print doc ">>endobj\n";
-      (* Fields *)
-      form.fields <- List.rev form.fields;
-      let page_height = PDF.page_height doc *. PDF.scale doc in
-      let fields = List.map begin fun field ->
-        let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
-        let font = find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
-        PDFDocument.new_obj doc;
-        field.obj <- PDFDocument.current_object_number doc;
-        PDFDocument.print doc "<<";
-        PDFDocument.print doc "/Type /Annot /Subtype /Widget ";
-        (* Field Area *)
-        let x = field.x in
-        let y = page_height -.field.y in
-        PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f] " x y (x +. field.width) (y -. field.height);
-        PDFDocument.print doc "/FT /Tx ";
-        (* Flags *)
-        let zero = 0b00000000_00000000_00000000_00000000 in
-        let flags = zero
-          lor (if field.hidden then 0b00000000_00000000_00000000_00000010 else zero)
-          lor (if field.readonly then 0b00000000_00000000_00000000_01000000 else zero)
-          lor 0b00000000_00000000_00000000_00000100 (* print *)
-        in
-        PDFDocument.print doc "/F %d " flags;
-        let flags = zero
-          lor (if field.readonly then 0b00000000_00000000_00000000_00000001 else zero)
-          lor (if field.comb <> None then 0b00000001_00000000_00000000_00000000 else zero)
-	in
-        PDFDocument.print doc "/Ff %d " flags;
-        PDFDocument.print doc "/T(%s) " (PDFUtil.escape field.name);
-        PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value);
-        PDFDocument.print doc "/V(%s) " (PDFUtil.escape field.value);
-        PDFDocument.print doc "/Q %d " (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
-        PDFDocument.print doc "/DA(/F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
-        (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
-        (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
-        (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
-        (if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>> ");
-        (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(%s)>>>> " js_validation_numeric);*)
-        (* Border *)
-        let w, s, c =
-          match field.border with
-            | Some (`Solid, color) -> 1, "/S/S", Some color
-            | Some (`Underline, color) -> 1, "/S/U", Some color
-            | Some (`Dashed, color) -> 1, "/S/D", Some color
-            | _ -> 0, "/S/S", None
-        in
-        let border_color = match c with
-          | Some color -> sprintf "/BC[%s]" (PDFUtil.rg_of_hex color)
-          | _ -> ""
-        in
-        let bg_color = match field.bgcolor with
-          | Some color -> sprintf "/BG[%s]" (PDFUtil.rg_of_hex color)
-          | _ -> ""
-        in
-        PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s>> " w s border_color bg_color;
-        PDFDocument.print doc ">>endobj\n";
-        field.obj
-      end form.fields in
-      fields
-    end else []
-  end;
   (** Add resource *)
   PDFDocument.add_resource begin fun () ->
     if form.length > 0 then begin
@@ -178,7 +102,7 @@ let create doc =
   form;;
 
 (** add_text_field *)
-let add_text_field ~x ~y ~width ~height ~name
+let add_text_field ~x ~y ~width ~height ~name ?alt_name
     ?border ?bgcolor ?fgcolor
     ?font_family ?(font_size=0.0) ?font_style
     ?maxlength ?comb ?(readonly=false) ?(hidden=false) ?(numeric=false)
@@ -206,10 +130,85 @@ let add_text_field ~x ~y ~width ~height ~name
     height = height *. scale;
     obj    = 0;
     border; bgcolor; fgcolor; id; parent; font_family; font_size; font_style;
-    name; value; default_value; maxlength; comb; readonly; hidden; numeric;
+    name; alt_name; value; default_value; maxlength; comb; readonly; hidden; numeric;
     justification; page;
   } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;
+  (* Add annotation *)
+  PDFDocument.add_annot page begin fun page_obj ->
+    (*(* Appearance object *)
+    PDFDocument.new_obj doc;
+    let appearance_obj = PDFDocument.current_object_number doc in
+    PDFDocument.print doc "<<";
+    PDFDocument.print doc "/Type /XObject ";
+    PDFDocument.print doc "/Subtype /Form ";
+    (*PDFDocument.print doc "/BBox [ 0 0 100 12.5 ] ";*)
+    (*PDFDocument.print doc "/Resources << /ProcSet [ /PDF /Text ] /Font << /F1 8 0 R >> >> "
+      (*doc_default_font.font_index doc_default_font.font_n*);*)
+    let stream = "" in
+    PDFDocument.print doc "\n/Length %d\n" (String.length stream);
+    PDFDocument.print_stream stream doc;
+    PDFDocument.print doc ">>endobj\n";*)
+    (* Fields *)
+    form.fields <- List.rev form.fields;
+    let page_height = PDF.page_height doc *. PDF.scale doc in
+
+    let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
+    let font = find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
+    PDFDocument.new_obj doc;
+    field.obj <- PDFDocument.current_object_number doc;
+    PDFDocument.print doc "<<";
+    PDFDocument.print doc "/Type/Annot/Subtype/Widget";
+    (* Field Area *)
+    let x = field.x in
+    let y = page_height -.field.y in
+    PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f]" x y (x +. field.width) (y -. field.height);
+    PDFDocument.print doc "/FT/Tx";
+    PDFDocument.print doc "/P %d 0 R" page_obj;
+    (match field.alt_name with Some x -> PDFDocument.print doc "/TU(%s)" x | _ -> ());
+    (* Flags *)
+    let zero = 0b00000000_00000000_00000000_00000000 in
+    let flags = zero
+      lor (if field.hidden then 0b00000000_00000000_00000000_00000010 else zero)
+      lor (if field.readonly then 0b00000000_00000000_00000000_01000000 else zero)
+      lor 0b00000000_00000000_00000000_00000100 (* print *)
+    in
+    PDFDocument.print doc "/F %d " flags;
+    let flags = zero
+      lor (if field.readonly then 0b00000000_00000000_00000000_00000001 else zero)
+      lor (if field.comb <> None then 0b00000001_00000000_00000000_00000000 else zero)
+    in
+    PDFDocument.print doc "/Ff %d" flags;
+    PDFDocument.print doc "/T(%s)" (PDFUtil.escape field.name);
+    PDFDocument.print doc "/DV(%s)" (PDFUtil.escape field.default_value);
+    PDFDocument.print doc "/V(%s)" (PDFUtil.escape field.value);
+    PDFDocument.print doc "/Q %d" (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
+    PDFDocument.print doc "/DA(/F%d %.2f Tf %s rg)" font.font_index field.font_size fg_color;
+    (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
+    (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
+    (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
+    (if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>>");
+    (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(%s)>>>> " js_validation_numeric);*)
+    (* Border *)
+    let w, s, c =
+      match field.border with
+        | Some (`Solid, color) -> 1, "/S/S", Some color
+        | Some (`Underline, color) -> 1, "/S/U", Some color
+        | Some (`Dashed, color) -> 1, "/S/D", Some color
+        | _ -> 0, "/S/S", None
+    in
+    let border_color = match c with
+      | Some color -> sprintf "/BC[%s]" (PDFUtil.rg_of_hex color)
+      | _ -> ""
+    in
+    let bg_color = match field.bgcolor with
+      | Some color -> sprintf "/BG[%s]" (PDFUtil.rg_of_hex color)
+      | _ -> ""
+    in
+    PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s>>" w s border_color bg_color;
+    PDFDocument.print doc ">>endobj\n";
+    field.obj
+  end;
   field;;
 

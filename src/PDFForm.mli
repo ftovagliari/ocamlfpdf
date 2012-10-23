@@ -33,7 +33,8 @@ type field
   @param y Absolute ordinate of the upper-left corner.
   @param width Width of the text field.
   @param height Height of the text field.
-  @param name Name of the text field.
+  @param name The partial field name.
+  @param alt_name An alternate field name to be used in place of the actual field name wherever the field must be identified in the user interface (such as in error or status messages referring to the field).
   @param border Optional border around the text field.
   @param bgcolor Background color.
   @param fgcolor Text color.
@@ -57,6 +58,7 @@ val add_text_field :
   width:float ->
   height:float ->
   name:string ->
+  ?alt_name:string ->
   ?border:[ `Dashed | `Solid | `Underline ] * string ->
   ?bgcolor:string ->
   ?fgcolor:string ->

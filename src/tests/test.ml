@@ -50,6 +50,7 @@ let main () = begin
     try
       let radius = 1.0 in
       let doc = PDF.create ~outchan () in
+      PDF.set_display_mode `Fullwidth doc;
       (*PDF.set_compression false doc;*)
 
       let title = "ocamlfpdf test" in

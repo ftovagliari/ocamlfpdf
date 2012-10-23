@@ -33,31 +33,36 @@ let main () = begin
     try
       let doc = PDF.create ~outchan () in
       PDF.set_display_mode (`Custom_zoom 300.) doc;
+      let margin = 20. in
+      PDF.set_margins ~left:margin ~top:margin doc;
+      PDF.set_font ~family:`Helvetica ~size:20. doc;
       PDF.set_open_actions [
         `ResetForm;
         `GoTo {dest_page = 0; dest_display = `FitV None}
       ] doc;
 
-      let margin = 20. in
-      PDF.set_margins ~left:margin ~top:margin doc;
-      PDF.add_page doc;
 
-      (** Form fields *)
-      PDF.set_font ~family:`Helvetica ~size:20. doc;
-      let x = margin in
-      let y = margin in
-      PDFGraphics.rect ~x ~y ~width:(PDF.page_width doc -. 2. *. margin) ~height:(PDF.page_height doc -. 2. *. margin) doc;
-      let width = PDF.page_width doc -. margin *. 2. in
-      let height = PDF.page_height doc -. margin *. 2. in
-      let _ = PDFMarkup.print ~x ~y:(y +. 50.) ~width ~markup:"Test" doc in
-      let field =
-        PDFForm.add_text_field ~x ~y ~width:80. ~height:15.
+      let create_page default_value =
+        PDF.add_page doc;
+        let x = margin in
+        let y = margin in
+        PDFGraphics.rect ~x ~y ~width:(PDF.page_width doc -. 2. *. margin) ~height:(PDF.page_height doc -. 2. *. margin) doc;
+        let name = sprintf "text_field_%d_1" (PDF.page_count doc) in
+        ignore (PDFForm.add_text_field ~x ~y ~width:80. ~height:15.
           ~maxlength:5 ~readonly:false ~numeric:true ~hidden:false ~justification:`Center
-          ~name:"test_field" ~value:"" ~default_value:"3"
-          ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc
+          ~name ~value:"" ~default_value
+          ~bgcolor:"#f0f0f0" ~border:(`Dashed, "#000000") doc);
+        let y = y +. 20. in
+        let name = sprintf "text_field_%d_2" (PDF.page_count doc) in
+        ignore (PDFForm.add_text_field ~x ~y ~width:160. ~height:15.
+          ~readonly:false ~numeric:false ~hidden:false ~justification:`Center
+          ~name ~value:"" ~default_value
+          ~bgcolor:"#f0f0f0" ~border:(`Dashed, "#000000") doc);
       in
+      create_page "3";
+      create_page "555";
+      create_page "88888";
 
-      (** Close PDF document *)
       PDF.close_document doc;
       close_file();
     with ex -> begin

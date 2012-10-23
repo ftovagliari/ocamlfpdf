@@ -55,7 +55,7 @@ and page = {
 }
 and annot = {
   mutable annot_obj  : int list;
-  mutable annot_func : (unit -> int list) list
+  mutable annot_func : (int -> int) list
 } and t = {
   mutable page                  : int;
   mutable current_object_number : int;
@@ -209,20 +209,6 @@ let print_catalog doc =
   print doc "/Type /Catalog ";
   print doc "/Pages 1 0 R ";
   (match doc.open_action_obj with Some x -> print doc "/OpenAction %d 0 R " x | _ -> ());
-(*  begin
-    try
-      let first_page = List.nth doc.pages (n_pages doc - 1) in
-      let first_page_obj = first_page.pg_obj in
-      begin
-        match doc.zoomMode with
-          | `Fullpage -> print doc "/OpenAction [%d 0 R /Fit] " first_page_obj
-          | `Fullwidth -> print doc "/OpenAction [%d 0 R /FitH null] " first_page_obj
-          | `Real -> print doc "/OpenAction [%d 0 R /XYZ null null 1] " first_page_obj
-          | `Custom_zoom z -> print doc "/OpenAction [%d 0 R /XYZ null null %f] " first_page_obj (z /. 100.)
-          | `Default_zoom -> ()
-      end;
-    with Not_found -> ()
-  end;*)
   begin match doc.layoutMode with
     | `Single -> print doc "/PageLayout /SinglePage "
     | `Continuous -> print doc "/PageLayout /OneColumn "
@@ -256,6 +242,8 @@ let print_pages doc =
   let filter = if doc.compress then "/Filter /FlateDecode " else "" in
   List.iter begin fun page ->
     (* Page *)
+    let page_obj_num = doc.current_object_number + 1 + (List.length page.pg_annots.annot_func) in
+    page.pg_annots.annot_obj <- List.map (fun f -> f page_obj_num) page.pg_annots.annot_func;
     new_obj doc;
     page.pg_obj <- doc.current_object_number;
     print doc "<</Type /Page ";
@@ -484,7 +472,7 @@ let print_resources doc =
 
 let print_open_actions doc =
   let actions =
-    let first_page = n_pages doc - 1 in
+    let first_page = 0 in
     match doc.zoomMode with
       | `Fullpage -> (`GoTo {dest_page = first_page; dest_display = `Fit}) :: doc.open_actions
       | `Fullwidth -> (`GoTo {dest_page = first_page; dest_display = `FitH None}) :: doc.open_actions
@@ -501,7 +489,7 @@ let print_open_actions doc =
     begin
       match action with
         | `GoTo {dest_page; dest_display} ->
-          let pg_obj = (List.nth doc.pages dest_page).pg_obj in
+          let pg_obj = (List.nth (List.rev doc.pages) dest_page).pg_obj in
           print doc "/S/GoTo/D[%d 0 R " pg_obj;
           begin
             match dest_display with
@@ -570,9 +558,6 @@ let end_page doc = doc.state <- End_page
 (** print_document *)
 let print_document doc =
   print_header doc;
-  List.iter begin fun page ->
-    page.pg_annots.annot_obj <- List.flatten (List.map (fun f -> f()) page.pg_annots.annot_func)
-  end (List.rev doc.pages);
   print_pages doc;  (* 1 obj = Pages *)
   print_resources doc;
   (* Info *)
@@ -605,8 +590,7 @@ let print_document doc =
   doc.state <- End_document
 ;;
 
-let add_annot doc func =
-  let page = get_current_page doc in
+let add_annot page func =
   page.pg_annots.annot_func <- func :: page.pg_annots.annot_func;;
 
 let add_resource func doc = doc.print_resources <- func :: doc.print_resources
