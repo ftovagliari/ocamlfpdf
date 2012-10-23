@@ -21,6 +21,8 @@
 *)
 
 open Printf
+open PDFTypes
+open PDFDocument
 
 type t = {
   doc                  : PDFDocument.t;
@@ -114,7 +116,7 @@ let create doc =
         if i >= 0 && i < last then begin
           PDFDocument.print doc "/Next %d 0 R " (PDFDocument.current_object_number doc + tree_length node.children + 1);
         end;
-        PDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %.2f null] " (3 + 2 * node.page) node.y;
+        PDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %.2f null] " (List.nth (List.rev doc.pages) node.page).pg_obj node.y;
         PDFDocument.print doc "/Count 0>>";
         PDFDocument.print doc "endobj\n";
         prev_sibling := (level, node) :: !prev_sibling;
@@ -163,7 +165,7 @@ let add ?(text="") ?page ?(y=0.0) ?(parent=0) doc =
     id       = id;
     text     = text;
     y        = (PDF.page_height doc -. y) *. PDF.scale doc;
-    page     = (match page with None -> PDF.page_num doc | Some p -> p);
+    page     = (match page with None -> PDFDocument.n_pages doc - 1 | Some p -> p);
     obj      = 0;
     children = [];
   } in

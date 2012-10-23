@@ -33,9 +33,9 @@ type cell_properties = {
   prop_image              : image option;
 }
 and image
-and column = { mutable col_width : float; mutable col_title : string; }
+and column = { mutable col_width : float; mutable col_title : header_draw_func; }
 
-type 'a column_id = 'a
+and 'a column_id = 'a
 
 and 'a tree = [`Node of 'a node | `Leaf of 'a column_id ]
 
@@ -45,7 +45,7 @@ and 'a node = {
   h_children            : 'a tree list;
 }
 
-and header_draw_func = [`Text of string | `Func of (width:float -> float)]
+and header_draw_func = [`Text of string | `Func of (x:float -> y:float -> width:float -> float)]
 
 and thickness = [`Thin | `Thick ]
 

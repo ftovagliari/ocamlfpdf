@@ -17,7 +17,7 @@
       <opt>true</opt>
       <libs>xml-light</libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml</files>
+      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
       <package></package>
       <includes>+xml-light</includes>
       <thread>false</thread>
@@ -57,7 +57,7 @@
       <opt>false</opt>
       <libs>xml-light</libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml</files>
+      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
       <package></package>
       <includes>+xml-light</includes>
       <thread>false</thread>
@@ -166,7 +166,7 @@
       <pp></pp>
       <inline></inline>
       <cflags>-w y -g</cflags>
-      <lflags></lflags>
+      <lflags>-verbose</lflags>
       <target_type>Executable</target_type>
       <outname>tests/testForm</outname>
       <lib_install_path></lib_install_path>
@@ -176,8 +176,8 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test fpdf" default="false" target_id="6" id="3">
-      <build_task>&lt;COMPILE&gt;</build_task>
+    <executable name="Test fpdf" default="true" target_id="6" id="3">
+      <build_task>&lt;REBUILD&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
         <var enabled="true">OCAMLRUNPARAM=b</var>
@@ -191,7 +191,7 @@
       </env>
       <args/>
     </executable>
-    <executable name="Test Interactive Forms" default="true" target_id="10" id="6">
+    <executable name="Test Interactive Forms" default="false" target_id="10" id="6">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>

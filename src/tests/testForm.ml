@@ -50,7 +50,12 @@ let main () = begin
       let width = PDF.page_width doc -. margin *. 2. in
       let height = PDF.page_height doc -. margin *. 2. in
       let _ = PDFMarkup.print ~x ~y:(y +. 50.) ~width ~markup:"Test" doc in
-      let field = PDFForm.add ~x ~y ~width:80. (*~height:margin*) ~name:"test_field" ~value:"" ~default_value:"0" ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc in
+      let field =
+        PDFForm.add_text_field ~x ~y ~width:80.
+          ~maxlength:3 ~readonly:false ~numeric:true
+          ~name:"test_field" ~value:"" ~default_value:"3"
+          ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc
+      in
 
       (** Close PDF document *)
       PDF.close_document doc;

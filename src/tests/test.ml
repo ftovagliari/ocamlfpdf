@@ -23,6 +23,9 @@
 open Printf
 open PDFTable
 
+
+let (//) = Filename.concat
+
 let rec fixpoint f v =
   let v' = f v in
   if v = v' then v else fixpoint f v'
@@ -49,7 +52,7 @@ let main () = begin
       let doc = PDF.create ~outchan () in
       (*PDF.set_compression false doc;*)
 
-      let title = "OCaml-FPDF Test" in
+      let title = "ocamlfpdf test" in
       let margin = 20. in
       PDF.set_margins ~left:margin ~top:margin doc;
       PDF.set_title title doc;
@@ -78,7 +81,6 @@ let main () = begin
 
       (** Markup *)
       PDF.add_page doc;
-      let test_parent = PDFBookmark.add ~text:"PARENT" doc in
       ignore (PDFBookmark.add ~text:"Markup" doc);
       PDF.set_font ~family:`Times ~size:12. doc;
       let x = margin in
@@ -116,6 +118,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** Markup and wrap char *)
       PDF.add_page doc;
+      ignore (PDFBookmark.add ~text:"Markup - Wrap (1)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
@@ -125,7 +128,7 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
 
       (** Markup and wrap char *)
       PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Markup - Wrap" doc);
+      ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "\
@@ -259,18 +262,24 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
 
       (** Form fields *)
       PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Form" doc);
       let x = margin in
-      let y = margin +. height_header in
+      let y = 2. *. margin +. height_header in
       PDF.set ~x ~y doc;
-      let field = PDFForm.add doc in
+      ignore (PDFBookmark.add ~text:"Interactive Forms" doc);
+      let field =
+        PDFForm.add_text_field ~x ~y ~width:80.
+          ~maxlength:30 ~readonly:false ~numeric:false
+          ~name:"test_field" ~value:"" ~default_value:"3"
+          ~bgcolor:"#f0f0f0" ~border:(`Underline, "#000000") doc
+      in
 
       (** Images *)
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"Images" doc);
+      let dirname = Filename.dirname Sys.executable_name in
       let name = "Lena.jpg" in
       (*let name = "Lena.png" in*)
-      let data = Buffer.contents (PDFUtil.fread name) in
+      let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
       let image_width = 220 in
       let image_height = 220 in
       let aspect = (float image_height) /. (float image_width) in
@@ -281,27 +290,28 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       PDF.image ~x ~y ~name ~data ~height:height_image ~image_width ~image_height doc;
       PDF.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-        (Str.string_before (Buffer.contents (PDFUtil.fread "test.ml")) 1000) in
+        (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
       PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
       PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 
       (** PDFTable *)
       PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"PDFTable" doc);
       let width = width_avail *. 0.7 in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header +. spacing +. 40. in
+      PDF.set_font ~family:`Times ~size:9. doc;
+      ignore (PDFBookmark.add ~text:"PDFTable" ~y:(y -. 10.) doc);
       (**  *)
-      PDFTable.print ~x:1. ~y
+      PDFTable.print ~x:10. ~y
         ~caption:""
         ~grid_lines:`Vertical
         ~width:25.
         ~page_height:height_avail
         ~line_height
         ~columns:[
-          `A, {PDFTable.col_width = 38.; col_title = "A"};
-          `B, {PDFTable.col_width = 62.; col_title = "B"};
+          `A, {PDFTable.col_width = 38.; col_title = `Text "A"};
+          `B, {PDFTable.col_width = 62.; col_title = `Text "B"};
         ]
         ~rows:[
           [|Some "a"; Some "\128"|];
@@ -310,7 +320,6 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
         ]
         doc;
       (**  *)
-      PDF.set_font ~family ~size:9. doc;
       let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
       let cell_func ~index ~row ~col =
         let prop = {PDFTable.
@@ -331,23 +340,31 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       let rows = Array.create 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
       let rows = Array.to_list rows in
       let w = (float (truncate (100. /. 8. *. 1000.))) /. 1000. in
+      let print_title text =
+        `Func begin fun ~x ~y ~width ->
+          PDF.set_font ~style:[`Bold] doc;
+          PDFText.multi_cell ~width ~line_height ~text ~align:`Center doc;
+          PDF.set_font ~style:[] doc;
+          PDF.y doc -. y +. padding
+        end;
+      in
       let columns = [
-        `A, {PDFTable.col_width = w; col_title = "Column A"};
-        `B, {PDFTable.col_width = w; col_title = "Column B"};
-        `C, {PDFTable.col_width = w; col_title = "Column C"};
-        `D, {PDFTable.col_width = w; col_title = "Column D"};
-        `E, {PDFTable.col_width = w; col_title = "Column E"};
-        `F, {PDFTable.col_width = w; col_title = "Column F"};
-        `G, {PDFTable.col_width = w; col_title = "Column G"};
-        `H, {PDFTable.col_width = w; col_title = "Column H"};
+        `A, {PDFTable.col_width = w; col_title = print_title "Column A"};
+        `B, {PDFTable.col_width = w; col_title = print_title "Column B"};
+        `C, {PDFTable.col_width = w; col_title = print_title "Column C"};
+        `D, {PDFTable.col_width = w; col_title = print_title "Column D"};
+        `E, {PDFTable.col_width = w; col_title = print_title "Column E"};
+        `F, {PDFTable.col_width = w; col_title = print_title "Column F"};
+        `G, {PDFTable.col_width = w; col_title = print_title "Column G"};
+        `H, {PDFTable.col_width = w; col_title = print_title "Column H"};
       ] in
       let header_layout = [
         `Node {
-          h_draw = `Text "ABC";
+          h_draw = print_title "ABC";
           h_vertical_line_width = `Thick;
           h_children = [
             `Node {
-               h_draw                = `Text "AB";
+               h_draw                = print_title "AB";
                h_vertical_line_width = `Thick;
                h_children            = [`Leaf `A; `Leaf `B];
             };
@@ -355,20 +372,20 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           ]
         };
         `Node {
-          h_draw = `Text "DEFG";
+          h_draw = print_title "DEFG";
           h_vertical_line_width = `Thin;
           h_children = [
             `Node {
-              h_draw = `Text "DE";
+              h_draw = print_title "DE";
               h_vertical_line_width = `Thin;
               h_children            = [`Leaf `D; `Leaf `E];
             };
             `Node {
-              h_draw = `Text "FGH";
+              h_draw = print_title "FGH";
               h_vertical_line_width = `Thin;
               h_children = [
                 `Node {
-                  h_draw = `Text "FG";
+                  h_draw = print_title "FG";
                   h_vertical_line_width = `Thin;
                   h_children            = [`Leaf `F; `Leaf `G]
                 };
@@ -400,6 +417,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
         (*~cell_func*)
         doc;
       (**  *)
+      let test_parent = PDFBookmark.add ~text:"TEST" doc in
       let parent = PDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in
       ignore (PDFBookmark.add ~parent ~text:"Test: à \128" doc);
       ignore (PDFBookmark.add ~parent ~text:(PDFUtil.utf8_to_utf16 "Test: à €") doc);

@@ -351,12 +351,12 @@ let draw_underline ~x ~y ~cell doc =
   match cell.attr.underline with
     | `NONE -> ()
     | `SINGLE ->
-      let y = y +. uw *. 3.5 in
+      let y = y +. (fs /. scale) *. 0.38 in
       PDF.line
         ~x1:(x +. uw /. 2.) ~y1:y
         ~x2:(x +. cell.cell_width -. uw /. 2.) ~y2:y doc;
     | `LOW ->
-      let y = y +. (fs /. scale) /. 4. in
+      let y = y +. (fs /. scale) *. 0.55 in
       PDF.line
         ~x1:(x +. uw /. 2.) ~y1:y
         ~x2:(x +. cell.cell_width -. uw /. 2.) ~y2:y doc;

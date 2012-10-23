@@ -42,7 +42,7 @@ and image = {
 
 and column = {
   mutable col_width : float; (* Percent *)
-  mutable col_title : string;
+  mutable col_title : header_draw_func;
 }
 
 and 'a column_id = 'a
@@ -55,7 +55,7 @@ and 'a node = {
   h_children            : 'a tree list;
 }
 
-and header_draw_func = [`Text of string | `Func of (width:float -> float)]
+and header_draw_func = [`Text of string | `Func of (x:float -> y:float -> width:float -> float)]
 
 and thickness = [`Thin | `Thick ]
 
@@ -88,10 +88,14 @@ let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin
       let col = try List.assoc id columns with Not_found -> failwith "header_draw" in
       if col.col_width > 0. then begin
         let width = col.col_width -. 2. *. padding in
-        let text = col.col_title in
         PDF.set ~x:(x +. padding) ~y:(y +. padding) doc;
-        PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
-        let height = PDF.y doc -. y +. padding in
+        let height =
+          match col.col_title with
+            | `Text text ->
+              PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
+              PDF.y doc -. y +. padding
+            | `Func f -> f ~x ~y ~width;
+        in
         points := (x +. col.col_width, y, size_of_thickness `Thin) :: !points;
         width +. 2. *. padding, height
       end else 0., 0.
@@ -106,7 +110,7 @@ let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin
           | `Text text ->
             PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
             PDF.y doc -. y +. padding
-          | `Func f -> f ~width
+          | `Func f -> f ~x ~y ~width;
       in
       (*PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       PDF.rect ~x ~y ~width ~height ~style:`Both doc;*)

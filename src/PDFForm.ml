@@ -45,6 +45,9 @@ type t = {
   name             : string;
   value            : string;
   default_value    : string;
+  maxlength        : int option;
+  readonly         : bool;
+  numeric          : bool;
   border           : ([`Solid | `Underline | `Dashed] * string) option;
   bgcolor          : string option;
   fgcolor          : string;
@@ -59,6 +62,8 @@ let find_font ~fonts ~family ~style =
 
 (** instances *)
 let instances = ref []
+
+let js_validation_numeric = PDFUtil.escape "event.rc = event.change.toString().length <= 0 || event.change.match(\"[-.0-9]\")"
 
 (** create *)
 let create doc =
@@ -81,11 +86,7 @@ let create doc =
       (*PDFDocument.print doc "/BBox [ 0 0 100 12.5 ] ";*)
       (*PDFDocument.print doc "/Resources << /ProcSet [ /PDF /Text ] /Font << /F1 8 0 R >> >> "
         (*doc_default_font.font_index doc_default_font.font_n*);*)
-
-      let stream = "/Tx BMC q 0 0 100 12.5 re W n 0 g BT /F1 10.5 Tf 0 0 0 rg 2 3.026 Td (Data of new form field) Tj ET Q EMC" in
-      let stream = "0 0 10 10 re" in
       let stream = "" in
-
       PDFDocument.print doc "\n/Length %d\n" (String.length stream);
       PDFDocument.print_stream stream doc;
       PDFDocument.print doc ">>endobj\n";
@@ -94,24 +95,26 @@ let create doc =
       let page_height = PDF.page_height doc *. PDF.scale doc in
       let fields = List.map begin fun field ->
         let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
-        let font = (*doc_default_font*) find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
+        let font = find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
         PDFDocument.new_obj doc;
         field.obj <- PDFDocument.current_object_number doc;
         PDFDocument.print doc "<<";
         PDFDocument.print doc "/Type /Annot /Subtype /Widget ";
-
+        (* Field Area *)
         let x = field.x in
         let y = page_height -.field.y in
         PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f] " x y (x +. field.width) (y -. field.height);
-
         PDFDocument.print doc "/FT /Tx ";
-        (*PDFDocument.print doc "/F 4 ";*)
+        PDFDocument.print doc "/Ff %d " (if field.readonly then 1 else 0);
         PDFDocument.print doc "/T(%s) " (PDFUtil.escape field.name);
         PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value);
         PDFDocument.print doc "/V(%s) " (PDFUtil.escape field.value);
         PDFDocument.print doc "/DA (50 Tz /F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
         (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
         (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
+        (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
+        (if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>> ");
+        (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(%s)>>>> " js_validation_numeric);*)
         (* Border *)
         let w, s, c =
           match field.border with
@@ -161,8 +164,13 @@ let create doc =
   end doc;
   form;;
 
-(** add *)
-let add ~x ~y ~width ~name ?height ?parent ?font_family ?font_size ?font_style ?border ?bgcolor ?fgcolor ?tooltip ?(value="") ?(default_value="") doc =
+(** add_text_field *)
+let add_text_field ~x ~y ~width ~name
+    ?height ?border ?bgcolor ?fgcolor
+    ?font_family ?font_size ?font_style
+    ?maxlength ?(readonly=false) ?(numeric=false)
+    ?tooltip ?(value="") ?(default_value="")
+    ?parent doc =
   let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
   let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
   let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
@@ -179,12 +187,14 @@ let add ~x ~y ~width ~name ?height ?parent ?font_family ?font_size ?font_style ?
   let page = PDFDocument.get_current_page doc in
   let scale = PDF.scale doc in
   let field = {
-    x = x *. scale;
-    y = y *. scale;
-    width = width *. scale;
+    x      = x *. scale;
+    y      = y *. scale;
+    width  = width *. scale;
     height = height *. scale;
-    border; bgcolor; fgcolor;
-    id; obj = 0; parent; font_family; font_size; font_style; name; value; default_value; tooltip; page } in
+    obj    = 0;
+    border; bgcolor; fgcolor; id; parent; font_family; font_size; font_style;
+    name; value; default_value; maxlength; readonly; numeric; tooltip; page;
+  } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;
   field;;
