@@ -18,7 +18,7 @@
       <libs>xml-light</libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package></package>
+      <package>unix</package>
       <includes>+xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -159,7 +159,7 @@
       <libs>str xml-light</libs>
       <other_objects></other_objects>
       <files>tests/testForm.ml</files>
-      <package></package>
+      <package>unix</package>
       <includes>+xml-light tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>

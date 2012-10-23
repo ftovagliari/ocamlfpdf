@@ -178,7 +178,7 @@ let print doc =
   end
 
 let print_header doc =
-  print doc "%%PDF-%d.%d\n" doc.pdfVersionMajor doc.pdfVersionMinor
+  print doc "%%PDF-%d.%d\n%%\161\179\197\215\n" doc.pdfVersionMajor doc.pdfVersionMinor
 
 let print_stream str doc =
   print doc "stream\n";
@@ -188,7 +188,11 @@ let print_stream str doc =
 let print_trailer doc =
   print doc "/Size %d\n" (doc.current_object_number + 1);
   print doc "/Root %d 0 R\n" doc.current_object_number; (* object_index[Catalog] *)
-  print doc "/Info %d 0 R\n" (doc.current_object_number - 1) (* object_index[Info] *)
+  print doc "/Info %d 0 R\n" (doc.current_object_number - 1); (* object_index[Info] *)
+  let id = sprintf "%f%s%s" (Unix.gettimeofday ()) doc.title doc.author in
+  let id = Digest.string id in
+  let id = Digest.to_hex id in
+  print doc "/ID [<%s><%s>]\n" id id
 
 let print_info doc =
   print doc "/Producer %s" (pdf_string "OCaml-FPDF");
