@@ -39,6 +39,15 @@ let get_string_width s doc =
   end s;
   (float !width) *. doc.font_size /. 1000.;;
 
+(** get_string_width_gen *)
+let get_string_width_gen s font font_size =
+  let cw = font.font_cw in
+  let width = ref 0 in
+  String.iter begin fun c ->
+    width := !width + (cw c)
+  end s;
+  (float !width) *. font_size /. 1000.;;
+
 (** TODO *)
 let do_underline x y txt = ""
 

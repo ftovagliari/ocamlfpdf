@@ -398,9 +398,18 @@ let analyze ~x ~y ~width ~markup ?(padding=0.) ?(border_width=0.) doc =
 ;;
 
 (** print_text *)
-let print_text ~x ~y ~width ~markup ~analysis ?(padding=0.) ?(border_width=0.) doc =
+let print_text ~x ~y ~width ~analysis ?(padding=0.) ?(border_width=0.) doc =
   let x0 = x +. padding +. border_width in
-  let y0 = y +. padding +. border_width in
+  let y0 = y +. padding +. border_width -. begin
+    match analysis.paragraphs with
+      | par :: _ ->
+        begin
+          match par.paragraph_lines with
+            | line :: _ -> line.line_height /. 2.
+            | _ -> 0.
+        end;
+      | _ -> 0.
+  end in
   let x = ref x0 in
   let y = ref y0 in
   List.iter begin function {
@@ -408,7 +417,7 @@ let print_text ~x ~y ~width ~markup ~analysis ?(padding=0.) ?(border_width=0.) d
     paragraph_line_spacing = paragraph_line_spacing;
     paragraph_lines        = lines
   } ->
-    List.iter begin function {line_width=line_width; line_height=line_height; line_cells=cells} ->
+    List.iteri begin fun i -> function {line_width=line_width; line_height=line_height; line_cells=cells} ->
       x := x0 +. (width -. line_width) *. paragraph_align;
       y := !y +. line_height +. paragraph_line_spacing;
       List.iter begin fun cell ->
@@ -452,7 +461,7 @@ let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_rad
         ~width:(width -. bw)
         ~height ~style doc);
   end;
-  print_text ~x ~y ~width ~markup ~padding ~analysis ?border_width doc;
+  print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
   let red, green, blue = old_text_color in PDF.set_text_color ~red ~green ~blue doc;
   let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc;
   let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc;

@@ -42,6 +42,56 @@ let is_fib n =
     else f (i + 1)
   in f 0
 
+let markup = "\
+<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
+omai la navicella del mio ingegno,
+che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
+
+<SPAN style='italic,bold'>e canter\xF2 di quel secondo regno
+dove l\xB4umano spirito si purga
+e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
+
+<SPAN family='courier'>Ma qui la morta poes\xEC resurga,
+o sante Muse, poi che vostro sono;
+e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
+
+<SPAN style='bold'>seguitando il mio canto con quel suono
+di cui le Piche misere sentiro
+lo colpo tal, che disperar perdono.</SPAN> <SPAN color='#0000FF' size='7'>12</SPAN>
+
+<SPAN bgcolor='#f0f0ff' color='#ff1010'>Dolce color d\xB4or\xEFental zaffiro,
+che s\xB4accoglieva nel sereno aspetto
+del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</SPAN>
+
+<SPAN family='helvetica' >a li occhi miei ricominci\xF2 diletto,
+tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
+che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
+
+let markup2 = "\
+<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
+
+
+Foreword
+
+This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
+It lists the language constructs, and gives their precise syntax and informal semantics. \
+It is by         no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
+A good working knowledge of Caml is assumed.
+
+No attempt has been made at mathematical rigor: words are employed with their intuitive \
+meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
+out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
+definitely part of a full formal definition of the language.
+
+Notations
+
+The syntax of the language is given in BNF-like notation. Terminal symbols are set \
+in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
+Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
+several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
+denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
+
+
 let main () = begin
   let filename = Sys.argv.(0) ^ ".pdf" in
   let outchan = open_out_bin filename in
@@ -88,35 +138,8 @@ let main () = begin
       ignore (PDFBookmark.add ~text:"Markup" doc);
       PDF.set_font ~family:`Times ~size:12. doc;
       let x = margin in
-      let y = margin +. height_header *. 5. /. 3. in
+      let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
-
-      let markup = "\
-<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
-omai la navicella del mio ingegno,
-che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
-
-<SPAN style='italic,bold'>e canter\xF2 di quel secondo regno
-dove l\xB4umano spirito si purga
-e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
-
-<SPAN family='courier'>Ma qui la morta poes\xEC resurga,
-o sante Muse, poi che vostro sono;
-e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
-
-<SPAN style='bold'>seguitando il mio canto con quel suono
-di cui le Piche misere sentiro
-lo colpo tal, che disperar perdono.</SPAN> <SPAN color='#0000FF' size='7'>12</SPAN>
-
-<SPAN bgcolor='#f0f0ff' color='#ff1010'>Dolce color d\xB4or\xEFental zaffiro,
-che s\xB4accoglieva nel sereno aspetto
-del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</SPAN>
-
-<SPAN family='helvetica' >a li occhi miei ricominci\xF2 diletto,
-tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
-che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>"
-      in
-
       let _, _ = PDFMarkup.print ~x ~y ~width ~padding:3. ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
 
@@ -135,29 +158,6 @@ che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' s
       ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
-      let markup = "\
-<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
-
-
-Foreword
-
-This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
-It lists the language constructs, and gives their precise syntax and informal semantics. \
-It is by         no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
-A good working knowledge of Caml is assumed.
-
-No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
-out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
-definitely part of a full formal definition of the language.
-
-Notations
-
-The syntax of the language is given in BNF-like notation. Terminal symbols are set \
-in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
-Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
-several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
-denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping." in
 
 (*      let markup = "The_syntax_of_the_language is given .Mtation__Terminal <SPAN \
 style='bold'>aa</SPAN>              symbols_are_set_in_typewriter_font (like this). \
@@ -170,7 +170,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       PDF.set_font ~family:`Times ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*50.*) width_avail /. 5. *. 3. +. 0.5 in
-      let _, _ = PDFMarkup.print ~x ~y ~width ~markup
+      let _, _ = PDFMarkup.print ~x ~y ~width ~markup:markup2
         ~bgcolor:"#fff0f0" (*~padding:2. ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc in
 
       (** Graphics *)

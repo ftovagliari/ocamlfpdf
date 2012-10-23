@@ -246,7 +246,7 @@ let print_pages doc =
   let filter = if doc.compress then "/Filter /FlateDecode " else "" in
   List.iter begin fun page ->
     (* Page *)
-    let page_obj_num = doc.current_object_number + 1 + (List.length page.pg_annots.annot_func) in
+    let page_obj_num = doc.current_object_number + 1 + 2 * (List.length page.pg_annots.annot_func) in
     page.pg_annots.annot_obj <- List.map (fun f -> f page_obj_num) page.pg_annots.annot_func;
     new_obj doc;
     page.pg_obj <- doc.current_object_number;
@@ -254,26 +254,6 @@ let print_pages doc =
     print doc "/Parent 1 0 R ";
     if page.pg_change_orientation then print doc "/MediaBox [0 0 %.2f %.2f] " h_pt w_pt;
     print doc "/Resources 2 0 R ";
-    (* Links (NOT IMPLEMEMTED) *)
-    (*begin match page.pg_link with
-      | None -> ()
-      | Some page_links ->
-        let annots = ref "/Annots [" in
-        List.iter begin fun (x, y, w, h, dest) ->
-          let rect = sprintf "%.2f %.2f %.2f %.2f" x y (x+.w) (y-.h) in
-          annots := !annots ^ "<</Type /Annot /Subtype /Link /Rect [" ^ rect ^ "] /Border [0 0 0] ";
-          begin match dest with
-            | Uri uri ->
-              annots := !annots ^ "/A <</S /URI /URI " ^ (pdf_string uri) ^ ">>>>"
-            | Internal index ->
-              let (linked_page, xx) = get_link index doc in
-              let h = if page.pg_change_orientation then w_pt else h_pt in
-              annots := sprintf "/Dest [%d 0 R /XYZ 0 %.2f null]>>"
-                (1 + 2 * linked_page) (h -. xx *. doc.k)
-          end;
-          print doc "%s]\n" !annots;
-        end page_links;
-    end;*)
     if page.pg_annots.annot_obj <> [] then begin
       print doc "/Annots [ %s ] " (String.concat " " (List.map (sprintf "%d 0 R") page.pg_annots.annot_obj))
     end;
@@ -464,7 +444,7 @@ let print_resource_dict doc =
   print doc ">>\n"
 
 let print_resources doc =
-  print_fonts doc;
+  (*print_fonts doc;*)
   print_images doc;
   (* Resource dictionary *)
   (find_object 2 doc).obj_offset <- doc.current_length;
@@ -562,6 +542,7 @@ let end_page doc = doc.state <- End_page
 (** print_document *)
 let print_document doc =
   print_header doc;
+  print_fonts doc;
   print_pages doc;  (* 1 obj = Pages *)
   print_resources doc;
   (* Info *)

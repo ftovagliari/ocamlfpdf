@@ -38,6 +38,8 @@ type field
   @param border Optional border around the text field.
   @param bgcolor Background color.
   @param fgcolor Text color.
+  @param bgcolor_ap Background color .
+  @param fgcolor_ap Text color.
   @param font_family Font family.
   @param font_size Font size. A zero value means that the font size is to be {i autosized} according to [height].
   @param font_style Font size.
@@ -48,6 +50,7 @@ type field
   @param numeric Whether non-numeric characters should be ignored.
   @param justification Justification;
   @param value Field value
+  @param value_ap Field value
   @param default_value Default value.
   @param parent Parent element.
   @return An object representing the text field, for use in subsequent calls as parameter "parent" to append child elements.
@@ -62,6 +65,8 @@ val add_text_field :
   ?border:[ `Dashed | `Solid | `Underline ] * string ->
   ?bgcolor:string ->
   ?fgcolor:string ->
+  ?bgcolor_ap:string ->
+  ?fgcolor_ap:string ->
   ?font_family:Font.family option ->
   ?font_size:float ->
   ?font_style:Font.style list ->
@@ -71,4 +76,6 @@ val add_text_field :
   ?hidden:bool ->
   ?numeric:bool ->
   ?justification:[ `Center | `Left | `Right ] ->
-  ?value:string -> ?default_value:string -> ?parent:field -> PDF.t -> field
+  ?value:string ->
+  ?value_ap:string -> 
+  ?default_value:string -> ?parent:field -> PDF.t -> field
