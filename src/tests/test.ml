@@ -270,7 +270,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
       PDF.set ~x ~y doc;
       ignore (PDFBookmark.add ~text:"Interactive Forms" doc);
       let field =
-        PDFForm.add_text_field ~x ~y ~width:80.
+        PDFForm.add_text_field ~x ~y ~width:80. ~height:20.
           ~maxlength:30 ~readonly:false ~numeric:false
           ~name:"test_field" ~value:"" ~default_value:"3"
           ~bgcolor:"#f0f0f0" ~border:(`Underline, "#000000") doc

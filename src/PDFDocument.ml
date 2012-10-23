@@ -202,7 +202,8 @@ let print_info doc =
     print doc "/Keywords %s" (pdf_string (String.concat " " doc.keywords));
   if doc.creator <> "" then
     print doc "/Creator %s" (pdf_string doc.creator);
-  print doc "/CreationDate %s" doc.creation_date
+  if doc.creation_date <> "" then
+    print doc "/CreationDate %s" doc.creation_date;;
 
 let print_catalog doc =
   print doc "/Type /Catalog ";

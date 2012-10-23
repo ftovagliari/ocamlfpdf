@@ -51,8 +51,8 @@ let main () = begin
       let height = PDF.page_height doc -. margin *. 2. in
       let _ = PDFMarkup.print ~x ~y:(y +. 50.) ~width ~markup:"Test" doc in
       let field =
-        PDFForm.add_text_field ~x ~y ~width:80.
-          ~maxlength:3 ~readonly:false ~numeric:true
+        PDFForm.add_text_field ~x ~y ~width:80. ~height:15.
+          ~maxlength:5 ~readonly:false ~numeric:true ~hidden:false ~justification:`Center
           ~name:"test_field" ~value:"" ~default_value:"3"
           ~bgcolor:"#f0f0f0" (*~border:(`Underline, "#000000")*) doc
       in

@@ -46,12 +46,14 @@ type t = {
   value            : string;
   default_value    : string;
   maxlength        : int option;
+  comb             : int option;
   readonly         : bool;
+  hidden           : bool;
   numeric          : bool;
+  justification    : [`Left | `Center | `Right];
   border           : ([`Solid | `Underline | `Dashed] * string) option;
   bgcolor          : string option;
   fgcolor          : string;
-  tooltip          : string option;
   page             : page;
 }
 
@@ -64,6 +66,7 @@ let find_font ~fonts ~family ~style =
 let instances = ref []
 
 let js_validation_numeric = PDFUtil.escape "event.rc = event.change.toString().length <= 0 || event.change.match(\"[-.0-9]\")"
+let flag_hidden = 0b00000000_00000000_00000000_00000010
 
 (** create *)
 let create doc =
@@ -105,11 +108,24 @@ let create doc =
         let y = page_height -.field.y in
         PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f] " x y (x +. field.width) (y -. field.height);
         PDFDocument.print doc "/FT /Tx ";
-        PDFDocument.print doc "/Ff %d " (if field.readonly then 1 else 0);
+        (* Flags *)
+        let zero = 0b00000000_00000000_00000000_00000000 in
+        let flags = zero
+          lor (if field.hidden then 0b00000000_00000000_00000000_00000010 else zero)
+          lor (if field.readonly then 0b00000000_00000000_00000000_01000000 else zero)
+          lor 0b00000000_00000000_00000000_00000100 (* print *)
+        in
+        PDFDocument.print doc "/F %d " flags;
+        let flags = zero
+          lor (if field.readonly then 0b00000000_00000000_00000000_00000001 else zero)
+          lor (if field.comb <> None then 0b00000001_00000000_00000000_00000000 else zero)
+	in
+        PDFDocument.print doc "/Ff %d " flags;
         PDFDocument.print doc "/T(%s) " (PDFUtil.escape field.name);
         PDFDocument.print doc "/DV(%s) " (PDFUtil.escape field.default_value);
         PDFDocument.print doc "/V(%s) " (PDFUtil.escape field.value);
-        PDFDocument.print doc "/DA (50 Tz /F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
+        PDFDocument.print doc "/Q %d " (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
+        PDFDocument.print doc "/DA(/F%d %.2f Tf %s rg) " font.font_index field.font_size fg_color;
         (*PDFDocument.print doc "/AP <</N %d 0 R>> " appearance_obj;*)
         (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
         (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
@@ -131,9 +147,7 @@ let create doc =
           | Some color -> sprintf "/BG[%s]" (PDFUtil.rg_of_hex color)
           | _ -> ""
         in
-        PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s%s>> " w s
-          (match field.tooltip with Some x -> sprintf "/CA%s " (PDFUtil.pdf_string x) | _ -> "")
-          border_color bg_color;
+        PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s>> " w s border_color bg_color;
         PDFDocument.print doc ">>endobj\n";
         field.obj
       end form.fields in
@@ -164,17 +178,17 @@ let create doc =
   form;;
 
 (** add_text_field *)
-let add_text_field ~x ~y ~width ~name
-    ?height ?border ?bgcolor ?fgcolor
-    ?font_family ?font_size ?font_style
-    ?maxlength ?(readonly=false) ?(numeric=false)
-    ?tooltip ?(value="") ?(default_value="")
+let add_text_field ~x ~y ~width ~height ~name
+    ?border ?bgcolor ?fgcolor
+    ?font_family ?(font_size=0.0) ?font_style
+    ?maxlength ?comb ?(readonly=false) ?(hidden=false) ?(numeric=false)
+    ?(justification=`Left)
+    ?(value="") ?(default_value="")
     ?parent doc =
   let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
-  let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
   let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
   let fgcolor = match fgcolor with Some c -> c | _ -> PDFUtil.hex_of_rgb (PDF.text_color doc) in
-  let height = match height with Some h -> h | _ -> font_size /. PDF.scale doc +. 1.5 in
+  let maxlength = match comb with None -> maxlength | comb -> comb in
   let form =
     try List.assq doc !instances
     with Not_found ->
@@ -192,7 +206,8 @@ let add_text_field ~x ~y ~width ~name
     height = height *. scale;
     obj    = 0;
     border; bgcolor; fgcolor; id; parent; font_family; font_size; font_style;
-    name; value; default_value; maxlength; readonly; numeric; tooltip; page;
+    name; value; default_value; maxlength; comb; readonly; hidden; numeric;
+    justification; page;
   } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;

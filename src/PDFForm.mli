@@ -32,18 +32,20 @@ type field
   @param x Absolute abscissa of the upper-left corner.
   @param y Absolute ordinate of the upper-left corner.
   @param width Width of the text field.
+  @param height Height of the text field.
   @param name Name of the text field.
-  @param height Height of the text field. Default is the font size.
   @param border Optional border around the text field.
   @param bgcolor Background color.
   @param fgcolor Text color.
   @param font_family Font family.
-  @param font_size Font size.
+  @param font_size Font size. A zero value means that the font size is to be {i autosized} according to [height].
   @param font_style Font size.
   @param maxlength The maximum length of the field's text, in characters.
+  @param comb See {i PDF Reference version 1.7, table 8.77}
   @param readonly Whether the user may change the value of the field.
+  @param hidden If set, do not display or print the field or allow it to interact with the user.
   @param numeric Whether non-numeric characters should be ignored.
-  @param tooltip Field tooltip.
+  @param justification Justification;
   @param value Field value
   @param default_value Default value.
   @param parent Parent element.
@@ -53,8 +55,8 @@ val add_text_field :
   x:float ->
   y:float ->
   width:float ->
+  height:float ->
   name:string ->
-  ?height:float ->
   ?border:[ `Dashed | `Solid | `Underline ] * string ->
   ?bgcolor:string ->
   ?fgcolor:string ->
@@ -62,7 +64,9 @@ val add_text_field :
   ?font_size:float ->
   ?font_style:Font.style list ->
   ?maxlength:int ->
+  ?comb:int ->
   ?readonly:bool ->
+  ?hidden:bool ->
   ?numeric:bool ->
-  ?tooltip:string ->
+  ?justification:[ `Center | `Left | `Right ] ->
   ?value:string -> ?default_value:string -> ?parent:field -> PDF.t -> field

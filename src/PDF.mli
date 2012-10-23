@@ -67,8 +67,8 @@ val set_title : string -> t -> unit
 val set_subject : string -> t -> unit
 val set_creator : string -> t -> unit
 
-(** [(D:YYYYMMDDHHmmSSOHH'mm')]
-  @see "PDF Reference version 1.7, section 3.8.3" for more information.
+(** A date is an ASCII string of the form: [(D:YYYYMMDDHHmmSSOHH'mm')].
+    See {i PDF Reference version 1.7, section 3.8.3} for more informations.
   *)
 val set_creation_date : string -> t -> unit
 val set_keywords : string list -> t -> unit
