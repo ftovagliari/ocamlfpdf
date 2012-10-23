@@ -61,6 +61,8 @@ type t = {
   page             : page;
 }
 
+let (!!) = List.fold_left (fun acc (v, c) -> acc lor (if c then v else 0)) 0;;
+
 (** find_font *)
 let find_font ~fonts ~family ~style =
   let font_key = Font.key_of_font style (match family with Some x -> x | _ -> `Courier) in
@@ -197,20 +199,20 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     PDFDocument.print doc "/FT/Tx";
     PDFDocument.print doc "/P %d 0 R" page_obj;
     (match field.alt_name with Some x -> PDFDocument.print doc "/TU(%s)" x | _ -> ());
-    let zero = 0b00000000_00000000_00000000_00000000 in
-    let flags = zero
-      lor (if field.hidden then 0b00000000_00000000_00000000_00000010 else zero)
-      lor (if field.readonly then 0b00000000_00000000_00000000_01000000 else zero)
-      lor 0b00000000_00000000_00000000_00000100 (* print *)
-    in
+    let flags = !! [
+      0b00000000_00000000_00000000_00000010, field.hidden;
+      0b00000000_00000000_00000000_01000000, field.readonly;
+      0b00000000_00000000_00000000_00000100, true;
+    ] in
     PDFDocument.print doc "/F %d " flags;
-    let flags = zero
-      lor (if field.readonly then 0b00000000_00000000_00000000_00000001 else zero)
-      lor (if field.comb <> None then 0b00000001_00000000_00000000_00000000 else zero)
-    in
+    let flags = !! [
+      0b00000000_00000000_00000000_00000001, field.readonly;
+      0b00000001_00000000_00000000_00000000, (field.comb <> None);
+    ] in
     PDFDocument.print doc "/Ff %d" flags;
-    PDFDocument.print doc "/T(%s)" (PDFUtil.escape field.name);
-    PDFDocument.print doc "/TM(%s)" (PDFUtil.escape field.name);
+    let field_name_escaped = PDFUtil.escape field.name in
+    PDFDocument.print doc "/T(%s)" field_name_escaped;
+    PDFDocument.print doc "/TM(%s)" field_name_escaped;
     PDFDocument.print doc "/DV(%s)" (PDFUtil.escape field.default_value);
     PDFDocument.print doc "/V(%s)" (PDFUtil.escape field.value);
     PDFDocument.print doc "/Q %d" (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
