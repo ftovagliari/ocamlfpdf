@@ -22,8 +22,6 @@
 
 
 open Printf
-open PDF
-open PDFTypes
 open PDFDocument
 
 type t = {
@@ -263,8 +261,6 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
     (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
     print_actions field.actions doc;
-    (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(AFNumber_Keystroke\\(0,1,0,0,\"\",false\\))>>>>");*)
-    (*(if field.numeric then PDFDocument.print doc "/AA<</K<</S/JavaScript/JS(%s)>>>> " js_validation_numeric);*)
     (** Border *)
     let w, s, c =
       match field.border with

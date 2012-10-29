@@ -12,13 +12,13 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="fpdf" default="false" id="0">
+    <target name="fpdf" default="true" id="0">
       <byt>true</byt>
       <opt>true</opt>
-      <libs>xml-light</libs>
+      <libs></libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package>unix</package>
+      <package>unix,str</package>
       <includes>+xml-light</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -55,7 +55,7 @@
     <target name="fpdf-byt" default="false" id="9">
       <byt>true</byt>
       <opt>false</opt>
-      <libs>xml-light</libs>
+      <libs></libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
       <package></package>
@@ -153,7 +153,7 @@
       <restrictions></restrictions>
       <dependencies>0,8</dependencies>
     </target>
-    <target name="test-form" default="true" id="10">
+    <target name="test-form" default="false" id="10">
       <byt>false</byt>
       <opt>true</opt>
       <libs>str xml-light</libs>
@@ -228,14 +228,14 @@
       </env>
       <args/>
     </executable>
-    <executable name="Test Editor" default="false" target_id="7" id="5">
+    <executable name="Test Editor" default="true" target_id="7" id="5">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">OCAMLRUNPARAM=b</var>
       </env>
       <args/>
     </executable>
-    <executable name="Test Interactive Forms" default="true" target_id="10" id="6">
+    <executable name="Test Interactive Forms" default="false" target_id="10" id="6">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
@@ -249,9 +249,11 @@
       <target target_id="6" show="true"/>
       <target target_id="7" show="true"/>
       <target target_id="10" show="true"/>
-      <target target_id="11" show="true"/>
+      <target target_id="11" show="false"/>
     </targets>
     <args/>
-    <commands/>
+    <commands>
+      <command name="Distclean" target_id="11" task_name="distclean"/>
+    </commands>
   </build_script>
 </project>

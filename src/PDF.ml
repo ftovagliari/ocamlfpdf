@@ -197,7 +197,6 @@ let font_family         = PDFFont.font_family
 
 let set_text_color      = PDFText.set_text_color
 let text_color          = PDFText.text_color
-let text                = PDFText.text
 let newline             = PDFText.newline
 let text                = PDFText.text
 let write               = PDFText.write

@@ -51,7 +51,7 @@ che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</S
 dove l\xB4umano spirito si purga
 e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
 
-<SPAN family='courier'>Ma qui la morta poes\xEC resurga,
+<SPAN family='courier' size='10'>Ma qui la morta poes\xEC resurga,
 o sante Muse, poi che vostro sono;
 e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
 
@@ -266,15 +266,16 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
 
       (** Form fields *)
       PDF.add_page doc;
+      let form = PDFForm.create doc in
       let x = margin in
       let y = 2. *. margin +. height_header in
       PDF.set ~x ~y doc;
       ignore (PDFBookmark.add ~text:"Interactive Forms" doc);
       let field =
         PDFForm.add_text_field ~x ~y ~width:80. ~height:20.
-          ~maxlength:30 ~readonly:false ~numeric:false
-          ~name:"test_field" ~value:"" ~default_value:"3"
-          ~bgcolor:"#f0f0f0" ~border:(`Underline, "#000000") doc
+          ~maxlength:30 ~readonly:false ~justification:`Center
+          ~name:"test_field" ~value:"" ~default_value:"3" ~value_ap:"Simple text field"
+          ~bgcolor:"#f0f0f0" ~border:(`Underline, "#000000") form
       in
 
       (** Images *)

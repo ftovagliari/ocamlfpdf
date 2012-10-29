@@ -54,7 +54,3 @@ type action = [
   | `ResetForm
   | `GoTo of destination
 ]
-
-
-
-
