@@ -200,10 +200,12 @@ struct
     let size = PDF.font_size doc in
     let style = PDF.font_style doc in
     let len = String.length !code in
+    let font = Font.find ~family:`Helvetica ~style:[] doc.PDFDocument.fonts in
+    let width' = 60. *. width in
+    let scale = PDF.scale doc in
     let fsize = fixpoint begin fun size ->
-      PDF.set_font ~family:`Helvetica ~size ~style:[] doc;
-      let text_width = PDF.get_string_width barcode doc in
-      if text_width < 60. (*84.*) *. width then size else (size -. 0.25)
+      let text_width = PDFText.get_string_width_gen barcode font size in
+      if text_width /. scale < width' then size else (size -. 0.25)
     end 30. in
     PDF.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
     let height_ext = height +. 5. *. width in

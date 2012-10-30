@@ -6,7 +6,8 @@
     - [family]: families are those available from the module {!Font}, names are lowercase.
     - [style]: 'italic' or 'bold' separated by comma.
     - [size]: float.
-    - [align]: 'left', 'center' or 'right'.
+    - [scale]: Horizontal scaling, default is 100 (integer).
+    - [align]: A float between 0.0 and 1.0.
     - [underline]: 'none', 'single', 'low'.
     - [color]: HEX triplet
     - [bgcolor]: HEX triplet
@@ -25,7 +26,7 @@
     @param border_width Border width.
     @param border_color Border color.
     @param border_radius Radius for boxes with rounded corners.
-    @param padding Internal padding.
+    @param padding Top, right, bottom and left internal padding.
     @return The actual width and height of the markup box.
     @raise Failure("invalid_markup") If an error occurs.
 *)
@@ -40,4 +41,4 @@ val print :
   ?border_width:float ->
   ?border_color:string ->
   ?border_radius:float ->
-  ?padding:float -> PDF.t -> float * float
+  ?padding:(float * float * float * float) -> PDF.t -> float * float

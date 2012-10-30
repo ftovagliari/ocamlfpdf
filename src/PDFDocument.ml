@@ -97,6 +97,7 @@ and annot = {
   mutable current_font          : font option;              (* current font info *)
   mutable font_size_pt          : float;                    (* current font size in points *)
   mutable font_size             : float;                    (* current font size in user unit *)
+  mutable font_scale            : int option;               (* current font scale *)
   mutable drawColor             : string;                   (* commands for drawing color *)
   mutable fillColor             : string;                   (* commands for filling color *)
   mutable textColor             : string;                   (* commands for text color *)

@@ -33,3 +33,6 @@ val get_metric : key -> char -> int
 val get_name : key -> string
 val family_of_string : string -> family
 val style_of_string : string -> style
+val find :
+  ?family:family ->
+  style:[> `Bold | `Italic ] list -> (key * 'a) list -> 'a

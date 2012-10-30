@@ -220,7 +220,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test fpdf" default="false" target_id="6" id="3">
+    <executable name="Test fpdf" default="true" target_id="6" id="3">
       <build_task>&lt;REBUILD&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -228,7 +228,7 @@
       </env>
       <args/>
     </executable>
-    <executable name="Test Editor" default="true" target_id="7" id="5">
+    <executable name="Test Editor" default="false" target_id="7" id="5">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">OCAMLRUNPARAM=b</var>

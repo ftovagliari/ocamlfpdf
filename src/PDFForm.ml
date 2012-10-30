@@ -66,11 +66,6 @@ type t = {
 
 let (!!) = List.fold_left (fun acc (v, c) -> acc lor (if c then v else 0)) 0;;
 
-(** find_font *)
-let find_font ~fonts ~family ~style =
-  let font_key = Font.key_of_font style (match family with Some x -> x | _ -> `Courier) in
-  try List.assoc font_key fonts with Not_found -> assert false;;
-
 (** instances *)
 let instances = ref []
 
@@ -141,6 +136,17 @@ let create doc =
   end doc;
   form;;
 
+(** get *)
+let get doc =
+  try List.assq doc !instances
+  with Not_found ->
+    let x = create doc in
+    instances := (doc, x) :: !instances;
+    x;;
+
+(** field_name *)
+let field_name field = field.name
+
 (** set_calculation_order *)
 let set_calculation_order fields form = form.calculation_order <- Some fields
 
@@ -166,13 +172,6 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
   let fgcolor_ap = match fgcolor_ap with None -> fgcolor | Some x -> x in
   let maxlength = match comb with None -> maxlength | comb -> comb in
   let value_ap = match value_ap with None -> value | Some x -> x in
-  let form =
-    try List.assq doc !instances
-    with Not_found ->
-      let x = create doc in
-      instances := (doc, x) :: !instances;
-      x
-  in
   let id = form.length + 1 in
   let page = PDFDocument.get_current_page doc in
   let scale = PDF.scale doc in
@@ -193,7 +192,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     let page_height = PDF.page_height doc *. PDF.scale doc in
     let x = field.x in
     let y = page_height -.field.y in
-    let font = find_font ~fonts:doc.fonts ~family:field.font_family ~style:field.font_style in
+    let font = Font.find ?family:field.font_family ~style:field.font_style doc.fonts in
     let width = field.width in
     let height = field.height in
     let fg_color_ap = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor_ap) in

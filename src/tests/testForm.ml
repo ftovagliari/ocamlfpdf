@@ -41,7 +41,7 @@ let main () = begin
         `GoTo {dest_page = 0; dest_display = `FitH None}
       ] doc;
 
-      let form = PDFForm.create doc in
+      let form = PDFForm.get doc in
 
       let create_page default_value =
         PDF.add_page doc;
@@ -70,7 +70,8 @@ let main () = begin
             ~name ~alt_name:name
             ~value:default_value ~default_value
             ~actions:(
-              (if PDF.page_count doc = 2 then [`Calculate "AFSimple_Calculate(\"SUM\", new Array (\"text_field_1_1\", \"text_field_1_2\"));"] else [])
+              (if PDF.page_count doc = 2 then
+              [`Calculate "AFSimple_Calculate(\"SUM\", new Array (\"text_field_1_1\", \"text_field_1_2\"));"] else [])
               @ [`Keystroke "AFNumber_Keystroke(0,1,0,0,\"\",false);";]
             )
             ~bgcolor:"#fff0f0" (*~border:(`Dashed, "#000000")*) form

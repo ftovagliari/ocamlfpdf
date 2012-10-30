@@ -75,7 +75,7 @@ let image ~name ~data ~x ~y ~image_width ~image_height ?(width=0.) ?(height=0.) 
       else width in
     let height = if height = 0. then width *. (float info.image_height) /. (float info.image_width)
       else height in
-    print_buffer doc "q %.2f 0 0 %.2f %.2f %.2f cm /I%d Do Q\n" (width *. doc.k) (height *. doc.k)
+    print_buffer doc "q %f 0 0 %f %f %f cm /I%d Do Q\n" (width *. doc.k) (height *. doc.k)
       (x *. doc.k) ((doc.h -. (y +. height)) *. doc.k) index;
     match link with
       | None -> ()
@@ -83,7 +83,7 @@ let image ~name ~data ~x ~y ~image_width ~image_height ?(width=0.) ?(height=0.) 
 
 (** line *)
 let line ~x1 ~y1 ~x2 ~y2 doc =
-  print_buffer doc "%.2f %.2f m %.2f %.2f l S\n"
+  print_buffer doc "%f %f m %f %f l S\n"
     (x1 *. doc.k) ((doc.h -. y1) *. doc.k) (x2 *. doc.k) ((doc.h -. y2) *. doc.k)
 
 (** rect *)
@@ -95,32 +95,32 @@ let rect ?x ?y ~width ~height ?radius ?(style=(`Outline : rect_style)) doc =
     | `Both -> 'B'
     | `Outline -> 'S' in
   match radius with
-    | None -> print_buffer doc "%.2f %.2f %.2f %.2f re %c\n"
+    | None -> print_buffer doc "%f %f %f %f re %c\n"
       (x *. doc.k) ((doc.h -. y) *. doc.k)
       (width *. doc.k) ((-.height) *. doc.k) op
     | Some radius ->
       let scale = doc.k in
-      let arc x1 y1 x2 y2 x3 y3 = print_buffer doc "%.2f %.2f %.2f %.2f %.2f %.2f c \n"
+      let arc x1 y1 x2 y2 x3 y3 = print_buffer doc "%f %f %f %f %f %f c \n"
         (x1 *. scale) ((doc.h -. y1) *. scale)
         (x2 *. scale) ((doc.h -. y2) *. scale)
         (x3 *. scale) ((doc.h -. y3) *. scale) in
       let hp = doc.h in
       let my_arc = 4./.3. *. (sqrt 2. -. 1.) in
-      print_buffer doc "%.2f %.2f m\n" ((x +. radius) *. scale) ((hp -. y) *. scale);
+      print_buffer doc "%f %f m\n" ((x +. radius) *. scale) ((hp -. y) *. scale);
       let xc = x +. width -. radius in
       let yc = y +. radius in
-      print_buffer doc "%.2f %.2f l\n" (xc *. scale) ((hp -. y) *. scale);
+      print_buffer doc "%f %f l\n" (xc *. scale) ((hp -. y) *. scale);
       arc (xc +. radius *. my_arc) (yc -. radius) (xc +. radius) (yc -. radius *. my_arc) (xc +. radius) yc;
       let xc = x +. width -. radius in
       let yc = y +. height -. radius in
-      print_buffer doc "%.2f %.2f l\n" ((x +. width) *. scale) ((hp -. yc) *. scale);
+      print_buffer doc "%f %f l\n" ((x +. width) *. scale) ((hp -. yc) *. scale);
       arc (xc +. radius) (yc +. radius *. my_arc) (xc +. radius *. my_arc) (yc +. radius) xc (yc +. radius);
       let xc = x +. radius in
       let yc = y +. height -. radius in
-      print_buffer doc "%.2f %.2f l\n" (xc *. scale) ((hp -. (y +. height)) *. scale);
+      print_buffer doc "%f %f l\n" (xc *. scale) ((hp -. (y +. height)) *. scale);
       arc (xc -. radius *. my_arc) (yc +. radius) (xc -. radius) (yc +. radius *. my_arc) (xc -. radius) yc;
       let xc = x +. radius in
       let yc = y +. radius in
-      print_buffer doc "%.2f %.2f l\n" (x *. scale) ((hp -. yc) *. scale);
+      print_buffer doc "%f %f l\n" (x *. scale) ((hp -. yc) *. scale);
       arc (xc -. radius) (yc -. radius *. my_arc) (xc -. radius *. my_arc) (yc -. radius) xc  (yc -. radius);
       print_buffer doc "%c\n" op;;

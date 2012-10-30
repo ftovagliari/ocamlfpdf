@@ -122,10 +122,12 @@ val set : ?x:float -> ?y:float -> t -> unit
 
 val font_style : t -> Font.style list
 val font_size : t -> float
+val font_scale : t -> int option
 val font_family : t -> Font.family option
 val set_font :
   ?family:Font.family ->
-  ?style:Font.style list -> ?size:float -> t -> unit
+  ?style:Font.style list ->
+  ?size:float -> ?scale:int -> t -> unit
 val set_text_color : red:int -> ?green:int -> ?blue:int -> t -> unit
 val text_color : t -> int * int * int
 val fill_color : t -> int * int * int

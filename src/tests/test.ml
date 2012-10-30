@@ -43,7 +43,7 @@ let is_fib n =
   in f 0
 
 let markup = "\
-<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
+<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20' scale='30'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
 
@@ -140,7 +140,7 @@ let main () = begin
       let x = margin in
       let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
-      let _, _ = PDFMarkup.print ~x ~y ~width ~padding:3. ~markup
+      let _, height = PDFMarkup.print ~x ~y ~width ~padding:(3., 3., 3., 3.) ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
@@ -150,7 +150,7 @@ let main () = begin
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
       PDF.set_font ~family:`Times ~size:12. doc;
-      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:5. ~markup
+      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:(5.,5.,5.,5.) ~markup
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
 
       (** Markup and wrap char *)
@@ -231,11 +231,13 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           let child_inner_width = child_width -. padding *. 2. in
           PDF.rect ~x ~y ~width:child_width ~height ~radius doc;
           let text = sprintf "Horizontal box, child n. %d" (i + 1) in
+          let font = Font.find ~family ~style:[] doc.PDFDocument.fonts in
           let size = fixpoint begin fun size ->
-            PDF.set_font ~family ~size doc;
-            let text_width = PDF.get_string_width text doc in
+            let text_width = PDFText.get_string_width_gen text font size in
+            let text_width = text_width /. (PDF.scale doc) in
             if text_width < child_inner_width then size else (size -. 0.25)
           end 30. in
+          PDF.set_font ~family ~size doc;
           PDF.set ~x ~y doc;
           let line_height = size /. PDF.scale doc +. 0.5 in
           PDF.multi_cell ~width:child_width ~padding ~line_height ~align:`Center ~text doc;
@@ -266,7 +268,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
 
       (** Form fields *)
       PDF.add_page doc;
-      let form = PDFForm.create doc in
+      let form = PDFForm.get doc in
       let x = margin in
       let y = 2. *. margin +. height_header in
       PDF.set ~x ~y doc;

@@ -27,7 +27,7 @@ open Image
 open Printf
 
 (** set_font *)
-let set_font ?family ?(style=([] : Font.style list)) ?size (*?(size=0.)*) doc =
+let set_font ?family ?(style=([] : Font.style list)) ?size ?scale doc =
   let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
   (* Select a font; size given in points. *)
   doc.underline <- List.mem `Underline style;
@@ -58,13 +58,18 @@ let set_font ?family ?(style=([] : Font.style list)) ?size (*?(size=0.)*) doc =
     doc.font_style <- style;
     doc.font_size_pt <- size;
     doc.font_size <- size /. doc.k;
+    doc.font_scale <- scale;
     let current_font = List.assoc fkey doc.fonts in
     doc.current_font <- Some current_font;
-    if n_pages doc > 0 then
-      print_buffer doc "BT /F%d %.2f Tf ET\n" current_font.font_index doc.font_size_pt
+    if n_pages doc > 0 then begin
+      let font_scale = match doc.font_scale with None -> " 100 Tz" | Some z -> sprintf " %d Tz" z in
+      print_buffer doc "BT /F%d %.2f Tf%s ET\n"
+        current_font.font_index doc.font_size_pt font_scale
+    end
   end;;
 
 let font_style doc = doc.font_style
 let font_size doc = doc.font_size_pt
+let font_scale doc = doc.font_scale
 let font_family doc = doc.font_family
 

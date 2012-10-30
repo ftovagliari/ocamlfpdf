@@ -65,7 +65,7 @@ let text_color doc = doc.text_color_rgb
 
 (** text *)
 let text ~x ~y ~text doc =
-  let s = ref (sprintf "BT %.2f %.2f Td (%s) Tj ET"
+  let s = ref (sprintf "BT %f %f Td (%s) Tj ET"
     (x *. doc.k) ((doc.h -. y) *. doc.k) (escape text)) in
   if doc.underline  && text <> "" then s := !s ^ " " ^ (do_underline x y text);
   if doc.colorFlag then s:= "q " ^ doc.textColor ^ " " ^ !s ^ " Q";
@@ -114,7 +114,7 @@ let cell
     let op = if fill && frame then "B"
       else if fill && not frame then "f"
       else "S" in (* frame && not fill *)
-    print_buffer doc "%.2f %.2f %.2f %.2f re %s "
+    print_buffer doc "%f %f %f %f re %s "
       (doc.pos_x *. scale) ((doc.h -. doc.pos_y) *. scale) (width *. scale) (-.(height) *. scale) op
   end;
   (* The code string *)
@@ -123,7 +123,7 @@ let cell
   if not frame then begin
     let border = List.sort compare (remove_dupl border) in
     let x0, y0 = doc.pos_x, doc.pos_y in
-    let sprintf = sprintf "%.2f %.2f m %.2f %.2f l S " in
+    let sprintf = sprintf "%f %f m %f %f l S " in
     let border_code = List.map begin function
       | `L -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) (x0 *. scale) ((doc.h -. (y0 +. height)) *. scale)
       | `T -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) ((x0 +. width) *. scale) ((doc.h -. y0) *. scale)
@@ -144,8 +144,9 @@ let cell
       | `Center -> (width -. text_width doc) /. 2.
       | `Right -> width -. padding -. text_width doc in
     if doc.colorFlag then code := !code ^ "q " ^ doc.textColor ^ " ";
-    code := !code ^ (sprintf "BT %.2f %.2f Td (%s) Tj ET" ((doc.pos_x +. dx) *. scale)
-      ((doc.h -. posy) *. scale) (escape text));
+    code := !code ^ (sprintf "BT %f %f Td (%s) Tj ET" ((doc.pos_x +. dx) *. scale)
+      ((doc.h -. posy) *. scale)
+      (escape text));
     if doc.underline then code := !code ^
       (" " ^ (do_underline (doc.pos_x +. dx) posy text));
     if doc.colorFlag then code := !code ^ " Q";

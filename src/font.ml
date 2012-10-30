@@ -114,6 +114,10 @@ let style_of_string name =
   | "bold" -> `Bold
   | _ -> Printf.kprintf failwith "style_of_string (%s)" name
 
+(** find *)
+let find ?family ~style fonts =
+  let font_key = key_of_font style (match family with Some x -> x | _ -> `Courier) in
+  try List.assoc font_key fonts with Not_found -> assert false;;
 
 
 

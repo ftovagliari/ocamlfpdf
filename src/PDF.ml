@@ -139,6 +139,7 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     current_font          = None;
     font_size_pt          = 12.;
     font_size             = 0.;
+    font_scale            = None;
     drawColor             = "0 G";
     fillColor             = "0 g";
     textColor             = "0 g";
@@ -193,6 +194,7 @@ let margins             = PDFPage.margins
 let set_font            = PDFFont.set_font
 let font_style          = PDFFont.font_style
 let font_size           = PDFFont.font_size
+let font_scale          = PDFFont.font_scale
 let font_family         = PDFFont.font_family
 
 let set_text_color      = PDFText.set_text_color

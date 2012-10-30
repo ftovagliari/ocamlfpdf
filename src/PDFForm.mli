@@ -39,8 +39,8 @@ type action = [
   | `Calculate of string
 ]
 
-(** [create doc] creates a new empty form for document [doc]. *)
-val create : PDF.t -> t
+(** [get doc] returns the form object associated to the document [doc]. *)
+val get : PDF.t -> t
 
 (**
   @param x Absolute abscissa of the upper-left corner.
@@ -98,3 +98,5 @@ val add_text_field :
 (** [set_calculation_order fields form] Sets the calculation order for fileds with calculation action. *)
 val set_calculation_order : field list -> t -> unit
 
+(** [field_name field] returns the field's name. *)
+val field_name : field -> string

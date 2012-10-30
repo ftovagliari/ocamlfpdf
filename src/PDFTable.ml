@@ -352,7 +352,7 @@ let print
               end;
               if use_markup then begin
                 ignore (PDFMarkup.print ~x:(x +. cellpadding) ~y ~width:(width -. 2. *. cellpadding)
-                  ~padding:0. ~markup:cell.prop_text doc)
+                  ~markup:cell.prop_text doc)
               end else begin
                 PDF.multi_cell ~width:(width -. 2. *. cellpadding)
                   ~line_height ~align:cell.prop_align ~text:cell.prop_text doc;
