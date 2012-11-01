@@ -42,6 +42,9 @@ type action = [
 (** [get doc] returns the form object associated to the document [doc]. *)
 val get : PDF.t -> t
 
+(** The list of fields currently present in the form. *)
+val fields : t -> field list
+
 (**
   @param x Absolute abscissa of the upper-left corner.
   @param y Absolute ordinate of the upper-left corner.

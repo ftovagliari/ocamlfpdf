@@ -23,22 +23,22 @@ INSTALL:
 
   Change to the ocamlfpdf toplevel directory and execute:
 
-    ocaml _build.ml build fpdf
-    ocaml _build.ml build test && pushd src/tests && ./test.opt && popd
+    ocaml build.ml fpdf
+    ocaml build.ml test && pushd src/tests && ./test.opt && popd
 
   You can generate a LablGtk markup editor (for use with PDFMarkup) with:
 
-    ocaml _build.ml build markup-editor
-    ocaml _build.ml build test-markup-editor && src/tests/test_pdfmarkup_editor.opt
+    ocaml build.ml markup-editor
+    ocaml build.ml test-markup-editor && src/tests/test_pdfmarkup_editor.opt
 
   Install (as root) with:
 
-    ocaml tools/findlib_install.ml
+    ocaml build.ml install
 
   Alternatively, you may install the library without using Findlib:
 
-    ocaml _build.ml install fpdf
-    ocaml _build.ml install markup-editor
+    ocaml build.ml install-lib fpdf
+    ocaml build.ml install-lib markup-editor
 
   By default, the library will be installed at "+fpdf".
 

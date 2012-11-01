@@ -144,6 +144,9 @@ let get doc =
     instances := (doc, x) :: !instances;
     x;;
 
+(** fields *)
+let fields form = form.fields
+
 (** field_name *)
 let field_name field = field.name
 

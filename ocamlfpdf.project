@@ -203,6 +203,17 @@
           </args>
           <phase>After_compile</phase>
         </task>
+        <task name="findlib-uninstall">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <env replace="false"/>
+          <dir></dir>
+          <cmd>ocamlfind</cmd>
+          <args>
+            <arg enabled="true">remove fpdf</arg>
+          </args>
+          <phase>After_compile</phase>
+        </task>
         <task name="distclean">
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
@@ -241,7 +252,7 @@
       <args/>
     </executable>
   </executables>
-  <build_script filename="_build.ml">
+  <build_script filename="build.ml">
     <targets>
       <target target_id="0" show="true"/>
       <target target_id="9" show="true"/>
@@ -253,7 +264,9 @@
     </targets>
     <args/>
     <commands>
-      <command name="Distclean" target_id="11" task_name="distclean"/>
+      <command name="Distclean" descr="distclean" target_id="11" task_name="distclean"/>
+      <command name="Install" descr="findlib-install" target_id="11" task_name="findlib-install"/>
+      <command name="Uninstall" descr="findlib-uninstall" target_id="11" task_name="findlib-uninstall"/>
     </commands>
   </build_script>
 </project>

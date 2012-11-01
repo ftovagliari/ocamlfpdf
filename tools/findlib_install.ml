@@ -13,7 +13,6 @@ let libname = "fpdf"
 let cmas = ["fpdf"; "gtk_pdfmarkup_editor"]
 
 let _ =
-  pushd "src";
   let ar = String.concat " " (List.map (fun x -> x ^ (if Sys.os_type = "Win32" then ".lib" else ".a")) cmas) in
   let find ext =
     let files = Array.to_list (Sys.readdir ".") in
@@ -23,5 +22,4 @@ let _ =
   let cmas = List.map (fun x -> [x ^ ".cma"; x ^ ".cmxa"]) cmas in
   let cmas = String.concat " " (List.flatten cmas) in
   ignore (kprintf Sys.command "ocamlfind install %s META %s %s %s %s" libname cmas ar (find ".cmi") (find ".mli"));
-  popd()
 ;;
