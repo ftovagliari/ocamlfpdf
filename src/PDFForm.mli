@@ -39,7 +39,7 @@ type action = [
   | `Calculate of string
 ]
 
-(** [get doc] returns the form object associated to the document [doc]. *)
+(** [get doc] returns the form object associated with the document [doc]. *)
 val get : PDF.t -> t
 
 (** The list of fields currently present in the form. *)
