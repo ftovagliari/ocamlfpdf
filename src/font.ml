@@ -117,7 +117,7 @@ let style_of_string name =
 (** find *)
 let find ?family ~style fonts =
   let font_key = key_of_font style (match family with Some x -> x | _ -> `Courier) in
-  try List.assoc font_key fonts with Not_found -> assert false;;
+  try Some (List.assoc font_key fonts) with Not_found -> None;;
 
 
 

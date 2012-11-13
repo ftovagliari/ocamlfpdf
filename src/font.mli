@@ -35,4 +35,4 @@ val family_of_string : string -> family
 val style_of_string : string -> style
 val find :
   ?family:family ->
-  style:[> `Bold | `Italic ] list -> (key * 'a) list -> 'a
+  style:[> `Bold | `Italic ] list -> (key * 'a) list -> 'a option

@@ -26,10 +26,6 @@ open PDFTable
 
 let (//) = Filename.concat
 
-let rec fixpoint f v =
-  let v' = f v in
-  if v = v' then v else fixpoint f v'
-
 let rec fib = function
   | 0 -> 0
   | 1 -> 1
@@ -145,6 +141,7 @@ let main () = begin
 
       (** Markup and wrap char *)
       PDF.add_page doc;
+      let width = width_avail in
       ignore (PDFBookmark.add ~text:"Markup - Wrap (1)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
@@ -158,15 +155,6 @@ let main () = begin
       ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
-
-(*      let markup = "The_syntax_of_the_language is given .Mtation__Terminal <SPAN \
-style='bold'>aa</SPAN>              symbols_are_set_in_typewriter_font (like this). \
-Non-terminal are set in_italic fosssssssnt font (like that)." in
-
-      let markup = "The_syntax_of_the_language <SPAN style='bold'>is</SPAN> given <SPAN style='bold'>notation__Terminal</SPAN> \
-aa symbols_are_set_in_typewriter_font (like this).  \
-Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN> font (like that)." in*)
-
       PDF.set_font ~family:`Times ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*50.*) width_avail /. 5. *. 3. +. 0.5 in
@@ -231,8 +219,11 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
           let child_inner_width = child_width -. padding *. 2. in
           PDF.rect ~x ~y ~width:child_width ~height ~radius doc;
           let text = sprintf "Horizontal box, child n. %d" (i + 1) in
-          let font = Font.find ~family ~style:[] doc.PDFDocument.fonts in
-          let size = fixpoint begin fun size ->
+          let font =
+            match Font.find ~family ~style:[] doc.PDFDocument.fonts with
+              | Some x -> x | _ -> assert false
+          in
+          let size = PDFUtil.fixpoint begin fun size ->
             let text_width = PDFText.get_string_width_gen text font size in
             let text_width = text_width /. (PDF.scale doc) in
             if text_width < child_inner_width then size else (size -. 0.25)
@@ -277,6 +268,7 @@ Non-terminal are set in_italic <SPAN style='bold' align='0.5'>fosssssssnt</SPAN>
         PDFForm.add_text_field ~x ~y ~width:80. ~height:20.
           ~maxlength:30 ~readonly:false ~justification:`Center
           ~name:"test_field" ~value:"" ~default_value:"3" ~value_ap:"Simple text field"
+          ~fgcolor_ap:"#909090" ~font_style:[`Italic]
           ~bgcolor:"#f0f0f0" ~border:(`Underline, "#000000") form
       in
 

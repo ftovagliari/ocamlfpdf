@@ -200,7 +200,18 @@ struct
     let size = PDF.font_size doc in
     let style = PDF.font_style doc in
     let len = String.length !code in
-    let font = Font.find ~family:`Helvetica ~style:[] doc.PDFDocument.fonts in
+    let font =
+      let family = `Helvetica in
+      let style = [] in
+      let f () = Font.find ~family ~style doc.PDFDocument.fonts in
+      match f () with Some x -> x | _ ->
+        let old_family = PDF.font_family doc in
+        let old_style = PDF.font_style doc in
+        PDF.set_font ~family ~style doc;
+        let x = f () in
+        PDF.set_font ?family:old_family ~style:old_style doc;
+        match x with Some a -> a | _ -> assert false
+    in
     let width' = 60. *. width in
     let scale = PDF.scale doc in
     let fsize = fixpoint begin fun size ->

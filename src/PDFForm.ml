@@ -190,12 +190,24 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
   } in
   form.fields <- field :: form.fields;
   form.length <- form.length + 1;
+  let font =
+    let family = field.font_family in
+    let style = field.font_style in
+    let f () = Font.find ?family ~style doc.fonts in
+    match f () with Some x -> x | _ ->
+      let old_family = PDF.font_family doc in
+      let old_style = PDF.font_style doc in
+      PDF.set_font ?family ~style doc;
+      let x = f () in
+      PDF.set_font ?family:old_family ~style:old_style doc;
+      (match x with Some a -> a | _ -> assert false)
+  in
   (** Add Field + Annotation dictionary *)
   PDFDocument.add_annot page begin fun page_obj ->
     let page_height = PDF.page_height doc *. PDF.scale doc in
     let x = field.x in
     let y = page_height -.field.y in
-    let font = Font.find ?family:field.font_family ~style:field.font_style doc.fonts in
+    (*let font = Font.find ?family:field.font_family ~style:field.font_style doc.fonts in*)
     let width = field.width in
     let height = field.height in
     let fg_color_ap = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor_ap) in

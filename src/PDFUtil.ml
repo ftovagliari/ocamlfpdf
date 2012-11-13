@@ -39,6 +39,10 @@ let fread filename =
 
 let re_cr = Str.regexp "\r"
 
+let rec fixpoint f v =
+  let v' = f v in
+  if v = v' then v else fixpoint f v'
+
 let trim =
    let replace = Str.global_replace (Str.regexp "\\(^[ \t\r\n]+\\)\\|\\([ \t\r\n]+$\\)") in
    fun str -> replace "" str

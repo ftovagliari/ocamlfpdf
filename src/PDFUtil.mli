@@ -1,6 +1,7 @@
 exception Continue
 val fread : string -> Buffer.t
 val re_cr : Str.regexp
+val fixpoint : ('a -> 'a) -> 'a -> 'a
 val trim : string -> string
 val rtrim : string -> string
 val ltrim : string -> string

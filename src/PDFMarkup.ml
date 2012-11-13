@@ -162,7 +162,9 @@ let markup_to_blocks ~markup doc =
       } in
       begin
         match children with
-          | [] -> () (* Spazio? " " *)
+          | [] ->
+            let cell = (cell ~text:" " ~attr ~par:!current_par) in
+            cells := cell :: !cells;
           | children ->
             List.iter begin function
               | Xml.PCData text ->
