@@ -51,16 +51,13 @@ let name_of_gdk color =
   hex_of_rgb (r * 255/65535, g * 255/65535, b * 255/65535)
 
 
-class changed () = object (self) inherit [unit] GUtil.signal () as super end
-
-and signals ~changed =
-  object (self)
-    inherit GUtil.ml_signals [changed#disconnect]
-    method changed = changed#connect ~after
-  end
-
-and editor ~buffer ~size_points ?width ?height ?border_width ?shadow_type ?(relief=`NONE) ?packing () =
+class editor ~buffer ?width ?height ?border_width ?shadow_type ?(relief=`NONE)
+    ?(size_points=10.)
+    (*?(bold=false)
+    ?(fgcolor="#000000")*)
+    ?packing () =
   let changed           = new changed () in
+  let markup_set        = new markup_set () in
   let default_fgcolor   = "#000000" in
   let vbox              = GPack.vbox ?border_width ?packing () in
   let htbox             = GPack.hbox ~packing:vbox#pack () in
@@ -80,7 +77,7 @@ and editor ~buffer ~size_points ?width ?height ?border_width ?shadow_type ?(reli
   let _                 = button_center#set_image (GMisc.image ~stock:`JUSTIFY_CENTER ~icon_size:`MENU ())#coerce in
   let button_right      = GButton.toggle_button ~relief ~packing:toolbox#pack () in
   let _                 = button_right#set_image (GMisc.image ~stock:`JUSTIFY_RIGHT ~icon_size:`MENU ())#coerce in
-  let button_fgcolor    = GButton.color_button ~color:(GDraw.color `BLACK) ~title:"Colore del testo" ~packing:toolbox#pack () in
+  let button_fgcolor    = GButton.color_button ~color:(GDraw.color (`NAME default_fgcolor)) ~title:"Colore del testo" ~packing:toolbox#pack () in
   let _                 = button_fgcolor#set_relief relief in
   let _                 = button_fgcolor#unset_image () in
   let button_bgcolor    = GButton.color_button ~color:(GDraw.color `WHITE) ~title:"Colore di sfondo del testo" ~packing:toolbox#pack ~show:false () in
@@ -92,7 +89,7 @@ and editor ~buffer ~size_points ?width ?height ?border_width ?shadow_type ?(reli
   let _                 = sw#add view#coerce in
   let tag_bold          = buffer#create_tag [`WEIGHT `BOLD] in
   let tag_italic        = buffer#create_tag [`STYLE `ITALIC] in
-  let tag_uline         = buffer#create_tag [`UNDERLINE `LOW] in
+  let tag_uline         = buffer#create_tag [`UNDERLINE `SINGLE] in
   let tag_left          = buffer#create_tag [`JUSTIFICATION `LEFT] in
   let tag_center        = buffer#create_tag [`JUSTIFICATION `CENTER] in
   let tag_right         = buffer#create_tag [`JUSTIFICATION `RIGHT] in
@@ -106,6 +103,14 @@ and editor ~buffer ~size_points ?width ?height ?border_width ?shadow_type ?(reli
     button_center#misc#set_can_focus false;
     button_right#misc#set_can_focus false;
   in
+  let sign_insert_text =
+    buffer#connect#after#insert_text ~callback:begin fun stop text ->
+      let start = stop#backward_chars (Glib.Utf8.length text) in
+      let apply tags = List.iter (fun t -> buffer#apply_tag t ~start ~stop) tags in
+      if stop#toggles_tag None then (apply (stop#get_toggled_tags true));
+      if start#toggles_tag None then (apply (start#get_toggled_tags false))
+    end
+  in
 object (self)
     inherit GObj.widget vbox#as_widget
     val mutable tagsize = []
@@ -113,9 +118,140 @@ object (self)
     val tag_select = buffer#create_tag [`BACKGROUND_GDK (view#misc#style#bg `SELECTED) ]
     val tag_select_start = `MARK (buffer#create_mark buffer#start_iter)
     val tag_select_stop = `MARK (buffer#create_mark buffer#start_iter)
-    method get_oid = 0
 
-    method connect = new signals ~changed
+    initializer
+      let busy = ref false in
+      view#set_left_margin 5;
+      view#set_right_margin 5;
+      view#set_pixels_above_lines 1;
+      view#set_pixels_below_lines 1;
+      (*Gobject.Property.set tag_select#as_tag {Gobject.name="background-full-height"; conv=Gobject.Data.boolean} true;
+      Gobject.Property.set tag_select#as_tag {Gobject.name="background-full-height-set"; conv=Gobject.Data.boolean} true;
+      Gobject.Property.set tag_select#as_tag {Gobject.name="paragraph-background"; conv=Gobject.Data.string} "#ff0000";*)
+      kprintf view#misc#modify_font_by_name "%f" size_points;
+      view#misc#modify_text [`NORMAL, `NAME default_fgcolor];
+      tag_select#set_priority 0;
+      ignore (buffer#connect#changed ~callback:changed#call);
+      (** Toggle buttons *)
+      let connect_toggle (button, tag) =
+        let sign = button#connect#clicked ~callback:begin fun () ->
+          let start, stop = self#get_range_for_tag () in
+          if not !busy && not (start#equal stop) then begin
+            if button#active then (buffer#apply_tag tag ~start ~stop) else (buffer#remove_tag tag ~start ~stop);
+          end else (button#set_active false);
+          changed#call()
+        end in
+        button, sign, tag
+      in
+      let toggles = List.map connect_toggle [
+        button_bold, tag_bold;
+        button_italic, tag_italic;
+        button_uline, tag_uline;
+
+      ] in
+      let connect_align tags button tag buttons () =
+        let start, stop = self#get_range_for_tag () in
+        if not !busy && not (start#equal stop) then begin
+          busy := true;
+          List.iter (fun t -> buffer#remove_tag t ~start ~stop) tags;
+          List.iter (fun b -> b#set_active false) buttons;
+          if button#active then (buffer#apply_tag tag ~start ~stop)
+          else (buffer#remove_tag tag ~start ~stop);
+          changed#call();
+          busy := false;
+        end;
+      in
+      let sign_left = button_left#connect#clicked ~callback:(connect_align [tag_center; tag_right] button_left tag_left [button_center; button_right]) in
+      let sign_center = button_center#connect#clicked ~callback:(connect_align [tag_left; tag_right] button_center tag_center [button_left; button_right]) in
+      let sign_right = button_right#connect#clicked ~callback:(connect_align [tag_center; tag_left] button_right tag_right [button_center; button_left]) in
+      (** Synchronize tag_select with selection. *)
+      let sigid = buffer#connect#mark_set ~callback:begin fun iter mark ->
+        match GtkText.Mark.get_name mark with
+          | Some name when (not !busy && name = "insert") ->
+            busy := true;
+            let start, stop = buffer#selection_bounds in
+            buffer#remove_tag tag_select ~start:buffer#start_iter ~stop:buffer#end_iter;
+            buffer#apply_tag tag_select ~start ~stop;
+            buffer#move_mark tag_select_start ~where:start;
+            buffer#move_mark tag_select_stop ~where:stop;
+            busy := false;
+          | _ -> ()
+      end in
+      (**  *)
+      ignore (buffer#connect#after#mark_set ~callback:begin fun iter mark ->
+        if not !busy then begin
+          let start = buffer#get_iter_at_mark tag_select_start in
+          let stop = buffer#get_iter_at_mark tag_select_stop in
+          let start, stop = if start#compare stop <= 0 then start, stop else stop, start in
+          (* Synchronize toggle buttons *)
+          let sync_toggles (button, signal, tag) =
+            let has = ref (start#has_tag tag) in
+            let iter = ref start in
+            while not (!iter#equal stop) do
+              has := !has && (!iter#has_tag tag);
+              iter := !iter#forward_char;
+            done;
+            button#misc#handler_block signal;
+            button#set_active !has;
+            button#misc#handler_unblock signal;
+          in
+          List.iter sync_toggles (toggles @
+            [button_left, sign_left, tag_left; button_center, sign_center, tag_center; button_right, sign_right, tag_right;]);
+          (* Synchronize color button and size button *)
+          let sync_tag set_button_value default taglist =
+            let iter = ref start in
+            let has = ref [] in
+            let f () =
+              begin
+                try
+                  let n, _ = List.find (fun (_, t) -> !iter#has_tag t) taglist in
+                  has := n :: !has;
+                with Not_found -> ()
+              end;
+              iter := !iter#forward_char;
+            in
+            f(); while !iter#compare stop < 0 do f() done;
+            busy := true;
+            begin
+              match remove_dupl !has with
+                | [] -> set_button_value default
+                | [n] -> set_button_value n
+                | _ -> set_button_value default
+            end;
+            busy := false;
+          in
+          (* Synchronize color button *)
+          sync_tag (fun c -> button_fgcolor#set_color (Gdk.Color.alloc ~colormap:(Gdk.Color.get_system_colormap()) (`NAME c)))
+            default_fgcolor tagfgcolor;
+          (* Synchronize font size entry *)
+          sync_tag entry_size#set_value size_points tagsize;
+        end
+      end);
+      (** Font size *)
+      ignore (entry_size#connect#value_changed ~callback:begin fun () ->
+        let start = buffer#get_iter_at_mark tag_select_start in
+        let stop = buffer#get_iter_at_mark tag_select_stop in
+        if not !busy && not (start#equal stop) then begin
+          List.iter (fun (_, t) -> buffer#remove_tag t ~start ~stop) tagsize;
+          let tag = self#find_tagsize entry_size#value in
+          buffer#apply_tag tag ~start ~stop
+        end;
+        changed#call()
+      end);
+      (** fgcolor *)
+      ignore (button_fgcolor#connect#color_set ~callback:self#apply_color_fg);
+      (** button_clear *)
+      ignore (button_clear#connect#clicked ~callback:begin fun () ->
+        buffer#remove_all_tags ~start:buffer#start_iter ~stop:buffer#end_iter;
+        button_left#set_active false;
+        button_center#set_active false;
+        button_right#set_active false;
+        changed#call()
+      end);
+      (**  *)
+      ignore (self#connect#markup_set ~callback:self#do_set_markup)
+
+    method get_oid = 0
 
     method view = view
     method buffer = buffer
@@ -132,10 +268,16 @@ object (self)
     method button_clear = button_clear
 
     method set_color_fg colorname =
-      button_fgcolor#set_color (Gdk.Color.alloc ~colormap:(Gdk.Color.get_system_colormap()) (`NAME colorname));
-      self#apply_color_fg()
+      let start, stop = self#get_range_for_tag () in
+      if not (start#equal stop) then begin
+        button_fgcolor#set_color (Gdk.Color.alloc ~colormap:(Gdk.Color.get_system_colormap()) (`NAME colorname));
+        self#apply_color_fg()
+      end
 
-    method set_markup markup =
+    method set_markup markup = markup_set#call markup
+
+    method private do_set_markup markup =
+      GtkSignal.handler_block buffer#as_buffer sign_insert_text;
       buffer#delete buffer#start_iter buffer#end_iter;
       let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
       let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
@@ -209,7 +351,10 @@ object (self)
         | Xml.Element (tag, _, []) ->
           buffer#insert ~tags:[] "";
         | _ -> failwith "invalid_markup"
-      end xml
+      end xml;
+      GtkSignal.handler_unblock buffer#as_buffer sign_insert_text;
+      (* The following line triggers the mark_set event to keep tag_select in sync *)
+      buffer#place_cursor ~where:(buffer#get_iter `INSERT)
 
     method get_markup () =
       let iter = ref buffer#start_iter in
@@ -271,140 +416,24 @@ object (self)
       done;
       (*adapt_markup*) (Buffer.contents buf)
 
-    initializer
-      let busy = ref false in
-      view#set_left_margin 5;
-      view#set_right_margin 5;
-      view#set_pixels_above_lines 1;
-      view#set_pixels_below_lines 1;
-      (*Gobject.Property.set tag_select#as_tag {Gobject.name="background-full-height"; conv=Gobject.Data.boolean} true;
-      Gobject.Property.set tag_select#as_tag {Gobject.name="background-full-height-set"; conv=Gobject.Data.boolean} true;
-      Gobject.Property.set tag_select#as_tag {Gobject.name="paragraph-background"; conv=Gobject.Data.string} "#ff0000";*)
-      kprintf view#misc#modify_font_by_name "%f" size_points;
-      tag_select#set_priority 0;
-      ignore (buffer#connect#changed ~callback:changed#call);
-      (** Toggle buttons *)
-      let connect_toggle (button, tag) =
-        let sign = button#connect#clicked ~callback:begin fun () ->
-          let start = buffer#get_iter_at_mark tag_select_start in
-          let stop = buffer#get_iter_at_mark tag_select_stop in
-          if not !busy && not (start#equal stop) then begin
-            if button#active then (buffer#apply_tag tag ~start ~stop) else (buffer#remove_tag tag ~start ~stop);
-          end else (button#set_active false);
-          changed#call()
-        end in
-        button, sign, tag
-      in
-      let toggles = List.map connect_toggle [
-        button_bold, tag_bold;
-        button_italic, tag_italic;
-        button_uline, tag_uline;
-
-      ] in
-      let connect_align tags button tag buttons () =
-        let start = buffer#get_iter_at_mark tag_select_start in
-        let stop = buffer#get_iter_at_mark tag_select_stop in
-        if not (start#equal stop) then begin
-          busy := true;
-          List.iter (fun b -> b#set_active false) buttons;
-          if button#active then (buffer#apply_tag tag ~start ~stop)
-          else (buffer#remove_tag tag ~start ~stop);
-          List.iter (fun t -> buffer#remove_tag t ~start ~stop) tags;
-          changed#call();
-          busy := false;
-        end;
-      in
-      let sign_left = button_left#connect#clicked ~callback:(connect_align [tag_center; tag_right] button_left tag_left [button_center; button_right]) in
-      let sign_center = button_center#connect#clicked ~callback:(connect_align [tag_left; tag_right] button_center tag_center [button_left; button_right]) in
-      let sign_right = button_right#connect#clicked ~callback:(connect_align [tag_center; tag_left] button_right tag_right [button_center; button_left]) in
-      (** Synchronize tag_select with selection. *)
-      let sigid = buffer#connect#mark_set ~callback:begin fun iter mark ->
-        match GtkText.Mark.get_name mark with
-          | Some name when (not !busy && name = "insert") ->
-            busy := true;
-            let start, stop = buffer#selection_bounds in
-            buffer#remove_tag tag_select ~start:buffer#start_iter ~stop:buffer#end_iter;
-            buffer#apply_tag tag_select ~start ~stop;
-            buffer#move_mark tag_select_start ~where:start;
-            buffer#move_mark tag_select_stop ~where:stop;
-            busy := false;
-          | _ -> ()
-      end in
-      (**  *)
-      ignore (buffer#connect#after#mark_set ~callback:begin fun iter mark ->
-        if not !busy then begin
-          let start = buffer#get_iter_at_mark tag_select_start in
-          let stop = buffer#get_iter_at_mark tag_select_stop in
-          let start, stop = if start#compare stop <= 0 then start, stop else stop, start in
-          (* Synchronize toggle buttons *)
-          let sync_toggles (button, signal, tag) =
-            let has = ref (start#has_tag tag) in
-            let iter = ref start in
-            while not (!iter#equal stop) do
-              has := !has && (!iter#has_tag tag);
-              iter := !iter#forward_char;
-            done;
-            button#misc#handler_block signal;
-            button#set_active !has;
-            button#misc#handler_unblock signal;
-          in
-          List.iter sync_toggles (toggles @
-            [button_left, sign_left, tag_left; button_center, sign_center, tag_center; button_right, sign_right, tag_right;]);
-          (* Synchronize color button and size button *)
-          let sync_tag set_button_value default taglist =
-            let iter = ref start in
-            let has = ref [] in
-            let f () =
-              begin
-                try
-                  let n, _ = List.find (fun (_, t) -> !iter#has_tag t) taglist in
-                  has := n :: !has;
-                with Not_found -> ()
-              end;
-              iter := !iter#forward_char;
-            in
-            f(); while !iter#compare stop < 0 do f() done;
-            busy := true;
-            begin
-              match remove_dupl !has with
-                | [] -> set_button_value default
-                | [n] -> set_button_value n
-                | _ -> set_button_value default
-            end;
-            busy := false;
-          in
-          (* Synchronize color button *)
-          sync_tag (fun c -> button_fgcolor#set_color (Gdk.Color.alloc ~colormap:(Gdk.Color.get_system_colormap()) (`NAME c)))
-            "#000000" tagfgcolor;
-          (* Synchronize font size entry *)
-          sync_tag entry_size#set_value size_points tagsize;
-        end
-      end);
-      (** Font size *)
-      ignore (entry_size#connect#value_changed ~callback:begin fun () ->
-        let start = buffer#get_iter_at_mark tag_select_start in
-        let stop = buffer#get_iter_at_mark tag_select_stop in
-        if not !busy && not (start#equal stop) then begin
-          List.iter (fun (_, t) -> buffer#remove_tag t ~start ~stop) tagsize;
-          let tag = self#find_tagsize entry_size#value in
-          buffer#apply_tag tag ~start ~stop
-        end;
-        changed#call()
-      end);
-      (** fgcolor *)
-      ignore (button_fgcolor#connect#color_set ~callback:self#apply_color_fg);
-      (** button_clear *)
-      ignore (button_clear#connect#clicked ~callback:begin fun () ->
-        buffer#remove_all_tags ~start:buffer#start_iter ~stop:buffer#end_iter;
-        button_left#set_active false;
-        button_center#set_active false;
-        button_right#set_active false;
-        changed#call()
-      end);
-
-    method private apply_color_fg () =
+    method private get_range_for_tag () =
       let start = buffer#get_iter_at_mark tag_select_start in
       let stop = buffer#get_iter_at_mark tag_select_stop in
+      if start#equal stop then begin
+        let start =
+          if Glib.Unichar.isspace start#backward_char#char then start
+          else start#backward_word_start
+        in
+        let stop =
+          if Glib.Unichar.isspace stop#char then stop
+          else stop#forward_word_end
+        in
+        (*let start, stop = if start#compare stop <= 0 then start, stop else stop, start in*)
+        start, stop
+      end else start, stop
+
+    method private apply_color_fg () =
+      let start, stop = self#get_range_for_tag () in
       if not (start#equal stop) then begin
         List.iter (fun (_, t) -> buffer#remove_tag t ~start ~stop) tagfgcolor;
         if name_of_gdk button_fgcolor#color <> default_fgcolor then begin
@@ -472,4 +501,17 @@ object (self)
         tag
       end
 
+    method connect = new signals ~changed ~markup_set
+
 end
+
+and changed () = object (self) inherit [unit] GUtil.signal () as super end
+and markup_set () = object (self) inherit [string] GUtil.signal () as super end
+
+and signals ~changed ~markup_set =
+  object (self)
+    inherit GUtil.ml_signals [changed#disconnect; markup_set#disconnect]
+    method changed = changed#connect ~after
+    method markup_set = markup_set#connect ~after
+  end
+

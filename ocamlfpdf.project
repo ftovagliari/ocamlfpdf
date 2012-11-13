@@ -52,27 +52,6 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="fpdf-byt" default="false" id="9">
-      <byt>true</byt>
-      <opt>false</opt>
-      <libs></libs>
-      <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package></package>
-      <includes>+xml-light</includes>
-      <thread>false</thread>
-      <vmthread>false</vmthread>
-      <pp></pp>
-      <inline></inline>
-      <cflags>-w y -g</cflags>
-      <lflags>-g</lflags>
-      <target_type>Library</target_type>
-      <outname>fpdf</outname>
-      <lib_install_path>fpdf</lib_install_path>
-      <external_tasks/>
-      <restrictions></restrictions>
-      <dependencies></dependencies>
-    </target>
     <target name="markup-editor" default="false" id="8">
       <byt>true</byt>
       <opt>true</opt>
@@ -89,6 +68,27 @@
       <lflags>-g</lflags>
       <target_type>Library</target_type>
       <outname>gtk_pdfmarkup_editor</outname>
+      <lib_install_path>fpdf</lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
+    <target name="fpdf-byt" default="false" id="9">
+      <byt>true</byt>
+      <opt>false</opt>
+      <libs></libs>
+      <other_objects></other_objects>
+      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
+      <package></package>
+      <includes>+xml-light</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <cflags>-w y -g</cflags>
+      <lflags>-g</lflags>
+      <target_type>Library</target_type>
+      <outname>fpdf</outname>
       <lib_install_path>fpdf</lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
@@ -192,17 +192,6 @@
       <outname></outname>
       <lib_install_path></lib_install_path>
       <external_tasks>
-        <task name="findlib-install">
-          <always_run_in_project>false</always_run_in_project>
-          <always_run_in_script>false</always_run_in_script>
-          <env replace="false"/>
-          <dir></dir>
-          <cmd>ocaml</cmd>
-          <args>
-            <arg enabled="true">../tools/findlib_install.ml</arg>
-          </args>
-          <phase>After_compile</phase>
-        </task>
         <task name="findlib-uninstall">
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
@@ -211,6 +200,17 @@
           <cmd>ocamlfind</cmd>
           <args>
             <arg enabled="true">remove fpdf</arg>
+          </args>
+          <phase>After_compile</phase>
+        </task>
+        <task name="findlib-install">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <env replace="false"/>
+          <dir></dir>
+          <cmd>ocaml</cmd>
+          <args>
+            <arg enabled="true">../tools/findlib_install.ml</arg>
           </args>
           <phase>After_compile</phase>
         </task>
@@ -231,7 +231,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test fpdf" default="true" target_id="6" id="3">
+    <executable name="Test fpdf" default="false" target_id="6" id="3">
       <build_task>&lt;REBUILD&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -239,7 +239,7 @@
       </env>
       <args/>
     </executable>
-    <executable name="Test Editor" default="false" target_id="7" id="5">
+    <executable name="Test Editor" default="true" target_id="7" id="5">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">OCAMLRUNPARAM=b</var>
