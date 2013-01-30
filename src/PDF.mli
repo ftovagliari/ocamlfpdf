@@ -28,7 +28,7 @@ open PDFTypes
 (** The PDF document type. *)
 type t = PDFDocument.t
 
-(** {4 PDF Document} *)
+(** {6 PDF Document} *)
 
 (**
   @param m_unit Default is [Mm].
@@ -60,7 +60,7 @@ val set_display_mode : ?layout:layout -> zoom -> t -> unit
 (** Set a sequence of actions to be performed when the document is opened. *)
 val set_open_actions : action list -> t -> unit
 
-(** {6 Document information } *)
+(** {7 Document information } *)
 
 val set_author : string -> t -> unit
 val set_title : string -> t -> unit
@@ -81,7 +81,7 @@ val creation_date : t -> string
 val keywords : t -> string list
 
 
-(** {4 Page Properties } *)
+(** {6 Page Properties } *)
 
 val page_width : t -> float
 val page_height : t -> float
@@ -97,7 +97,7 @@ val set_margins :
 val page_num : t -> int
 
 
-(** {4 Page Header and Footer} *)
+(** {6 Page Header and Footer} *)
 
 (** Set the drawing function for the header. *)
 val set_header_func : (unit -> unit) -> t -> unit
@@ -106,7 +106,7 @@ val set_header_func : (unit -> unit) -> t -> unit
 val set_footer_func : (unit -> unit) -> t -> unit
 
 
-(** {4 Positioning} *)
+(** {6 Positioning} *)
 
 (** Return the current absolute {i x} position. *)
 val x : t -> float
@@ -118,7 +118,7 @@ val y : t -> float
 val set : ?x:float -> ?y:float -> t -> unit
 
 
-(** {4 Text} *)
+(** {6 Text} *)
 
 val font_style : t -> Font.style list
 val font_size : t -> float
@@ -165,9 +165,9 @@ val text : x:float -> y:float -> text:string -> t -> unit
 val newline : ?height:float -> t -> unit
 
 
-(** {4 Graphics} *)
+(** {6 Graphics} *)
 
-(** {6 Graphics state operators} *)
+(** {7 Graphics state operators} *)
 
 (** Save the current graphics state on the graphics state stack *)
 val push_graphics_state : t -> unit
@@ -198,7 +198,7 @@ val draw_color : t -> int * int * int
 val set_fill_color : red:int -> ?green:int -> ?blue:int -> t -> unit
 val fill_color : t -> int * int * int
 
-(** {6 Drawing} *)
+(** {7 Drawing} *)
 
 val line : x1:float -> y1:float -> x2:float -> y2:float -> t -> unit
 
@@ -216,7 +216,7 @@ val rect :
   width:float ->
   height:float -> ?radius:float -> ?style:rect_style -> t -> unit
 
-(** {6 Images} *)
+(** {7 Images} *)
 
 (** Put an image in the document.
   @param name Filename with format [<id>.\{jpg|jpeg|png\}] (for example: {i myimage.jpg}).
@@ -239,7 +239,7 @@ val image :
   ?height:float -> ?format:string -> ?link:'a -> t -> unit
 
 
-(** {4 Miscellaneous Functions} *)
+(** {6 Miscellaneous Functions} *)
 
 (** Return the width of a string in user units computed with the current font. *)
 val get_string_width : string -> t -> float

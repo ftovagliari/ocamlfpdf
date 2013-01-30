@@ -24,6 +24,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -64,6 +65,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -85,6 +87,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -106,6 +109,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -144,6 +148,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -165,6 +170,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -186,6 +192,7 @@
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
+      <nodep>false</nodep>
       <cflags></cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
