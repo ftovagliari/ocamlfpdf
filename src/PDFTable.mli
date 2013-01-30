@@ -23,7 +23,19 @@
 open PDFTypes
 
 (** Layout for printing tabular material. *)
-type cell_properties = {
+
+(** How to realize the cell contents. You can declare a set of style properties
+    or define a drawing function. *)
+type cell_func =
+  | Cell_properties of cell_properties
+  | Cell_draw of float * (x:float -> y:float -> width:float -> height:float -> unit)
+    (** The first element of the pair is the height that the function will use.
+        The function receives as arguments [x] and [y] coordinates of the upper left
+        corner of the cell and [width] and [height] available. The
+        height is the same value specified in the first element of the pair. *)
+
+(** Properties for cell's style. *)
+and cell_properties = {
   mutable prop_text       : string;
   mutable prop_align      : align;
   mutable prop_font_style : Font.style list;
@@ -33,16 +45,31 @@ type cell_properties = {
   prop_image              : image option;
 }
 and image
-and column = { mutable col_width : float; mutable col_title : header_draw_func; }
 
+(** Style properties for the column titles. *)
+and column = {
+  mutable col_width : float; (** Column width in percentage. *)
+  mutable col_title : header_draw_func; (** Contents of the column header, specified either as text or as a drwing function. *)
+}
+
+(** Type for the user defined column identifier used to give a name to the table columns.
+    For example, you may use a variant type. *)
 and 'a column_id = 'a
 
-and 'a tree = [`Node of 'a node | `Leaf of 'a column_id ]
+(** Structure of the column header arranged hierarchically as a tree.
 
+    - A node is a group of columns.
+    - A leaf is a real table column with column identifier associated. *)
+and 'a tree = [
+  | `Node of 'a node
+  | `Leaf of 'a column_id
+]
+
+(** Informations associated to a node. *)
 and 'a node = {
-  h_vertical_line_width : thickness;
-  h_draw                : header_draw_func;
-  h_children            : 'a tree list;
+  h_vertical_line_width : thickness; (** Undocumented. *)
+  h_draw                : header_draw_func; (** Function to draw the header group content. *)
+  h_children            : 'a tree list; (** Subtree. *)
 }
 
 and header_draw_func = [`Text of string | `Func of (x:float -> y:float -> width:float -> float)]
@@ -64,8 +91,8 @@ and thickness = [`Thin | `Thick ]
   @param page_header_height Height of the page header.
   @param page_break_func Function called when a page break occurs.
   @param cellpadding Extra space to put around cell contents.
-  @param cell_func Function applied to every single cell of the table to set style properties.
-         The [cell_properties] returned are applied to the cell identified by [index] and [col],
+  @param cell_func Function applied to every single cell of the table to draw its content or set style properties.
+         The [cell_func] returned is applied to the cell identified by [index] and [col],
          where [index] is the general row index starting from zero and
          [(row column_id)] returns the content of the cell at index [index] and column [column_id].
   @param use_markup Whether the cell's content should be interpreted as markup (i.e. printed with [PDFMarkup]).
@@ -89,7 +116,7 @@ val print :
   ?cellpadding:float ->
   ?rowspacing:float ->
   ?cell_func:(index:int ->
-              row:('a column_id -> string option) -> col:('a column_id) -> cell_properties) ->
+              row:('a column_id -> string option) -> col:('a column_id) -> cell_func) ->
   ?use_markup:bool ->
   ?caption:string ->
   PDF.t -> unit

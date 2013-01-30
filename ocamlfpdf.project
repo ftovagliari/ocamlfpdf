@@ -73,7 +73,7 @@
       <lib_install_path>fpdf</lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-      <dependencies></dependencies>
+      <dependencies>0</dependencies>
     </target>
     <target name="fpdf-byt" default="false" id="9">
       <byt>true</byt>
@@ -262,8 +262,8 @@
   <build_script filename="build.ml">
     <targets>
       <target target_id="0" show="true"/>
-      <target target_id="9" show="true"/>
       <target target_id="8" show="true"/>
+      <target target_id="9" show="true"/>
       <target target_id="6" show="true"/>
       <target target_id="7" show="true"/>
       <target target_id="10" show="true"/>

@@ -330,15 +330,30 @@ let main () = begin
           prop_bg_color   = (if is_fib index then Some (220, 220, 255) else None);
           prop_fg_color   = None;
         } in
-        if col = `B then {prop with PDFTable.
+        if col = `B && index = 3 then Cell_draw (10., begin fun ~x ~y ~width ~height ->
+          let overlap = 2. in
+          let w1 = width *. 0.4 in
+          let h1 = height *. 0.5 in
+          let x1 = x +. w1 -. overlap in
+          let y1 = y +. h1 -. overlap in
+          PDF.set_fill_color ~red:255 ~green:212 ~blue:0 doc;
+          PDF.rect ~x:x1 ~y:y1 ~width:overlap ~height:overlap ~style:`Fill doc;
+          PDF.rect ~x ~y ~width:w1 ~height:h1 ~style:`Outline doc;
+          let w2 = width *. 0.6 +. overlap in
+          let h2 = height *. 0.5 +. overlap in
+          PDF.rect ~x:x1 ~y:y1 ~width:w2 ~height:h2 ~style:`Outline doc;
+          let text = match row col with None -> "" | Some x -> x in
+          let markup = sprintf "<SPAN color='#ff0000' align='0.5'>%s</SPAN>" text in
+          let w3 = w2 -. overlap in
+          ignore (PDFMarkup.print ~x:(x1 +. overlap) ~y:(y1 +. overlap) ~width:w3 ~markup doc)
+        end) else if col = `B then Cell_properties {prop with PDFTable.
           prop_text       = (match row col with None -> "-" | Some x -> x);
           prop_align      = `Left;
           prop_font_style = prop.PDFTable.prop_font_style @ [`Italic];
-        } else prop
+        } else Cell_properties prop
       in
       let rows = Array.create 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
       let rows = Array.to_list rows in
-      let w = (float (truncate (100. /. 8. *. 1000.))) /. 1000. in
       let print_title text =
         `Func begin fun ~x ~y ~width ->
           PDF.set_font ~style:[`Bold] doc;
@@ -348,14 +363,14 @@ let main () = begin
         end;
       in
       let columns = [
-        `A, {PDFTable.col_width = w; col_title = print_title "Column A"};
-        `B, {PDFTable.col_width = w; col_title = print_title "Column B"};
-        `C, {PDFTable.col_width = w; col_title = print_title "Column C"};
-        `D, {PDFTable.col_width = w; col_title = print_title "Column D"};
-        `E, {PDFTable.col_width = w; col_title = print_title "Column E"};
-        `F, {PDFTable.col_width = w; col_title = print_title "Column F"};
-        `G, {PDFTable.col_width = w; col_title = print_title "Column G"};
-        `H, {PDFTable.col_width = w; col_title = print_title "Column H"};
+        `A, {PDFTable.col_width = 12.5; col_title = print_title "Column A"};
+        `B, {PDFTable.col_width = 25.; col_title = print_title "Column B"};
+        `C, {PDFTable.col_width = 12.5; col_title = print_title "Column C"};
+        `D, {PDFTable.col_width = 6.25; col_title = print_title "Column D"};
+        `E, {PDFTable.col_width = 12.5; col_title = print_title "Column E"};
+        `F, {PDFTable.col_width = 12.5; col_title = print_title "Column F"};
+        `G, {PDFTable.col_width = 12.5; col_title = print_title "Column G"};
+        `H, {PDFTable.col_width = 6.25; col_title = print_title "Column H"};
       ] in
       let header_layout = [
         `Node {
@@ -403,6 +418,7 @@ let main () = begin
         ~header_layout
         ~grid_lines:`Vertical
         (*~cellpadding:0.*)
+        (*~rowspacing:5.*)
         ~columns
         ~rows:([
           [|Some "a"; Some "M"; Some "\128"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
@@ -413,7 +429,7 @@ let main () = begin
           PDF.add_page doc;
           PDF.set ~x ~y:(PDF.y doc +. 2.) doc;
         end
-        (*~cell_func*)
+        ~cell_func
         doc;
       (**  *)
       let test_parent = PDFBookmark.add ~text:"TEST" doc in

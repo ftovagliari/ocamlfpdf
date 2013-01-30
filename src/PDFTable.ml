@@ -40,6 +40,10 @@ and image = {
   img_height : int
 }
 
+and cell_func =
+  | Cell_properties of cell_properties
+  | Cell_draw of float * (x:float -> y:float -> width:float -> height:float -> unit)
+
 and column = {
   mutable col_width : float; (* Percent *)
   mutable col_title : header_draw_func;
@@ -160,7 +164,7 @@ let rec list_pos ?(pos=0) ll x = match ll with
   | [] -> raise Not_found
   | a :: b -> if a = x then pos else 1 + (list_pos ~pos b x)
 
-let default_cell_func ~index ~row ~col = {
+let default_cell_func ~index ~row ~col = Cell_properties {
   prop_text       = (match row col with None -> "" | Some x -> x);
   prop_align      = `Center;
   prop_font_style = [];
@@ -282,7 +286,7 @@ let print
   let cont = ref [] in
   List.iter begin fun row ->
     x := !left;
-    let cell_props  = Array.create (Array.length row) {
+    let row_content  = Array.create (Array.length row) (Cell_properties {
       prop_text       = "";
       prop_align      = `Left;
       prop_font_style = [];
@@ -290,22 +294,28 @@ let print
       prop_image      = None;
       prop_bg_color   = None;
       prop_fg_color   = None;
-    } in
+    }) in
     let i = ref 0 in
     let heights = List.map begin fun (tag, col) ->
       try
         let row tag = row.(!! tag) in
         let cell = cell_func ~index:!index ~row ~col:tag in
-        let maxh = match cell.prop_image with
-          | None ->
-            let text_width = PDF.get_string_width cell.prop_text doc in (* Works only with regular font *)
-            let line_height = match cell.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
-            if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
-          | Some image ->
-            let asp = (float image.img_width) /. (float image.img_height) in
-            if col.col_width > 0.0 then col.col_width /. asp else 0.0
+        let maxh =
+          match cell with
+            | Cell_properties properties ->
+              begin
+                match properties.prop_image with
+                  | None ->
+                    let text_width = PDF.get_string_width properties.prop_text doc in (* Works only with regular font *)
+                    let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
+                    if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
+                  | Some image ->
+                    let asp = (float image.img_width) /. (float image.img_height) in
+                    if col.col_width > 0.0 then col.col_width /. asp else 0.0
+              end;
+            | Cell_draw (height, _) -> height
         in
-        cell_props.(!i) <- cell;
+        row_content.(!i) <- cell;
         incr i;
         maxh
       with Not_found -> failwith "PDFTable: no such column"
@@ -333,41 +343,48 @@ let print
     let ys = List.map begin fun (tag, col) ->
       let width = col.col_width in
       if width > 0. then begin
-        let cell = cell_props.(!! tag) in
-        let old_size = PDF.font_size doc in
-        let old_style = PDF.font_style doc in
-        PDF.set_font ~style:cell.prop_font_style ?size:cell.prop_font_size doc;
-        PDF.set ~x:!x ~y:(!y +. cellpadding) doc;
-        let line_height = match cell.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
         begin
-          match cell.prop_image with
-            | None ->
-              let x = PDF.x doc in
-              let y = PDF.y doc in
+          match row_content.(!! tag) with
+            | Cell_properties properties ->
+              let old_size = PDF.font_size doc in
+              let old_style = PDF.font_style doc in
+              PDF.set_font ~style:properties.prop_font_style ?size:properties.prop_font_size doc;
+              PDF.set ~x:!x ~y:(!y +. cellpadding) doc;
+              let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
               begin
-                match cell.prop_bg_color with None -> ()
-                | Some (red, green, blue) ->
-                  PDF.set_fill_color ~red ~green ~blue doc;
-                  PDF.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
+                match properties.prop_image with
+                  | None ->
+                    let x = PDF.x doc in
+                    let y = PDF.y doc in
+                    begin
+                      match properties.prop_bg_color with None -> ()
+                      | Some (red, green, blue) ->
+                        PDF.set_fill_color ~red ~green ~blue doc;
+                        PDF.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
+                    end;
+                    if use_markup then begin
+                      ignore (PDFMarkup.print ~x:(x +. cellpadding) ~y ~width:(width -. 2. *. cellpadding)
+                        ~markup:properties.prop_text doc)
+                    end else begin
+                      PDF.multi_cell ~width:(width -. 2. *. cellpadding)
+                        ~line_height ~align:properties.prop_align ~text:properties.prop_text doc;
+                    end
+                  | Some image ->
+                    let asp = (float image.img_width) /. (float image.img_height) in
+                    PDF.image
+                      ~name:image.img_name
+                      ~data:image.img_data
+                      ~image_width:image.img_width
+                      ~image_height:image.img_height
+                      ~x:!x ~y:!y ~width doc;
+                    PDF.set ~y:(PDF.y doc +. width /. asp) doc
               end;
-              if use_markup then begin
-                ignore (PDFMarkup.print ~x:(x +. cellpadding) ~y ~width:(width -. 2. *. cellpadding)
-                  ~markup:cell.prop_text doc)
-              end else begin
-                PDF.multi_cell ~width:(width -. 2. *. cellpadding)
-                  ~line_height ~align:cell.prop_align ~text:cell.prop_text doc;
-              end
-            | Some image ->
-              let asp = (float image.img_width) /. (float image.img_height) in
-              PDF.image
-                ~name:image.img_name
-                ~data:image.img_data
-                ~image_width:image.img_width
-                ~image_height:image.img_height
-                ~x:!x ~y:!y ~width doc;
-              PDF.set ~y:(PDF.y doc +. width /. asp) doc
+              PDF.set_font ~style:old_style ~size:old_size doc;
+            | Cell_draw (height, func) ->
+              let width = width -. 2. *. cellpadding in
+              func ~x:(!x +. cellpadding) ~y:(!y +. cellpadding) ~width ~height;
+              PDF.set ~y:(!y +. height) doc
         end;
-        PDF.set_font ~style:old_style ~size:old_size doc;
         x := !x +. width;
       end;
       PDF.y doc +. cellpadding +. rowspacing
