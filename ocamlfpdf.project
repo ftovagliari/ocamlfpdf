@@ -18,13 +18,14 @@
       <libs></libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package>unix,str</package>
-      <includes>+xml-light</includes>
+      <package>str,unix,xml-light</package>
+      <includes></includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -59,13 +60,14 @@
       <libs></libs>
       <other_objects></other_objects>
       <files>gtk_pdfmarkup_editor.ml</files>
-      <package>lablgtk2</package>
-      <includes>+xml-light</includes>
+      <package>lablgtk2,xml-light</package>
+      <includes></includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -81,13 +83,14 @@
       <libs></libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package></package>
-      <includes>+xml-light</includes>
+      <package>xml-light</package>
+      <includes></includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -100,16 +103,17 @@
     <target name="test" default="false" id="6">
       <byt>false</byt>
       <opt>true</opt>
-      <libs>xml-light</libs>
+      <libs></libs>
       <other_objects></other_objects>
       <files>tests/test.ml</files>
-      <package>unix,str</package>
-      <includes>+xml-light tests</includes>
+      <package>unix,str,xml-light</package>
+      <includes>tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -139,16 +143,17 @@
     <target name="test-markup-editor" default="false" id="7">
       <byt>false</byt>
       <opt>true</opt>
-      <libs>str xml-light</libs>
+      <libs>str</libs>
       <other_objects></other_objects>
       <files>tests/test_pdfmarkup_editor.ml</files>
-      <package>lablgtk2.auto-init</package>
-      <includes>+xml-light  tests</includes>
+      <package>lablgtk2.auto-init,xml-light</package>
+      <includes>tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -161,16 +166,17 @@
     <target name="test-form" default="false" id="10">
       <byt>false</byt>
       <opt>true</opt>
-      <libs>str xml-light</libs>
+      <libs>str</libs>
       <other_objects></other_objects>
       <files>tests/testForm.ml</files>
-      <package>unix</package>
-      <includes>+xml-light tests</includes>
+      <package>unix,xml-light</package>
+      <includes>tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -193,9 +199,10 @@
       <pp></pp>
       <inline></inline>
       <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
       <cflags></cflags>
       <lflags></lflags>
-      <target_type>Executable</target_type>
+      <target_type>External</target_type>
       <outname></outname>
       <lib_install_path></lib_install_path>
       <external_tasks>
