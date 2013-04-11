@@ -20,6 +20,7 @@
     @param x Absolute abscissa of the upper-left corner.
     @param y Absolute ordinate of the upper-left corner.
     @param width Total width of the box.
+    @param height The height with respect to which the resulting box is vertically aligned.
     @param line_height Height of the line of text.
     @param markup Text with markup.
     @param bgcolor Background color.
@@ -27,6 +28,7 @@
     @param border_color Border color.
     @param border_radius Radius for boxes with rounded corners.
     @param padding Top, right, bottom and left internal padding.
+    @param valign Vertical alignment of the box with respect to [height]. If [height]
     @return The actual width and height of the markup box.
     @raise Failure("invalid_markup") If an error occurs.
 *)
@@ -34,6 +36,7 @@ val print :
   x:float ->
   y:float ->
   width:float ->
+  ?height:float ->
   (*line_height:float ->*)
   markup:string ->
   (*?align:[> `Left ] ->*)
@@ -41,4 +44,5 @@ val print :
   ?border_width:float ->
   ?border_color:string ->
   ?border_radius:float ->
-  ?padding:(float * float * float * float) -> PDF.t -> float * float
+  ?padding:(float * float * float * float) ->
+  ?valign:float -> PDF.t -> float * float

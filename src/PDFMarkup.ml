@@ -450,10 +450,9 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
 ;;
 
 (** print *)
-let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=(0., 0., 0., 0.)) (*?pre*) doc =
+let print ~x ~y ~width ?height ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=(0., 0., 0., 0.)) ?(valign=0.0) (*?pre*) doc =
   let analysis = analyze ~x ~y ~width ~markup ~padding ?border_width doc in
   let width = analysis.width in
-  let height = analysis.height in
   let old_text_color = PDF.text_color doc in
   let old_bgcolor = PDF.fill_color doc in
   let old_draw_color = PDF.draw_color doc in
@@ -462,6 +461,7 @@ let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_rad
   let old_font_size = PDF.font_size doc in
   let old_font_style = PDF.font_style doc in
   let old_font_scale = PDF.font_scale doc in
+  let y = match height with Some h (*when h >= analysis.height*) -> y +. (h -. analysis.height) *. valign | _ -> y in
   begin
     (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = PDFUtil.rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
     (match border_color with None -> () | Some color -> let red, green, blue = PDFUtil.rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
@@ -475,9 +475,10 @@ let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_rad
     in
     (match style with None -> () | Some style ->
       let bw = match border_width with None -> 0. | Some x -> x in
+      (*let height = match height with Some h -> h | _ -> analysis.height in*)
       PDF.rect ~x:(x +. bw /. 2.) ~y ~radius:border_radius
         ~width:(width -. bw)
-        ~height ~style doc);
+        ~height:(analysis.height -. bw) ~style doc);
   end;
   (*(match pre with Some f -> f analysis | _ -> ());*)
   print_text ~x ~y ~width ~padding ~analysis ?border_width doc;

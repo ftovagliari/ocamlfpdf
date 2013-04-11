@@ -136,8 +136,13 @@ let main () = begin
       let x = margin in
       let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
-      let _, height = PDFMarkup.print ~x ~y ~width ~padding:(3., 3., 3., 3.) ~markup
-        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#fff000" ~border_radius:3. doc in
+      let height = height_avail in
+      PDF.set_line_width 1.0 doc;
+      PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
+      let width = width_avail *. 0.85 in
+      let x = x +. (width_avail -. width) /. 2. in
+      let _, height = PDFMarkup.print ~x ~y ~width ~height ~valign:0.5 ~padding:(30., 30., 30., 30.) ~markup
+        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
       PDF.add_page doc;
