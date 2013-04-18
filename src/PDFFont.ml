@@ -23,7 +23,6 @@
 open PDFTypes
 open PDFDocument
 open PDFUtil
-open Image
 open Printf
 
 (** set_font *)

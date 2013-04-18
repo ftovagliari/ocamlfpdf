@@ -12,13 +12,13 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="fpdf" default="true" id="0">
+    <target name="fpdf" default="false" id="0">
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
       <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package>str,unix,xml-light</package>
+      <package>str,unix,xml-light,zip</package>
       <includes></includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -60,7 +60,7 @@
       <libs></libs>
       <other_objects></other_objects>
       <files>gtk_pdfmarkup_editor.ml</files>
-      <package>lablgtk2,xml-light</package>
+      <package>lablgtk2,xml-light,zip</package>
       <includes></includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -100,13 +100,13 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6">
+    <target name="test" default="true" id="6">
       <byt>false</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
       <files>tests/test.ml</files>
-      <package>unix,str,xml-light</package>
+      <package>unix,str,xml-light,zip</package>
       <includes>tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -243,9 +243,55 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
+    <target name="test-compress" default="false" id="12">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs></libs>
+      <other_objects></other_objects>
+      <files>tests/test_compress.ml</files>
+      <package>str,unix,xml-light,zip</package>
+      <includes></includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <cflags></cflags>
+      <lflags></lflags>
+      <target_type>Executable</target_type>
+      <outname>test_compress</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
+    <target name="test-png" default="false" id="14">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs></libs>
+      <other_objects></other_objects>
+      <files>tests/test_png.ml</files>
+      <package>unix,str,xml-light,zip</package>
+      <includes>tests</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <cflags>-w y -g</cflags>
+      <lflags></lflags>
+      <target_type>Executable</target_type>
+      <outname>tests/test-png</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies>0</dependencies>
+    </target>
   </targets>
   <executables>
-    <executable name="Test fpdf" default="true" target_id="6" id="3">
+    <executable name="Test fpdf" default="false" target_id="6" id="3">
       <build_task>&lt;REBUILD&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -265,6 +311,16 @@
       <env replace="false"/>
       <args/>
     </executable>
+    <executable name="Test-compress" default="false" target_id="12" id="7">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false"/>
+      <args/>
+    </executable>
+    <executable name="test-png" default="true" target_id="14" id="8">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false"/>
+      <args/>
+    </executable>
   </executables>
   <build_script filename="build.ml">
     <targets>
@@ -275,6 +331,8 @@
       <target target_id="7" show="true"/>
       <target target_id="10" show="true"/>
       <target target_id="11" show="false"/>
+      <target target_id="12" show="true"/>
+      <target target_id="14" show="true"/>
     </targets>
     <args/>
     <commands>

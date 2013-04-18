@@ -374,8 +374,6 @@ let print
                     PDF.image
                       ~name:image.img_name
                       ~data:image.img_data
-                      ~image_width:image.img_width
-                      ~image_height:image.img_height
                       ~x:!x ~y:!y ~width doc;
                     PDF.set ~y:(PDF.y doc +. width /. asp) doc
               end;

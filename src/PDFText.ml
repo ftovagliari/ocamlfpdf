@@ -24,7 +24,6 @@ open PDFTypes
 open PDFDocument
 open PDFPage
 open PDFUtil
-open Image
 open Printf
 
 (** get_string_width *)

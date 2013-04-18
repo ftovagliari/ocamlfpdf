@@ -22,7 +22,7 @@
 
 open PDFUtil
 open Font
-open Image
+open PDFImages
 open Printf
 
 (** @Deprecated Use module [PDF].  *)

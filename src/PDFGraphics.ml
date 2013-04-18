@@ -22,7 +22,6 @@
 
 open PDFTypes
 open PDFDocument
-open Image
 open Printf
 
 (** draw_color *)
@@ -50,25 +49,21 @@ let set_fill_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
 
 let fill_color doc = doc.fill_color_rgb
 
-(** Images *)
-let find_image name doc =
-  let equals = fun {Image.image_name = name'} -> name' = name in
-  let rec find i = function
-    | a :: b -> if equals a then (i, a) else find (i + 1) b
-    | [] -> raise Not_found
+(** image *)
+let image ~name ~data ~x ~y ?(width=0.) ?(height=0.) ?link doc =
+  let open PDFImages in
+  let info =
+    match PDFImages.Table.find name doc.images with
+      | Some x -> x
+      | None -> begin
+          let info = PDFImages.parse data in
+          info.image_name <- name;
+           PDFImages.Table.add name info doc.images;
+          info
+        end
   in
-  find 1 doc.images
-
-let image ~name ~data ~x ~y ~image_width ~image_height ?(width=0.) ?(height=0.) ?format ?link doc =
-  let index, info =
-    try find_image name doc
-    with Not_found -> begin
-      let info = Image.parse ?format ~width:image_width ~height:image_height name data in
-      doc.images <- info :: doc.images;
-      (List.length doc.images), info
-    end in
-(*    let width, height = swidth, sheight in*)
-    let width, height = match width, height with
+  (*    let width, height = swidth, sheight in*)
+  let width, height = match width, height with
       | 0., 0. -> ((float info.image_width) /. doc.k), ((float info.image_height) /. doc.k)
       | _ -> width, height in
     let width = if width = 0. then height *. (float info.image_width) /. (float info.image_height)
@@ -76,7 +71,7 @@ let image ~name ~data ~x ~y ~image_width ~image_height ?(width=0.) ?(height=0.) 
     let height = if height = 0. then width *. (float info.image_height) /. (float info.image_width)
       else height in
     print_buffer doc "q %f 0 0 %f %f %f cm /I%d Do Q\n" (width *. doc.k) (height *. doc.k)
-      (x *. doc.k) ((doc.h -. (y +. height)) *. doc.k) index;
+      (x *. doc.k) ((doc.h -. (y +. height)) *. doc.k) info.image_index;
     match link with
       | None -> ()
       | Some l -> add_link ~x ~y ~width ~height ~link:l ();;

@@ -22,7 +22,7 @@
 
 open PDFUtil
 open Font
-open Image
+open PDFImages
 open Printf
 open PDFTypes
 open PDFDocument
@@ -131,7 +131,7 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     fonts                 = [];
     font_files            = [];
     diffs                 = [];
-    images                = [];
+    images                = PDFImages.Table.create();
     links                 = [];
     font_family           = Some `Courier;
     font_style            = [];

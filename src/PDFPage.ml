@@ -24,7 +24,7 @@ open PDFTypes
 open PDFDocument
 open PDFFont
 open PDFUtil
-open Image
+open PDFImages
 open Printf
 
 let page_num doc = doc.page

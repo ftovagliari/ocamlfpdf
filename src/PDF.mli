@@ -218,13 +218,12 @@ val rect :
 
 (** {7 Images} *)
 
-(** Put an image in the document.
-  @param name Filename with format [<id>.\{jpg|jpeg|png\}] (for example: {i myimage.jpg}).
-  @param data Supported formats are JPEG (RGB color space) and PNG.
+(** Put an image in the document. Supported formats are JPEG (RGB color space only) and PNG.
+  @param name Unique identifier of the image. If a name is used several times,
+    only the data of the first copy is embedded in the PDF.
+  @param data Image data.
   @param x Abscissa of the upper-left corner.
   @param y Ordinate of the upper-left corner.
-  @param image_width Width of the image in pixels.
-  @param image_height Height of the image in pixels.
   @param width Width of the image in the page in user unit.
   @param height Height of the image in the page in user unit.
   *)
@@ -233,10 +232,8 @@ val image :
   data:string ->
   x:float ->
   y:float ->
-  image_width:int ->
-  image_height:int ->
   ?width:float ->
-  ?height:float -> ?format:string -> ?link:'a -> t -> unit
+  ?height:float -> ?link:'a -> t -> unit
 
 
 (** {6 Miscellaneous Functions} *)

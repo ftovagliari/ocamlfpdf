@@ -23,7 +23,7 @@
 open PDFTypes
 open Printf
 open PDFUtil
-open Image
+open PDFImages
 
 type state = Begin_document | End_page | Begin_page | End_document
 
@@ -89,7 +89,7 @@ and annot = {
   mutable fonts                 : (Font.key * font) list;   (* array of used fonts [(key, font) list] *)
   mutable font_files            : font_file list;           (* array of font files *)
   mutable diffs                 : string list;              (* array of encoding differences *)
-  mutable images                : Image.t list;             (* array of used images *)
+  mutable images                : PDFImages.Table.t;         (* array of used images *)
   mutable links                 : (int * float) list;       (* array of internal links *)
   mutable font_family           : Font.family option;       (* current font family *)
   mutable font_style            : Font.style list;          (* current font style *)
@@ -383,54 +383,81 @@ let print_fonts doc =
   end doc.fonts
 
 let print_images doc =
-  let filter = if doc.compress then "/Filter /FlateDecode " else "" in
+  let open PDFImages in
   (* reset($this->images);
   while(list($file,$info)=each($this->images)) *)
-  let images = (Array.of_list (List.rev doc.images)) in
-  for index = 0 to Array.length images - 1 do
-    let image = images.(index) in
+  let rec print_image image =
     new_obj doc;
     image.image_obj <- doc.current_object_number;
-    print doc "<</Type /XObject\n";
-    print doc "/Subtype /Image\n";
-    print doc "/Width %d\n" image.image_width;
-    print doc "/Height %d\n" image.image_height;
+    print doc "<</Type /XObject /Subtype /Image ";
+    print doc "/Width %d /Height %d " image.image_width image.image_height;
     if image.image_colorspace = "Indexed" then
-      print doc "/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n"
+      print doc "/ColorSpace [/Indexed /DeviceRGB %d %d 0 R] "
         ((String.length image.image_palette) / 3 - 1) (doc.current_object_number + 1)
     else begin
-      print doc "/ColorSpace /%s\n" image.image_colorspace;
-      if image.image_colorspace = "DeviceCMYK" then print doc "/Decode [1 0 1 0 1 0 1 0]\n"
+      print doc "/ColorSpace /%s " image.image_colorspace;
+      if image.image_colorspace = "DeviceCMYK" then print doc "/Decode [1 0 1 0 1 0 1 0] "
     end;
-    print doc "/BitsPerComponent %d\n" image.image_bits;
-    (match image.image_f with Some f -> print doc "/Filter /%s\n" f | _ -> ());
-    (match image.image_params with Some params -> print doc "%s\n" params | _ -> ());
-    (match image.image_trns with Some trns when (List.length trns > 0) ->
-        let trns = List.fold_left (fun acc x -> acc ^ x ^ " " ^ x ^ " " ) "" trns in
+    print doc "/BitsPerComponent %d " image.image_bits;
+    (match image.image_f with Some f -> print doc "/Filter /%s " f | _ -> ());
+    (match image.image_params with Some params -> print doc "/DecodeParms <<%s>> " params | _ -> ());
+    (match image.image_trns with
+      | Some trns when (List.length trns > 0) ->
+        let trns =
+          List.fold_left begin fun acc x ->
+            let x = string_of_int x in
+            acc ^ x ^ " " ^ x ^ " "
+          end "" trns
+        in
         print doc "/Mask [%s]\n" trns
       | _ -> ());
+    if image.image_smask <> None then print doc "/SMask %d 0 R " (doc.current_object_number + 1);
     (* image_data *)
     print doc "/Length %d>>\n" (String.length image.image_data);
     print_stream image.image_data doc;
     image.image_data <- "";
     (*unset($this->images[$file]['data']);*)
     print doc "endobj\n";
+    (* Soft mask *)
+    (match image.image_smask with
+      | Some image_smask ->
+        let dp = sprintf "/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns %d" image.image_width in
+        let smask = {
+          image_width      = image.image_width;
+          image_height     = image.image_height;
+          image_colorspace = "DeviceGray";
+          image_bits       = 8;
+          image_f          = image.image_f;
+          image_params     = Some dp;
+          image_data       = image_smask;
+          image_palette    = "";
+          image_name       = "";
+          image_trns       = None;
+          image_smask      = None;
+          image_obj        = -1;
+          image_index      = -1;
+        } in
+        print_image smask
+      | _ -> ());
     (* Palette *)
     if image.image_colorspace = "Indexed" then begin
       new_obj doc;
+      let filter = if doc.compress then "/Filter /FlateDecode " else "" in
       let pal = if doc.compress then gz_compress image.image_palette else image.image_palette in
       print doc "<<%s/Length %d>>\n" filter (String.length pal);
       print_stream pal doc;
       print doc "endobj\n"
     end
-  done
-
+  in
+  PDFImages.Table.iter print_image doc.images;;
 
 (** print_xobject_dict *)
 let print_xobject_dict doc =
-  Array.iteri begin fun i img ->
-    print doc "/I%d %d 0 R\n" (i + 1) img.image_obj;
-  end (Array.of_list (List.rev doc.images))
+  let i = ref 0 in
+  PDFImages.Table.iter begin fun img ->
+    incr i;
+    print doc "/I%d %d 0 R\n" !i img.image_obj;
+  end doc.images
 
 (** print_resource_dict *)
 let print_resource_dict doc =
