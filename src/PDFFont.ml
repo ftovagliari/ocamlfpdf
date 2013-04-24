@@ -26,7 +26,7 @@ open PDFUtil
 open Printf
 
 (** set_font *)
-let set_font ?family ?(style=([] : Font.style list)) ?size ?scale doc =
+let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space doc =
   let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
   (* Select a font; size given in points. *)
   doc.underline <- List.mem `Underline style;
@@ -58,17 +58,45 @@ let set_font ?family ?(style=([] : Font.style list)) ?size ?scale doc =
     doc.font_size_pt <- size;
     doc.font_size <- size /. doc.k;
     doc.font_scale <- scale;
+    doc.font_char_space <- char_space;
     let current_font = List.assoc fkey doc.fonts in
     doc.current_font <- Some current_font;
     if n_pages doc > 0 then begin
       let font_scale = match doc.font_scale with None -> " 100 Tz" | Some z -> sprintf " %d Tz" z in
-      print_buffer doc "BT /F%d %.2f Tf%s ET\n"
-        current_font.font_index doc.font_size_pt font_scale
+      let font_char_space = match doc.font_char_space with None -> " 0 Tc" | Some z -> sprintf " %f Tc" z in
+      print_buffer doc "BT /F%d %f Tf%s%s ET\n"
+        current_font.font_index doc.font_size_pt font_scale font_char_space
     end
   end;;
+
+(** find_font_index *)
+let find_font_index ?family ?(style=([] : Font.style list)) doc =
+  let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
+  let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
+  if not (PDFDocument.font_exists fkey doc) then begin
+    try
+      (* Check if one of the standard fonts *)
+      let name = Font.get_name fkey in
+      let cw = Font.get_metric fkey in
+      let i = (List.length doc.fonts) + 1 in
+      doc.fonts <- (fkey, {
+        font_index = i;
+        font_type  = Core;
+        font_name  = name;
+        font_up    = -100;
+        font_ut    = 50;
+        font_cw    = cw;
+        font_n     = 0
+      }) :: doc.fonts
+    with Not_found -> failwith ("Undefined font: \"" ^ (Font.string_of_key fkey) ^ "\".")
+  end;
+  let font = List.assoc fkey doc.fonts in
+  font.font_index
+;;
 
 let font_style doc = doc.font_style
 let font_size doc = doc.font_size_pt
 let font_scale doc = doc.font_scale
+let font_char_space doc = doc.font_char_space
 let font_family doc = doc.font_family
 

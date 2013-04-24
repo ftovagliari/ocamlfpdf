@@ -36,7 +36,12 @@ let main () = begin
       let height_image = 50. in
       let dirname = Filename.dirname Sys.executable_name in
 
-      ignore (PDFMarkup.print ~x ~y ~width:300. ~markup:"<span size='300' style='bold'>A</span>" doc);
+      let size = 200. in
+      PDF.set_font ~family:`Times ~size doc;
+      let scale = PDF.scale doc in
+      let width = size /. scale in
+      let height = size /. scale in
+      PDF.text ~x ~y:height ~text:"AB" doc;
 
       let name = "Lena.png" in
       let data = Buffer.contents (PDFUtil.fread (dirname // name)) in

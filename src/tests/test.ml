@@ -39,7 +39,7 @@ let is_fib n =
   in f 0
 
 let markup = "\
-<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20' scale='30'>miglior</span>&nbsp;<span underline='low' bgcolor='#ffff00'>acque</span> alza le vele
+<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20' scale='30'>miglior</span>&nbsp;<span underline='low' char_space='-1.2' bgcolor='#ffff00'>acque</span> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
 
@@ -112,6 +112,7 @@ let main () = begin
       let height_header = 10. +. spacing in
       let width_avail = PDF.page_width doc -. margin *. 2. in
       let height_avail = PDF.page_height doc -. margin *. 2. -. height_header in
+      let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
 
       (** Header *)
       PDF.set_header_func begin fun () ->
@@ -141,7 +142,7 @@ let main () = begin
       PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
-      let _, height = PDFMarkup.print ~x ~y ~width ~height ~valign:0.5 ~padding:(30., 30., 30., 30.) ~markup
+      let _, height = PDFMarkup.print ~x ~y ~width ~padding:(30., 30., 30., 30.) ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
 
       (** Markup and wrap char *)
@@ -282,22 +283,23 @@ let main () = begin
       ignore (PDFBookmark.add ~text:"Images" doc);
       let dirname = Filename.dirname Sys.executable_name in
       let name = "Lena.jpg" in
-      let name = "Lena.png" in
       let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
-      let image_width = 220 in
-      let image_height = 220 in
-      let aspect = (float image_height) /. (float image_width) in
-      let height_image = 50. in
-      let width_image = height_image /. aspect in
-      let x = margin +. (width_avail -. width) /. 2. in
-      let y = margin +. height_header in
-      PDF.image ~x ~y ~name ~data ~height:height_image doc;
-      PDF.set ~x:(x +. width_image +. spacing) ~y doc;
-      let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-        (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
-      PDF.set_font ~family ~size:9. doc;
-      let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
-      PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
+      begin
+        match PDFImages.Jpeg.get_size data with
+          | Some (image_width, image_height) ->
+            let aspect = (float image_height) /. (float image_width) in
+            let height_image = 50. in
+            let width_image = height_image /. aspect in
+            let x = margin +. (width_avail -. width) /. 2. in
+            let y = margin +. height_header in
+            PDF.image ~x ~y ~name ~data ~height:height_image doc;
+            PDF.set ~x:(x +. width_image +. spacing) ~y doc;
+            let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
+                (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
+            PDF.set_font ~family ~size:9. doc;
+            PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
+          | _ -> ()
+      end;
 
       (** PDFTable *)
       PDF.add_page doc;
@@ -305,14 +307,13 @@ let main () = begin
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header +. spacing +. 40. in
       PDF.set_font ~family:`Times ~size:9. doc;
-      ignore (PDFBookmark.add ~text:"PDFTable" ~y:(y -. 10.) doc);
+      ignore (PDFBookmark.add ~text:"PDFTable Example" ~y:(y -. 10.) doc);
       (**  *)
       PDFTable.print ~x:10. ~y
         ~caption:""
         ~grid_lines:`Vertical
         ~width:25.
         ~page_height:height_avail
-        ~line_height
         ~columns:[
           `A, {PDFTable.col_width = 38.; col_title = `Text "A"};
           `B, {PDFTable.col_width = 62.; col_title = `Text "B"};
@@ -380,11 +381,9 @@ let main () = begin
       let header_layout = [
         `Node {
           h_draw = print_title "ABC";
-          h_vertical_line_width = `Thick;
           h_children = [
             `Node {
                h_draw                = print_title "AB";
-               h_vertical_line_width = `Thick;
                h_children            = [`Leaf `A; `Leaf `B];
             };
             `Leaf `C;
@@ -392,20 +391,16 @@ let main () = begin
         };
         `Node {
           h_draw = print_title "DEFG";
-          h_vertical_line_width = `Thin;
           h_children = [
             `Node {
               h_draw = print_title "DE";
-              h_vertical_line_width = `Thin;
               h_children            = [`Leaf `D; `Leaf `E];
             };
             `Node {
               h_draw = print_title "FGH";
-              h_vertical_line_width = `Thin;
               h_children = [
                 `Node {
                   h_draw = print_title "FG";
-                  h_vertical_line_width = `Thin;
                   h_children            = [`Leaf `F; `Leaf `G]
                 };
                 `Leaf `H
@@ -415,11 +410,10 @@ let main () = begin
         }
       ] in
       PDFTable.print ~x ~y
-        ~caption:"PDFTable"
+        ~caption:"PDFTable Example"
         ~width
         ~page_height:height_avail
         ~page_header_height:height_header
-        ~line_height
         ~header_layout
         ~grid_lines:`Vertical
         (*~cellpadding:0.*)

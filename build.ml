@@ -267,34 +267,6 @@ let targets = [
     show                 = true;
   };
   
-  (* 6 *)
-  "Tools", {
-    num                  = 0;
-    id                   = 11;
-    output_name          = "";
-    target_type          = External;
-    compilation_bytecode = true;
-    compilation_native   = false;
-    toplevel_modules     = "";
-    package              = "";
-    search_path          = ""; (* -I *)
-    required_libraries   = "";
-    compiler_flags       = "";
-    linker_flags         = "";
-    thread               = false;
-    vmthread             = false;
-    pp                   = "";
-    inline               = None;
-    nodep                = false;
-    dontlinkdep          = false;
-    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
-    other_objects        = "";
-    external_tasks       = [2; 3; 4];
-    restrictions         = [];
-    dependencies         = [];
-    show                 = false;
-  };
-  
   (* 7 *)
   "test-compress", {
     num                  = 7;
@@ -349,6 +321,62 @@ let targets = [
     restrictions         = [];
     dependencies         = [0];
     show                 = true;
+  };
+  
+  (* 9 *)
+  "test-tabular", {
+    num                  = 9;
+    id                   = 15;
+    output_name          = "tests/test-tabular";
+    target_type          = Executable;
+    compilation_bytecode = false;
+    compilation_native   = true;
+    toplevel_modules     = "tests/test_tabular.ml";
+    package              = "unix,str,xml-light,zip";
+    search_path          = "tests"; (* -I *)
+    required_libraries   = "";
+    compiler_flags       = "-w y -g";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    nodep                = false;
+    dontlinkdep          = false;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [0];
+    show                 = true;
+  };
+  
+  (* 9 *)
+  "Tools", {
+    num                  = 0;
+    id                   = 11;
+    output_name          = "";
+    target_type          = External;
+    compilation_bytecode = true;
+    compilation_native   = false;
+    toplevel_modules     = "";
+    package              = "";
+    search_path          = ""; (* -I *)
+    required_libraries   = "";
+    compiler_flags       = "";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    nodep                = false;
+    dontlinkdep          = false;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [2; 3; 4];
+    restrictions         = [];
+    dependencies         = [];
+    show                 = false;
   };
 ];;
 

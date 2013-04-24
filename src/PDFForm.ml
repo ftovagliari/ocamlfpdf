@@ -224,7 +224,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
         | `Right -> width -. PDFText.get_string_width_gen field.value_ap font font_size -. padding
     in
     (** Appearance object *)
-    let stream = sprintf "%s/Tx BMC q BT /F%d %.2f Tf %s %f %f Td %s Tj ET Q EMC"
+    let stream = sprintf "%s/Tx BMC q BT /F%d %f Tf %s %f %f Td %s Tj ET Q EMC"
       bg_color_ap
       font.font_index font_size
       (sprintf "%s rg" fg_color_ap)
@@ -249,7 +249,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     PDFDocument.print doc "<<";
     PDFDocument.print doc "/AP<</N %d 0 R>>" appearance_obj;
     PDFDocument.print doc "/Type/Annot/Subtype/Widget";
-    PDFDocument.print doc "/Rect [%.2f %.2f %.2f %.2f]" x y (x +. field.width) (y -. field.height);
+    PDFDocument.print doc "/Rect [%f %f %f %f]" x y (x +. field.width) (y -. field.height);
     PDFDocument.print doc "/FT/Tx";
     PDFDocument.print doc "/P %d 0 R" page_obj;
     (match field.alt_name with Some x -> PDFDocument.print doc "/TU(%s)" x | _ -> ());
@@ -271,7 +271,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     PDFDocument.print doc "/V(%s)" (PDFUtil.escape field.value);
     PDFDocument.print doc "/Q %d" (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
     let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
-    PDFDocument.print doc "/DA(/F%d %.2f Tf %s rg)" font.font_index field.font_size fg_color;
+    PDFDocument.print doc "/DA(/F%d %f Tf %s rg)" font.font_index field.font_size fg_color;
     (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
     (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
     print_actions field.actions doc;

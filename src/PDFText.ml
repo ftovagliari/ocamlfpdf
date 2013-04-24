@@ -80,6 +80,11 @@ let cell
     ~width
     ?(height=0.)
     ?(text="")
+    ?font_family
+    ?font_style
+    ?font_size
+    ?font_scale
+    ?char_space
     ?(border : border_part list option)
     ?padding
     ?(ln=(`Right : [`Right | `Next_line | `Bottom]))
@@ -87,6 +92,10 @@ let cell
     ?(fill=false)
     ?(link="")
     doc =
+  let have_font = font_family <> None || font_size <> None in
+  let font_size = match font_size with Some x -> x | _ -> doc.font_size_pt in
+  let font_index = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
+  let have_font = have_font && font_family <> doc.font_family && font_size <> doc.font_size_pt in
   let padding = match padding with None -> doc.c_margin | Some padding -> padding in
   let scale = doc.k in
   if doc.pos_y +. height > doc.pageBreakTrigger && (not doc.inFooter) && (doc.auto_page_break) then begin
@@ -142,13 +151,17 @@ let cell
       | `Left | `Justified -> padding
       | `Center -> (width -. text_width doc) /. 2.
       | `Right -> width -. padding -. text_width doc in
-    if doc.colorFlag then code := !code ^ "q " ^ doc.textColor ^ " ";
-    code := !code ^ (sprintf "BT %f %f Td (%s) Tj ET" ((doc.pos_x +. dx) *. scale)
-      ((doc.h -. posy) *. scale)
-      (escape text));
-    if doc.underline then code := !code ^
-      (" " ^ (do_underline (doc.pos_x +. dx) posy text));
-    if doc.colorFlag then code := !code ^ " Q";
+    let must_push = doc.colorFlag || char_space <> None || font_scale <> None  in
+    if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
+    code := !code ^ (sprintf "BT %f %f Td%s%s%s (%s) Tj ET"
+                       ((doc.pos_x +. dx) *. scale)
+                       ((doc.h -. posy) *. scale)
+                       (if have_font then sprintf " /F%d %f Tf" font_index font_size else "")
+                       (match font_scale with Some x -> sprintf " %d Tz" x | _ -> "")
+                       (match char_space with Some x -> sprintf " %f Tc" x | _ -> "")
+                       (escape text));
+    if doc.underline then code := !code ^ (" " ^ (do_underline (doc.pos_x +. dx) posy text));
+    if must_push then code := !code ^ " Q";
     if (String.length link) > 0 then
       add_link (doc.pos_x +. dx) posy text_width doc.font_size link ();
   end;

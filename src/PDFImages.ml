@@ -21,6 +21,7 @@
 *)
 
 open Printf
+open PDFError
 
 type info = {
   mutable image_name         : string;
@@ -70,8 +71,8 @@ module Jpeg = struct
 
   exception Found of (int * int)
 
-  (** get_size *)
-  let get_size =
+  (** get_dimensions *)
+  let get_dimensions =
     let ff = Char.chr 0xFF in
     let soi_prefix = ['\xFF'; '\xD8'; '\xFF'] in
     fun data ->
@@ -104,38 +105,35 @@ module Jpeg = struct
                         | _ ->
                           i := !i + 2; (* Skip the block marker *)
                           block_length := (int_of_char data.[!i]) * 256 + (int_of_char data.[!i+1]);
-                    end
-                    else raise Exit
+                    end else (raise (Error ((Bad_image_format "JPEG"), "Invalid block")))
                   end
                 done;
-                None
-              with Exit -> None | Found dim -> Some dim
-            end else None (* Not a valid JFIF string *)
-          | _ -> None
-      end else None (* Not a valid SOI header *)
+                raise (Error ((Bad_image_format "JPEG"), ""))
+              with Found dim -> dim
+            end else raise (Error ((Bad_image_format "JPEG"), "Not a valid JFIF string"))
+          | _ -> raise (Error ((Bad_image_format "JPEG"), "Invalid JPEG header"))
+      end else raise (Error ((Bad_image_format "JPEG"), "Not a valid SOI header"))
 
   (** parse *)
   let parse data =
-    match get_size data with
-      | Some (width, height) ->
-        let colsp, bits = "DeviceRGB", 8 in
-        let result       = {
-          image_name       = "";
-          image_index      = -1;
-          image_obj        = -1;
-          image_width      = width;
-          image_height     = height;
-          image_colorspace = colsp;
-          image_bits       = bits;
-          image_f          = Some "DCTDecode";
-          image_palette    = "";
-          image_params     = None;
-          image_trns       = None;
-          image_data       = data;
-          image_smask      = None;
-        } in
-        result
-      | _ -> failwith "Image format is not JPEG"
+    let width, height = get_dimensions data in
+    let colsp, bits = "DeviceRGB", 8 in
+    let result       = {
+      image_name       = "";
+      image_index      = -1;
+      image_obj        = -1;
+      image_width      = width;
+      image_height     = height;
+      image_colorspace = colsp;
+      image_bits       = bits;
+      image_f          = Some "DCTDecode";
+      image_palette    = "";
+      image_params     = None;
+      image_trns       = None;
+      image_data       = data;
+      image_smask      = None;
+    } in
+    result
 end
 
 (** Png *)
@@ -172,9 +170,9 @@ module Png = struct
         let compression_method = int_of_char data.[26] in
         let filter_method      = int_of_char data.[27] in
         let interlace_method   = int_of_char data.[28] in
-        Some (width, height, bit_depth, color_type, compression_method, filter_method, interlace_method)
-      else None
-    with Invalid_argument _ -> None
+        width, height, bit_depth, color_type, compression_method, filter_method, interlace_method
+      else raise (Error ((Bad_image_format "PNG"), "Invalid IHDR"))
+    with Invalid_argument _ -> raise (Error ((Bad_image_format "PNG"), "Invalid IHDR"))
 
   (** iter_chunks *)
   let iter_chunks =
@@ -193,18 +191,18 @@ module Png = struct
             let crc = read_int i in
             f chunk_type chunk_start chunk_size crc
           done
-      with Invalid_argument _ -> invalid_arg "Image format is not PNG"
+      with Invalid_argument _ -> raise (Error ((Bad_image_format "PNG"), ""))
 
   (** parse *)
   let parse data =
     match read_IHDR data with
-      | Some (width, height, bit_depth, color_type, compression_method, filter_method, interlace_method) ->
-        if bit_depth > 8 then invalid_arg "16-bit depth not supported";
+      | width, height, bit_depth, color_type, compression_method, filter_method, interlace_method ->
+        if bit_depth > 8 then raise (Error (Unsupported_16_bit_depth_image, ""));
         let color_space =
           if color_type = 0 || color_type = 4 then "DeviceGray"
           else if color_type = 2 || color_type = 6 then "DeviceRGB"
           else if color_type = 3 then "Indexed"
-          else invalid_arg "Unknown color type"
+          else raise (Error (Unknown_color_type, ""))
         in
         let data_predictor = sprintf "/Predictor 15 /Colors %d /BitsPerComponent %d /Columns %d" (if color_space = "DeviceRGB" then 3 else 1) bit_depth width in
         let info = {
@@ -230,15 +228,15 @@ module Png = struct
             | "tRNS" ->
               let trns = String.sub data i chunk_size in
               info.image_trns <- (
-              if color_type = 0 then Some [Char.code trns.[1]]
-              else if color_type = 2 then Some [Char.code trns.[1]; Char.code trns.[3]; Char.code trns.[5]]
-              else (try Some [String.index trns '\x00'] with Not_found -> None))
+                if color_type = 0 then Some [Char.code trns.[1]]
+                else if color_type = 2 then Some [Char.code trns.[1]; Char.code trns.[3]; Char.code trns.[5]]
+                else (try Some [String.index trns '\x00'] with Not_found -> None))
             | "IDAT" ->
               info.image_data <- info.image_data ^ (String.sub data i chunk_size)
             | "IEND" -> ()
             | _ -> ()
         end data;
-        if color_space = "Indexed" && info.image_palette = "" then invalid_arg "Missing palette";
+        if color_space = "Indexed" && info.image_palette = "" then (raise (Error (Missing_palette, "")));
         if color_type >= 4 then begin
           info.image_data <- PDFUtil.gz_uncompress info.image_data;
           let len = (if color_type = 4 then 2 else 4) * info.image_width in
@@ -262,21 +260,32 @@ module Png = struct
           info.image_smask <- Some (PDFUtil.gz_compress (Buffer.contents alpha));
         end;
         info
-      | _ -> invalid_arg "Image format is not PNG"
 end
 
 (** parse *)
 let parse data =
-  match Png.read_IHDR data with
-    | None ->
-      begin
-        match Jpeg.get_size data with
-          | None -> failwith ("Unsupported image format.")
-          | _ -> Jpeg.parse data
-      end;
-    | _ -> Png.parse data
+  try
+    ignore (Png.read_IHDR data);
+    Png.parse data
+  with Error ((Bad_image_format "PNG"), _) ->
+    begin
+      try
+        ignore (Jpeg.get_dimensions data);
+        Jpeg.parse data
+      with Error ((Bad_image_format "JPEG"), _) ->
+        raise (Error (Unsupported_image_format, ""))
+    end;;
 
-
+(** get_dimensions *)
+let get_dimensions data =
+  try
+    let w, h, _, _, _, _, _ = Png.read_IHDR data in w, h
+  with Error ((Bad_image_format "PNG"), _) ->
+    begin
+      try Jpeg.get_dimensions data
+      with Error ((Bad_image_format "JPEG"), _) ->
+        raise (Error (Unsupported_image_format, ""))
+    end;
 
 
 

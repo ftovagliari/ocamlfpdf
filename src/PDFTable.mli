@@ -31,8 +31,8 @@ type cell_func =
   | Cell_draw of float * (x:float -> y:float -> width:float -> height:float -> unit)
     (** The first element of the pair is the height that the function will use.
         The function receives as arguments [x] and [y] coordinates of the upper left
-        corner of the cell and [width] and [height] available. The
-        height is the same value specified in the first element of the pair. *)
+        corner of the cell and [width] and [height] available ([height] is the same
+        value specified in the first element of the pair). *)
 
 (** Properties for cell's style. *)
 and cell_properties = {
@@ -67,21 +67,19 @@ and 'a tree = [
 
 (** Informations associated to a node. *)
 and 'a node = {
-  h_vertical_line_width : thickness; (** Undocumented. *)
   h_draw                : header_draw_func; (** Function to draw the header group content. *)
   h_children            : 'a tree list; (** Subtree. *)
 }
 
 and header_draw_func = [`Text of string | `Func of (x:float -> y:float -> width:float -> float)]
 
-and thickness = [`Thin | `Thick ]
+and thickness = [`Thin | `Medium | `Thick ]
 
 (** Table layout with automatic page break.
   @param x Absolute abscissa of the upper-left corner.
   @param y Absolute ordinate of the upper-left corner.
   @param width Width of the table
   @param page_height Available height in the page body.
-  @param line_height Height of the line of text.
   @param columns Columns description. The first element of the pairs is a user defined column identifier.
   @param rows The list of rows.
   @param header_layout Layout definition of the table header.
@@ -91,6 +89,7 @@ and thickness = [`Thin | `Thick ]
   @param page_header_height Height of the page header.
   @param page_break_func Function called when a page break occurs.
   @param cellpadding Extra space to put around cell contents.
+  @param line_spacing Line spacing (default is [1.0]).
   @param cell_func Function applied to every single cell of the table to draw its content or set style properties.
          The [cell_func] returned is applied to the cell identified by [index] and [col],
          where [index] is the general row index starting from zero and
@@ -104,7 +103,6 @@ val print :
   y:float ->
   width:float ->
   page_height:float ->
-  line_height:float ->
   columns:('a column_id * column) list ->
   rows:string option array list ->
   ?header_layout:('a tree list) ->
@@ -115,6 +113,7 @@ val print :
   ?page_break_func:(unit -> unit) ->
   ?cellpadding:float ->
   ?rowspacing:float ->
+  ?line_spacing:float ->
   ?cell_func:(index:int ->
               row:('a column_id -> string option) -> col:('a column_id) -> cell_func) ->
   ?use_markup:bool ->

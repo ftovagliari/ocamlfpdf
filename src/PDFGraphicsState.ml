@@ -33,7 +33,7 @@ let linejoin_of_int = function 0 -> `Miter | 1 -> `Round | 2 -> `Bevel | _ -> as
 (** line_width *)
 let set_line_width width doc =
   doc.line_width <- width;
-  if doc.page >= 0 then (print_buffer doc "%.2f w\n" (width *. doc.k))
+  if doc.page >= 0 then (print_buffer doc "%f w\n" (width *. doc.k))
 
 let line_width doc = doc.line_width
 
@@ -60,6 +60,6 @@ let set_line_dash pattern ?(phase=0) doc =
 let line_dash doc = doc.line_dash
 
 (** Graphics state stack *)
-let push doc = if doc.page >= 0 then (print_buffer doc "q\n")
+let push doc = if doc.page >= 0 then (print_buffer doc "q ")
 
-let pop doc = if doc.page >= 0 then (print_buffer doc "Q\n")
+let pop doc = if doc.page >= 0 then (print_buffer doc "Q ")

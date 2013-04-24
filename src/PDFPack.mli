@@ -31,7 +31,7 @@
     @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (for debugging purposes).
+    @param border Draw a red border around the container (for debug purposes).
   *)
 class hbox :
   x:float ->
@@ -76,7 +76,7 @@ class hbox :
     @param height Height of the container.
     @param spacing The amount of space between children.
     @param padding Extra space to put between the child and its neighbors.
-    @param border Draw a red border around the container (for debugging purposes).
+    @param border Draw a red border around the container (for debug purposes).
 *)
 class vbox :
   x:float ->

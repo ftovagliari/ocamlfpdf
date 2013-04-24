@@ -116,7 +116,7 @@ let create doc =
         if i >= 0 && i < last then begin
           PDFDocument.print doc "/Next %d 0 R " (PDFDocument.current_object_number doc + tree_length node.children + 1);
         end;
-        PDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %.2f null] " (List.nth (List.rev doc.pages) node.page).pg_obj node.y;
+        PDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %f null] " (List.nth (List.rev doc.pages) node.page).pg_obj node.y;
         PDFDocument.print doc "/Count 0>>";
         PDFDocument.print doc "endobj\n";
         prev_sibling := (level, node) :: !prev_sibling;

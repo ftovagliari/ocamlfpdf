@@ -62,7 +62,7 @@ let add_page ?orientation doc =
   let restore (lw, dc, fc, tc, cf) =
     if doc.line_width <> lw then begin
       doc.line_width <- lw;
-      print_buffer doc "%.2f w\n" (lw *. doc.k);
+      print_buffer doc "%f w\n" (lw *. doc.k);
     end;
     may ~f:(fun family -> set_font ~family ~style ~size doc) family;
     if doc.drawColor <> dc then begin

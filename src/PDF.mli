@@ -123,11 +123,12 @@ val set : ?x:float -> ?y:float -> t -> unit
 val font_style : t -> Font.style list
 val font_size : t -> float
 val font_scale : t -> int option
+val font_char_space : t -> float option
 val font_family : t -> Font.family option
 val set_font :
   ?family:Font.family ->
   ?style:Font.style list ->
-  ?size:float -> ?scale:int -> t -> unit
+  ?size:float -> ?scale:int -> ?char_space:float -> t -> unit
 val set_text_color : red:int -> ?green:int -> ?blue:int -> t -> unit
 val text_color : t -> int * int * int
 val fill_color : t -> int * int * int
@@ -150,6 +151,11 @@ val cell :
   width:float ->
   ?height:float ->
   ?text:string ->
+  ?font_family:Font.family ->
+  ?font_style:Font.style list ->
+  ?font_size:float ->
+  ?font_scale:int ->
+  ?char_space:float ->
   ?border:border_part list ->
   ?padding:float ->
   ?ln:[ `Bottom | `Next_line | `Right ] ->
@@ -163,6 +169,9 @@ val write :
 val text : x:float -> y:float -> text:string -> t -> unit
 
 val newline : ?height:float -> t -> unit
+
+(** Return the width of a string in user units computed with the current font. *)
+val get_string_width : string -> t -> float
 
 
 (** {6 Graphics} *)
@@ -226,6 +235,9 @@ val rect :
   @param y Ordinate of the upper-left corner.
   @param width Width of the image in the page in user unit.
   @param height Height of the image in the page in user unit.
+  @raise Error(Unsupported_image_format) [ ]
+  @raise Error(Missing_palette) [ ]
+  @raise Error(Unsupported_16_bit_depth_image) [ ]
   *)
 val image :
   name:string ->
@@ -236,8 +248,10 @@ val image :
   ?height:float -> ?link:'a -> t -> unit
 
 
-(** {6 Miscellaneous Functions} *)
+(** Return width and height of an image data. Supported formats are JPEG and PNG.
+  @raise Error(Unsupported_image_format) [ ]
+  *)
+val get_image_dimensions : string -> int * int
 
-(** Return the width of a string in user units computed with the current font. *)
-val get_string_width : string -> t -> float
+
 

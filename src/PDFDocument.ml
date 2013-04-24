@@ -98,6 +98,7 @@ and annot = {
   mutable font_size_pt          : float;                    (* current font size in points *)
   mutable font_size             : float;                    (* current font size in user unit *)
   mutable font_scale            : int option;               (* current font scale *)
+  mutable font_char_space       : float option;             (* current char space *)
   mutable drawColor             : string;                   (* commands for drawing color *)
   mutable fillColor             : string;                   (* commands for filling color *)
   mutable textColor             : string;                   (* commands for text color *)
@@ -253,7 +254,7 @@ let print_pages doc =
     page.pg_obj <- doc.current_object_number;
     print doc "<</Type /Page ";
     print doc "/Parent 1 0 R ";
-    if page.pg_change_orientation then print doc "/MediaBox [0 0 %.2f %.2f] " h_pt w_pt;
+    if page.pg_change_orientation then print doc "/MediaBox [0 0 %f %f] " h_pt w_pt;
     print doc "/Resources 2 0 R ";
     if page.pg_annots.annot_obj <> [] then begin
       print doc "/Annots [ %s ] " (String.concat " " (List.map (sprintf "%d 0 R") page.pg_annots.annot_obj))
@@ -275,7 +276,7 @@ let print_pages doc =
   print doc "<</Type /Pages ";
   print doc "/Kids [ %s ] " (String.concat " " (List.map (fun page -> sprintf "%d 0 R" page.pg_obj) (List.rev doc.pages)));
   print doc "/Count %d " (nb + 1);
-  print doc "/MediaBox [0 0 %.2f %.2f] " w_pt h_pt;
+  print doc "/MediaBox [0 0 %f %f] " w_pt h_pt;
   print doc ">>endobj\n"
 
 let get_font_path () = failwith "get_font_path" (*"../fpdf153/font"*)

@@ -21,11 +21,13 @@
 *)
 
 open Printf
+open PDFError
 
 type analysis = {
   mutable width                          : float;
   mutable height                         : float;
   mutable paragraphs                     : paragraph list;
+  mutable print                          : x:float -> y:float -> ?valign:(float * float) -> unit -> unit;
 }
 
 and cell = {
@@ -54,6 +56,7 @@ and attributes = {
   mutable style                          : Font.style list;
   mutable size                           : float;
   mutable scale                          : float option;
+  mutable char_space                     : float option;
   mutable underline                      : [`NONE | `SINGLE | `LOW ];
   mutable color                          : string;
   mutable bgcolor                        : string option;
@@ -82,15 +85,15 @@ let underline_of_string name =
     | "none" -> `NONE
     | "single" -> `SINGLE
     | "low" -> `LOW
-    | _ -> invalid_arg "PDFMarkup.underline_of_string";;
+    | _ -> raise (Error (Invalid_markup, "underline_of_string"));;
 
 let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re;;
 
-let char_width ~family ~style ~size ~scale ?(text_scale=1.) =
+let char_width ~family ~style ~size ~scale ?(char_space=0.) ?(text_scale=1.) =
   let key = Font.key_of_font style family  in
   let f = Font.get_metric key in
   function '\n' -> 0.0 | x ->
-    (((float (f x)) /. 1000.) *. size /. scale) *. text_scale ;;
+    ((((float (f x)) /. 1000.) *. size +. char_space) /. scale) *. text_scale ;;
 
 let find_word_bound_backward, find_word_bound_forward =
   let blanks = Str.regexp "[- \r\n\t]" in
@@ -117,15 +120,16 @@ let default_family doc = match PDF.font_family doc with Some x -> x | _ -> `Cour
 (** markup_to_blocks *)
 let markup_to_blocks ~markup doc =
   let attr doc = {
-    family    = (default_family doc);
-    style     = [];
-    size      = PDF.font_size doc;
-    scale     = None;
-    underline = `NONE;
-    color     = (PDFUtil.hex_of_rgb (PDF.text_color doc));
-    bgcolor   = None;
-    align     = 0.0;
-    line_spacing = 0.0;
+    family       = (default_family doc);
+    style        = [];
+    size         = PDF.font_size doc;
+    scale        = None;
+    char_space   = None;
+    underline    = `NONE;
+    color        = (PDFUtil.hex_of_rgb (PDF.text_color doc));
+    bgcolor      = None;
+    align        = 0.0;
+    line_spacing = 1.0;
   } in
   let cell ~text ~attr ~par = {text=text; attr=attr; cell_width=0.0; cell_height=0.0; par=par; line=0} in
   let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
@@ -149,16 +153,17 @@ let markup_to_blocks ~markup doc =
     | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
       newline ()
     | Xml.Element (tag, attrs, children) when (String.uppercase tag) = "SPAN" ->
-      let attr = {
-        family    = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family doc);
-        style     = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> []);
-        size      = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
-        scale     = (try Some (float_of_string (List.assoc "scale" attrs) /. 100.) with Not_found -> None);
-        underline = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
-        color     = (try List.assoc "color" attrs with Not_found -> PDFUtil.hex_of_rgb (PDF.text_color doc));
-        bgcolor   = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
-        align     = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
-        line_spacing = (try float_of_string (List.assoc "line_spacing" attrs) with Not_found -> 0.0);
+      let attr     = {
+        family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family doc);
+        style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> []);
+        size         = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
+        scale        = (try Some (float_of_string (List.assoc "scale" attrs) /. 100.) with Not_found -> None);
+        char_space   = (try Some (float_of_string (List.assoc "char_space" attrs)) with Not_found -> None);
+        underline    = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
+        color        = (try List.assoc "color" attrs with Not_found -> PDFUtil.hex_of_rgb (PDF.text_color doc));
+        bgcolor      = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
+        align        = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
+        line_spacing = (try float_of_string (List.assoc "line_spacing" attrs) with Not_found -> 1.0);
       } in
       begin
         match children with
@@ -172,11 +177,11 @@ let markup_to_blocks ~markup doc =
                 cells := cell :: !cells;
               | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
                 newline ()
-              | _ -> invalid_arg "markup"
+              | _ -> raise (Error (Invalid_markup, ""))
             end children
       end;
     | Xml.Element (tag, _, []) -> ()
-    | _ -> invalid_arg "markup"
+    | _ -> raise (Error (Invalid_markup, ""))
   end xml;
   List.rev !cells
 ;;
@@ -258,10 +263,11 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
     let avail_width = ref width0 in
     first_block := true;
     List.rev (List.fold_left begin fun acc block ->
-      block.cell_height <- block.attr.size /. scale +. block.attr.line_spacing;
+      block.cell_height <- block.attr.size /. scale *. block.attr.line_spacing;
       let family = block.attr.family in
       let text_scale = block.attr.scale in
-      let cw = char_width ~family ~style:block.attr.style ~size:block.attr.size ~scale ?text_scale in
+      let char_space = block.attr.char_space in
+      let cw = char_width ~family ~style:block.attr.style ~size:block.attr.size ~scale ?char_space ?text_scale in
       (*Printf.printf ">>> %5.2f %5.2f %S\n%!" block.attr.size !avail_width block.text;*)
       let chunks =
         try split_text_by_width ~widths:[!avail_width; width0] ~cw ~can_wrap_char:!first_block block.text
@@ -301,8 +307,8 @@ let struct_by_paragraphs paragraphs = List.map begin fun lines -> {
 (** set_line_numbers *)
 let set_line_numbers ~paragraphs ~avail_width =
   let current_line = ref 0 in
-  let current_width = ref 0.0 in
   List.iter begin fun paragraph ->
+    let current_width = ref 0.0 in
     List.iter begin fun cell ->
       if !current_width +. cell.cell_width >= avail_width then begin
         current_width := cell.cell_width;
@@ -367,12 +373,12 @@ let draw_underline ~x ~y ~cell doc =
       PDF.line
         ~x1:(x +. uw /. 2.) ~y1:y
         ~x2:(x +. cell.cell_width -. uw /. 2.) ~y2:y doc;
-  PDF.set_line_width old doc;
-  PDF.set_draw_color ~red:r ~green:g ~blue:b doc
+      PDF.set_line_width old doc;
+      PDF.set_draw_color ~red:r ~green:g ~blue:b doc
 ;;
 
 (** analyze *)
-let analyze ~x ~y ~width ~markup ?(padding=(0., 0., 0., 0.)) ?(border_width=0.) doc =
+let analyze ~width ~markup ?(padding=(0., 0., 0., 0.)) ?(border_width=0.) doc =
   let pad_top, pad_right, pad_bottom, pad_left = padding in
   let avail_width = width -. pad_left -. pad_right -. 2. *. border_width in
   let blocks = markup_to_blocks ~markup doc in
@@ -385,23 +391,24 @@ let analyze ~x ~y ~width ~markup ?(padding=(0., 0., 0., 0.)) ?(border_width=0.) 
   set_paragraph_align paragraphs;
   let overall_height = set_paragraph_line_spacing paragraphs in
   (*(* Print debug info *)
-  List.iter begin fun {paragraph_lines=lines} ->
-    List.iter begin function {line_width=line_width; line_cells=cells} ->
+  List.iter begin fun {paragraph_lines; _} ->
+    List.iter begin function {line_width; line_cells; _} ->
       List.iter begin fun cell ->
         Printf.printf "%5.2f {w=%6.2f; h=%5.2f; color=% 7s; l=%2d; p=%2d; text=%S}\n%!"
           line_width
           cell.cell_width cell.cell_height
           cell.attr.color cell.line cell.par cell.text;
-      end cells;
+      end line_cells;
       (*Printf.printf "\n%!" ;*)
-    end lines;
-    Printf.printf "======== %5.2f ========\n%!" width0;
+    end paragraph_lines;
+    Printf.printf "======== %5.2f ========\n%!" width;
   end paragraphs;*)
   (* Return analysis *)
   {
     width      = width;
     height     = (overall_height +. pad_top +. pad_bottom +. 2. *. border_width);
-    paragraphs = paragraphs
+    paragraphs = paragraphs;
+    print      = fun ~x ~y ?valign () -> ();
   }
 ;;
 
@@ -426,7 +433,7 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
     paragraph_line_spacing = paragraph_line_spacing;
     paragraph_lines        = lines
   } ->
-    List.iter begin function {line_width=line_width; line_height=line_height; line_cells=cells} ->
+    List.iter begin function {line_width; line_height; line_cells=cells} ->
       x := x0 +. (width -. line_width) *. paragraph_align;
       y := !y +. line_height +. paragraph_line_spacing;
       List.iter begin fun cell ->
@@ -434,14 +441,15 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
           let text = cell.text in
           let red, green, blue = PDFUtil.rgb_of_hex cell.attr.color in
           PDF.set_text_color ~red ~green ~blue doc;
-          let old_font_scale = PDF.font_scale doc in
           let hscaling = match cell.attr.scale with Some z -> Some (int_of_float (z *. 100.)) | _ -> None in
-          PDF.set_font ~family:cell.attr.family ~style:cell.attr.style
-            ~size:cell.attr.size ?scale:hscaling doc;
+          PDF.set_font ~family:cell.attr.family ~style:cell.attr.style doc;
           PDF.set ~x:!x ~y:!y doc;
-          PDF.cell ~width:cell.cell_width ~fill:false ~padding:0. ~text (*~height:3.0 ~border:[`All]*) doc;
-          PDF.set_font ?scale:old_font_scale doc;
-          draw_underline ~x:!x ~y:!y ~cell doc;
+          PDF.cell ~width:cell.cell_width ~fill:false ~padding:0.
+            ~font_size:cell.attr.size
+            ?font_scale:hscaling
+            ?char_space:cell.attr.char_space
+            ~text (*~height:3.0 ~border:[`All]*) doc;
+          if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:!y ~cell doc);
           x := !x +. cell.cell_width;
         end;
       end cells;
@@ -449,48 +457,58 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
   end analysis.paragraphs;
 ;;
 
-(** print *)
-let print ~x ~y ~width ?height ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=(0., 0., 0., 0.)) ?(valign=0.0) (*?pre*) doc =
-  let analysis = analyze ~x ~y ~width ~markup ~padding ?border_width doc in
-  let width = analysis.width in
-  let old_text_color = PDF.text_color doc in
-  let old_bgcolor = PDF.fill_color doc in
-  let old_draw_color = PDF.draw_color doc in
-  let old_line_width = PDF.line_width doc in
-  let old_font_family = PDF.font_family doc in
-  let old_font_size = PDF.font_size doc in
-  let old_font_style = PDF.font_style doc in
-  let old_font_scale = PDF.font_scale doc in
-  let y = match height with Some h (*when h >= analysis.height*) -> y +. (h -. analysis.height) *. valign | _ -> y in
-  begin
-    (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = PDFUtil.rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
-    (match border_color with None -> () | Some color -> let red, green, blue = PDFUtil.rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
-    (match border_width with None -> () | Some line_width -> PDF.set_line_width line_width doc);
-    let style = match bgcolor, (border_color, border_width) with
-      | None, (None, None) -> None
-      | (Some _), (None, None) -> Some `Fill
-      | None, (a, b) when a <> None || b <> None -> Some `Outline
-      | (Some _), (a, b) when a <> None || b <> None -> Some `Both
-      | _ -> assert false
-    in
-    (match style with None -> () | Some style ->
-      let bw = match border_width with None -> 0. | Some x -> x in
-      (*let height = match height with Some h -> h | _ -> analysis.height in*)
-      PDF.rect ~x:(x +. bw /. 2.) ~y ~radius:border_radius
-        ~width:(width -. bw)
-        ~height:(analysis.height -. bw) ~style doc);
+(** prepare *)
+let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=(0., 0., 0., 0.)) (*?pre*) doc =
+  let analysis = analyze ~width ~markup ~padding ?border_width doc in
+  analysis.print <- begin fun ~x ~y ?valign () ->
+    let width = analysis.width in
+    let old_text_color = PDF.text_color doc in
+    let old_bgcolor = PDF.fill_color doc in
+    let old_draw_color = PDF.draw_color doc in
+    let old_font_family = PDF.font_family doc in
+    let old_font_size = PDF.font_size doc in
+    let old_font_style = PDF.font_style doc in
+    let old_font_scale = PDF.font_scale doc in
+    let y = match valign with Some (h, valign) -> y +. (h -. analysis.height) *. valign | _ -> y in
+    begin
+      (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = PDFUtil.rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
+      (match border_color with None -> () | Some color -> let red, green, blue = PDFUtil.rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
+      begin match border_width with None -> () | Some line_width ->
+        PDFGraphicsState.push doc;
+        PDF.set_line_width line_width doc
+      end;
+      let style = match bgcolor, (border_color, border_width) with
+        | None, (None, None) -> None
+        | (Some _), (None, None) -> Some `Fill
+        | None, (a, b) when a <> None || b <> None -> Some `Outline
+        | (Some _), (a, b) when a <> None || b <> None -> Some `Both
+        | _ -> assert false
+      in
+      (match style with None -> () | Some style ->
+        let bw = match border_width with None -> 0. | Some x -> x in
+        (*let height = match height with Some h -> h | _ -> analysis.height in*)
+        PDF.rect ~x:(x +. bw /. 2.) ~y ~radius:border_radius
+          ~width:(width -. bw)
+          ~height:(analysis.height -. bw) ~style doc);
+    end;
+    (*(match pre with Some f -> f analysis | _ -> ());*)
+    print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
+    if PDF.text_color doc <> old_text_color then (let red, green, blue = old_text_color in PDF.set_text_color ~red ~green ~blue doc);
+    if PDF.fill_color doc <> old_bgcolor then (let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
+    if PDF.draw_color doc <> old_draw_color then (let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc);
+    PDF.set_font ?family:old_font_family ~size:old_font_size ?scale:old_font_scale ~style:old_font_style doc;
+    if border_width <> None then (PDFGraphicsState.pop doc)
   end;
-  (*(match pre with Some f -> f analysis | _ -> ());*)
-  print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
-  let red, green, blue = old_text_color in PDF.set_text_color ~red ~green ~blue doc;
-  let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc;
-  let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc;
-  PDF.set_font ?family:old_font_family ~size:old_font_size ?scale:old_font_scale ~style:old_font_style doc;
-  PDF.set_line_width old_line_width doc;
-  analysis.width, analysis.height
+  analysis
 ;;
 
 
-
+(** print
+    @Deprecated
+*)
+let print ~x ~y ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=0.) ?(padding=(0., 0., 0., 0.)) doc =
+  let analysis = prepare ~width ~markup ?bgcolor ?border_width ?border_color ~border_radius ~padding doc in
+  analysis.print ~x ~y ();
+  analysis.width, analysis.height;;
 
 
