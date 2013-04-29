@@ -39,11 +39,11 @@ let is_fib n =
   in f 0
 
 let markup = "\
-<span>Per correr </span><span underline='single' bgcolor='#ffff00' size='20' scale='30'>miglior</span>&nbsp;<span underline='low' char_space='-1.2' bgcolor='#ffff00'>acque</span> alza le vele
+<SPAN>Per correr </SPAN><SPAN underline='single'>miglior</SPAN><SPAN> </SPAN><SPAN underline='low'>acque</SPAN><SPAN> alza le vele
 omai la navicella del mio ingegno,
-che lascia dietro a s\xE9 mar s\xEC crudele; <SPAN color='#0000FF' size='7'>3</SPAN>
+che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='7'>3</SPAN>
 
-<SPAN style='italic,bold'>e canter\xF2 di quel secondo regno
+<SPAN style='italic,bold'>e canter\xF2 di quel </SPAN><SPAN scale='30'>secondo regno</SPAN><SPAN style='italic,bold'>
 dove l\xB4umano spirito si purga
 e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
 
@@ -64,18 +64,18 @@ tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
 
 let markup2 = "\
-<SPAN size='30'>The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
+<SPAN size='30'>\192The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
 
 
 Foreword
 
 This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
 It lists the language constructs, and gives their precise syntax and informal semantics. \
-It is by         no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
+It is by no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
 A good working knowledge of Caml is assumed.
 
 No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>consequence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
+meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>cons{\192}equence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
 out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
@@ -86,6 +86,10 @@ in typewriter font (like this). Non-terminal symbols are set in italic font (lik
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
 denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
+
+(*let markup2 = "\
+<SPAN size='10'>{\192}This document is intended as a </SPAN><SPAN size='7'>refgerence manual</SPAN><SPAN size='10' underline='low'> {\192}for the </SPAN><SPAN size='30'>{\192}Objective</SPAN><SPAN size='10'> Caml language</SPAN>\
+";;*)
 
 
 let main () = begin
@@ -142,8 +146,9 @@ let main () = begin
       PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
-      let _, height = PDFMarkup.print ~x ~y ~width ~padding:(30., 30., 30., 30.) ~markup
+      let markup = PDFMarkup.prepare ~width (*~padding:(30., 30., 30., 30.)*) ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
+      markup.PDFMarkup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
       (** Markup and wrap char *)
       PDF.add_page doc;
@@ -153,8 +158,9 @@ let main () = begin
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
       PDF.set_font ~family:`Times ~size:12. doc;
-      let _, _ = PDFMarkup.print ~x ~y ~width:(width/.2.) (*~line_height*) ~padding:(5.,5.,5.,5.) ~markup
+      let markup = PDFMarkup.prepare ~width:(width/.2.) (*~line_height*) (*~padding:(5.,5.,5.,5.)*) ~markup
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
+      markup.PDFMarkup.print ~x ~y ();
 
       (** Markup and wrap char *)
       PDF.add_page doc;
@@ -163,9 +169,9 @@ let main () = begin
       let y = margin +. height_header *. 5. /. 3. in
       PDF.set_font ~family:`Times ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
-      let width = (*50.*) width_avail /. 5. *. 3. +. 0.5 in
+      let width = (*50.*) width_avail (*/. 5. *. 3. +. 0.5 *)in
       let _, _ = PDFMarkup.print ~x ~y ~width ~markup:markup2
-        ~bgcolor:"#fff0f0" (*~padding:2. ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc in
+        ~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3. doc in
 
       (** Graphics *)
       PDF.add_page doc;
@@ -284,22 +290,18 @@ let main () = begin
       let dirname = Filename.dirname Sys.executable_name in
       let name = "Lena.jpg" in
       let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
-      begin
-        match PDFImages.Jpeg.get_size data with
-          | Some (image_width, image_height) ->
-            let aspect = (float image_height) /. (float image_width) in
-            let height_image = 50. in
-            let width_image = height_image /. aspect in
-            let x = margin +. (width_avail -. width) /. 2. in
-            let y = margin +. height_header in
-            PDF.image ~x ~y ~name ~data ~height:height_image doc;
-            PDF.set ~x:(x +. width_image +. spacing) ~y doc;
-            let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-                (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
-            PDF.set_font ~family ~size:9. doc;
-            PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
-          | _ -> ()
-      end;
+      let image_width, image_height = PDFImages.Jpeg.get_dimensions data in
+      let aspect = (float image_height) /. (float image_width) in
+      let height_image = 50. in
+      let width_image = height_image /. aspect in
+      let x = margin +. (width_avail -. width) /. 2. in
+      let y = margin +. height_header in
+      PDF.image ~x ~y ~name ~data ~height:height_image doc;
+      PDF.set ~x:(x +. width_image +. spacing) ~y doc;
+      let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
+          (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
+      PDF.set_font ~family ~size:9. doc;
+      PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 
       (** PDFTable *)
       PDF.add_page doc;
@@ -462,4 +464,4 @@ let main () = begin
   else ignore (kprintf Sys.command "xpdf %s" filename)
 end
 
-let _ = main ()
+let _ = PDFError.handle_error main ()

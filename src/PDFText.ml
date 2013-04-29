@@ -26,6 +26,8 @@ open PDFPage
 open PDFUtil
 open Printf
 
+let font_height = 1.125 (* 1.125 *)
+
 (** get_string_width *)
 let get_string_width s doc =
   let font = match doc.current_font with
@@ -78,13 +80,14 @@ let newline ?height doc =
 
 let cell
     ~width
-    ?(height=0.)
+    ?height
     ?(text="")
     ?font_family
     ?font_style
     ?font_size
     ?font_scale
     ?char_space
+    ?rise
     ?(border : border_part list option)
     ?padding
     ?(ln=(`Right : [`Right | `Next_line | `Bottom]))
@@ -92,12 +95,17 @@ let cell
     ?(fill=false)
     ?(link="")
     doc =
-  let have_font = font_family <> None || font_size <> None in
-  let font_size = match font_size with Some x -> x | _ -> doc.font_size_pt in
-  let font_index = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
-  let have_font = have_font && font_family <> doc.font_family && font_size <> doc.font_size_pt in
-  let padding = match padding with None -> doc.c_margin | Some padding -> padding in
-  let scale = doc.k in
+  let have_font          = font_family <> None || font_size <> None || font_style <> None in
+  let font_size          = match font_size with Some x -> x | _ -> doc.font_size_pt in
+  let font_index         = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
+  let have_font          = have_font && (font_family <> doc.font_family || font_size <> doc.font_size_pt) in
+  let padding            = match padding with None -> 0.0 (*doc.c_margin*) | Some padding -> padding in
+  let scale              = doc.k in
+  let extra_top_space    = font_size /. scale *. 0.1 in
+  let strict_text_height = font_size /. scale *. font_height in
+  let full_text_height   = strict_text_height +. extra_top_space in
+  let y0                 = doc.pos_y (*+. extra_top_space*) in
+  let height             = match height with Some h -> h | _ -> full_text_height (*strict_text_height*) in
   if doc.pos_y +. height > doc.pageBreakTrigger && (not doc.inFooter) && (doc.auto_page_break) then begin
     let x0 = doc.pos_x in
     let word_spacing = doc.ws in
@@ -113,39 +121,40 @@ let cell
     end;
   end;
   let text_width = get_string_width text in
-  let width = if width = 0. then doc.w -. doc.r_margin -. doc.pos_x else width in
+  let width = if width = 0. then doc.w (*-. doc.r_margin*) -. doc.pos_x else width in
   (* Frame *)
   let border, frame = match border with
     | None -> [], false
-    | Some b -> if List.mem `All b then [`All], true else b, false in
+    | Some b -> if List.mem `All b then [`All], true else b, false
+  in
   if fill || frame then begin
     let op = if fill && frame then "B"
       else if fill && not frame then "f"
       else "S" in (* frame && not fill *)
     print_buffer doc "%f %f %f %f re %s "
-      (doc.pos_x *. scale) ((doc.h -. doc.pos_y) *. scale) (width *. scale) (-.(height) *. scale) op
+      (doc.pos_x *. scale) ((doc.h -. y0) *. scale) (width *. scale) (-.(height) *. scale) op
   end;
   (* The code string *)
   let code = ref "" in
   (* Borders *)
   if not frame then begin
     let border = List.sort compare (remove_dupl border) in
-    let x0, y0 = doc.pos_x, doc.pos_y in
+    let x0 = doc.pos_x in
     let sprintf = sprintf "%f %f m %f %f l S " in
-    let border_code = List.map begin function
-      | `L -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) (x0 *. scale) ((doc.h -. (y0 +. height)) *. scale)
-      | `T -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) ((x0 +. width) *. scale) ((doc.h -. y0) *. scale)
-      | `R -> sprintf ((x0 +. width) *. scale) ((doc.h -. y0) *. scale) ((x0 +. width) *. scale)
-        ((doc.h -. (y0 +. height)) *. scale)
-      | `B -> sprintf (x0 *. scale) ((doc.h -. (y0 +. height)) *. scale)
-        ((x0 +. width) *. scale) ((doc.h -. (y0 +. height)) *. scale)
-      | _ -> ""
-    end border in
+    let border_code =
+      List.map begin function
+        | `L -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) (x0 *. scale) ((doc.h -. (y0 +. height)) *. scale)
+        | `T -> sprintf (x0 *. scale) ((doc.h -. y0) *. scale) ((x0 +. width) *. scale) ((doc.h -. y0) *. scale)
+        | `R -> sprintf ((x0 +. width) *. scale) ((doc.h -. y0) *. scale) ((x0 +. width) *. scale)
+                  ((doc.h -. (y0 +. height)) *. scale)
+        | `B -> sprintf (x0 *. scale) ((doc.h -. (y0 +. height)) *. scale)
+                  ((x0 +. width) *. scale) ((doc.h -. (y0 +. height)) *. scale)
+        | _ -> ""
+      end border
+    in
     code := String.concat "" border_code
   end;
   (* Text *)
-  let posy = doc.pos_y +. 0.5 *. height +. 0.3 *. doc.font_size in
-  (*let posy = doc.pos_y +. 0.75 *. height in*)
   if (String.length text) > 0 then begin
     let dx = match align with
       | `Left | `Justified -> padding
@@ -153,17 +162,19 @@ let cell
       | `Right -> width -. padding -. text_width doc in
     let must_push = doc.colorFlag || char_space <> None || font_scale <> None  in
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
-    code := !code ^ (sprintf "BT %f %f Td%s%s%s (%s) Tj ET"
+    code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)
-                       ((doc.h -. posy) *. scale)
+                       (*((doc.h -. doc.pos_y) *. scale -. font_size)*)
+                       ((doc.h -. doc.pos_y) *. scale -. font_size (*+. font_size *. 0.1*))
                        (if have_font then sprintf " /F%d %f Tf" font_index font_size else "")
                        (match font_scale with Some x -> sprintf " %d Tz" x | _ -> "")
                        (match char_space with Some x -> sprintf " %f Tc" x | _ -> "")
+                       (match rise with Some x -> sprintf " %f Ts" x | _ -> "")
                        (escape text));
-    if doc.underline then code := !code ^ (" " ^ (do_underline (doc.pos_x +. dx) posy text));
+    (*if doc.underline then code := !code ^ (" " ^ (do_underline (doc.pos_x +. dx) posy text));*)
     if must_push then code := !code ^ " Q";
-    if (String.length link) > 0 then
-      add_link (doc.pos_x +. dx) posy text_width doc.font_size link ();
+    (*if (String.length link) > 0 then
+      add_link (doc.pos_x +. dx) posy text_width doc.font_size link ();*)
   end;
   if (String.length !code) > 0 then print_buffer doc "%s\n" !code;
   doc.lasth <- height;

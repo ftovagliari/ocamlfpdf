@@ -27,6 +27,8 @@ type t =
   | Unknown_color_type
   | Missing_palette
   | Invalid_markup
+  | No_such_column
+  | Invalid_colwidths
 
 exception Error of t * string
 
@@ -37,4 +39,15 @@ let message = function
   | Unknown_color_type -> "Unknown color type"
   | Missing_palette -> "Missing palette"
   | Invalid_markup -> "Invalid markup"
+  | No_such_column -> "No such column"
+  | Invalid_colwidths -> "Invalid column widths"
 
+let error ex msg = raise (Error (ex, msg))
+
+let handle_error f x =
+  try Some (f x)
+  with Error (err, msg) -> begin
+    Printf.eprintf "%s (%s)\n" (message err) msg;
+    Printexc.print_backtrace stderr;
+    None
+  end | ex -> raise ex

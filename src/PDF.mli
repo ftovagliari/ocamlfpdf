@@ -156,6 +156,7 @@ val cell :
   ?font_size:float ->
   ?font_scale:int ->
   ?char_space:float ->
+  ?rise:float ->
   ?border:border_part list ->
   ?padding:float ->
   ?ln:[ `Bottom | `Next_line | `Right ] ->
