@@ -38,7 +38,7 @@ let is_fib n =
     else f (i + 1)
   in f 0
 
-let markup = "\
+let markup = "<SPAN align='0.5' style='bold' size='16'>Purgatorio, CANTO I</SPAN><BR/><BR/><BR/>\
 <SPAN>Per correr </SPAN><SPAN underline='single'>miglior</SPAN><SPAN> </SPAN><SPAN underline='low'>acque</SPAN><SPAN> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='7'>3</SPAN>
@@ -47,7 +47,7 @@ che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='
 dove l\xB4umano spirito si purga
 e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
 
-<SPAN family='courier' size='10'>Ma qui la morta poes\xEC resurga,
+<SPAN family='courier' size='10' scale='70'>Ma qui la morta poes\xEC resurga,
 o sante Muse, poi che vostro sono;
 e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
 
@@ -64,7 +64,7 @@ tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
 
 let markup2 = "\
-<SPAN size='30'>\192The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single' align='0.5'>Caml</SPAN><SPAN size='30'> language</SPAN>
+<SPAN size='30' align='0.5'>{\192}The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30'> language</SPAN>
 
 
 Foreword
@@ -75,7 +75,7 @@ It is by no means a tutorial introduction to the language: there is not a <SPAN 
 A good working knowledge of Caml is assumed.
 
 No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a <SPAN size='30.' line_spacing='1.5'>cons{\192}equence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
+meaning, without further definition. As a <SPAN size='25.' line_spacing='1.5'>cons{\192}equence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
 out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
@@ -86,10 +86,6 @@ in typewriter font (like this). Non-terminal symbols are set in italic font (lik
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
 denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
-
-(*let markup2 = "\
-<SPAN size='10'>{\192}This document is intended as a </SPAN><SPAN size='7'>refgerence manual</SPAN><SPAN size='10' underline='low'> {\192}for the </SPAN><SPAN size='30'>{\192}Objective</SPAN><SPAN size='10'> Caml language</SPAN>\
-";;*)
 
 
 let main () = begin
@@ -146,7 +142,7 @@ let main () = begin
       PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
-      let markup = PDFMarkup.prepare ~width (*~padding:(30., 30., 30., 30.)*) ~markup
+      let markup = PDFMarkup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
       markup.PDFMarkup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
@@ -162,16 +158,18 @@ let main () = begin
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
       markup.PDFMarkup.print ~x ~y ();
 
-      (** Markup and wrap char *)
+      (** Markup2 *)
       PDF.add_page doc;
       ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
-      let x = margin in
+      let x = margin /. 2. in
       let y = margin +. height_header *. 5. /. 3. in
       PDF.set_font ~family:`Times ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
-      let width = (*50.*) width_avail (*/. 5. *. 3. +. 0.5 *)in
-      let _, _ = PDFMarkup.print ~x ~y ~width ~markup:markup2
-        ~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3. doc in
+      let width = (*width_avail*) PDF.page_width doc -. margin in
+      let markup = PDFMarkup.prepare ~width ~markup:markup2 ~padding:(10.,10.,10.,10.)
+        ~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3. doc
+      in
+      markup.PDFMarkup.print ~x ~y ();
 
       (** Graphics *)
       PDF.add_page doc;

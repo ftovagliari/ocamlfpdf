@@ -44,6 +44,8 @@ class hbox :
   PDF.t ->
   object
 
+    method x : float
+    method y : float
     method width : float
     method height : float
     method padding : float
@@ -89,6 +91,8 @@ class vbox :
   PDF.t ->
   object
 
+    method x : float
+    method y : float
     method width : float
     method height : float
     method padding : float
@@ -136,6 +140,9 @@ class table :
   ?padding:float ->
   PDF.t ->
   object
+
+    method x : float
+    method y : float
 
     (** [set row column f] sets [f] as the function to use to render the content
         of the cell at position [row] and [column].

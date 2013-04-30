@@ -29,6 +29,8 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
   let x0, y0 = x, y in
   let callbacks = Array.make_matrix rows columns (fun ~x ~y ~width ~height -> ()) in
   object (self)
+    method x = x
+    method y = y
     method pack () =
       for i = 0 to rows - 1 do
         for j = 0 to columns - 1 do
@@ -49,6 +51,10 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
 class virtual box ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =
   object (self)
     val mutable callbacks = ([] : (x:float -> y:float -> width:float -> height:float -> float) list)
+    method x : float = x
+    method y : float = y
+    method width : float = width
+    method height : float = height
     method add cb = callbacks <- cb :: callbacks
     method virtual pack : unit -> unit
   end
@@ -56,8 +62,6 @@ class virtual box ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=fals
 class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =
   object (self)
     inherit box ~x ~y ~width ~height ~spacing ~padding doc
-    method width = width
-    method height = height
     method padding = padding
     method spacing = spacing
     method get_homogeneous_child_height n =
@@ -87,8 +91,6 @@ class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
 class hbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc =
   object (self)
     inherit box ~x ~y ~width ~height ~spacing ~padding doc
-    method width = width
-    method height = height
     method padding = padding
     method spacing = spacing
     method get_homogeneous_child_width n =

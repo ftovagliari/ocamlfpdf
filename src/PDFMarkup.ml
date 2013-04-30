@@ -424,12 +424,9 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
   let x = ref x0 in
   let y = ref y0 in
   let font_bottom_part font_size = (font_size *. PDFText.font_height +. font_size *. 0.1 -. font_size) /. PDF.scale doc in
-  List.iter begin function {
-    paragraph_align        = paragraph_align;
-    paragraph_lines        = lines
-  } ->
-    List.iter begin function {line_width; line_height; line_cells; line_max_font_size; line_spacing} ->
-      x := x0 +. (width -. line_width) *. paragraph_align;
+  List.iter begin function { paragraph_align; paragraph_lines } ->
+    List.iter begin function { line_width; line_height; line_cells; line_max_font_size; line_spacing } ->
+      x := x0 +. (width -. pad_left -. pad_right -. line_width) *. paragraph_align;
       List.iter begin fun cell ->
         if cell.cell_width > 0.0 then begin
           let yy =
@@ -449,17 +446,17 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
             ?char_space:cell.attr.char_space
             ?rise:cell.attr.rise
             ~text (*~border:[`All]*) doc;
-          PDFGraphicsState.push doc;
+         (* PDFGraphicsState.push doc;
           PDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
           PDF.set_line_width 0.1 doc;
           PDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
-          PDFGraphicsState.pop doc;
+          PDFGraphicsState.pop doc;*)
           if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy ~cell doc);
           x := !x +. cell.cell_width;
         end;
       end line_cells;
       y := !y +. line_height +. line_spacing;
-    end lines;
+    end paragraph_lines;
   end analysis.paragraphs;
 ;;
 
