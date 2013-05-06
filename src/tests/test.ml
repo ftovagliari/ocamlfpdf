@@ -416,8 +416,6 @@ let main () = begin
         ~page_header_height:height_header
         ~header_layout
         ~grid_lines:`Vertical
-        (*~cellpadding:0.*)
-        (*~rowspacing:5.*)
         ~columns
         ~rows:([
           [|Some "a"; Some "M"; Some "\128"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];

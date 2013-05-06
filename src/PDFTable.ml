@@ -225,7 +225,7 @@ let print
   let print_titles ~x ~y () =
     let x0, y0 = !x, !y in
     PDF.set_font ~style:[] doc;
-    let line_height = (PDF.font_size doc) /. PDF.scale doc *. line_spacing in
+    let line_height = (PDF.font_size doc) /. PDF.scale doc in
     let height, points = header_draw ~columns ~nodes:header_layout ~x:!x ~y:!y
       ~line_height ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
     x := x0;
@@ -310,7 +310,7 @@ let print
                 match properties.prop_image with
                   | None ->
                     let text_width = PDF.get_string_width properties.prop_text doc in (* Works only with regular font *)
-                    let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
+                    let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. PDF.scale doc *. line_spacing in
                     if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
                   | Some image ->
                     let asp = (float image.img_width) /. (float image.img_height) in
@@ -353,12 +353,12 @@ let print
               let old_style = PDF.font_style doc in
               PDF.set_font ~style:properties.prop_font_style ?size:properties.prop_font_size doc;
               PDF.set ~x:!x ~y:(!y +. cellpadding) doc;
-              let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. 2.5 in
+              let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. PDF.scale doc *. line_spacing in
               begin
                 match properties.prop_image with
                   | None ->
                     let x = PDF.x doc in
-                    let y = PDF.y doc in
+                    let y = PDF.y doc +. cellpadding in
                     begin
                       match properties.prop_bg_color with None -> ()
                       | Some (red, green, blue) ->
@@ -366,8 +366,9 @@ let print
                         PDF.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
                     end;
                     if use_markup then begin
-                      ignore (PDFMarkup.print ~x:(x +. cellpadding) ~y ~width:(width -. 2. *. cellpadding)
-                        ~markup:properties.prop_text doc)
+                      let markup = PDFMarkup.prepare ~width:(width -. 2. *. cellpadding)
+                          ~line_spacing ~markup:properties.prop_text doc in
+                      markup.PDFMarkup.print ~x:(x +. cellpadding) ~y ()
                     end else begin
                       PDF.multi_cell ~width:(width -. 2. *. cellpadding)
                         ~line_height ~align:properties.prop_align ~text:properties.prop_text doc;
