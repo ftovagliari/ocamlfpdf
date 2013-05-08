@@ -81,11 +81,12 @@ let with_line_width doc lw f x =
   f x;
   PDF.set_line_width old doc;;
 
-let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin ~border_width doc =
+let header_draw ~columns ~nodes ~x ~y ~padding ?align ~line_disjoin ~border_width doc =
   let y0 = y in
   let x = ref x in
   let border = [] in
   let points = ref [] in (* starting points for vertical lines *)
+  let line_height = (PDF.font_size doc) /. PDF.scale doc in
   let rec draw_node level x y = function
     | `Leaf id ->
       let col = try List.assoc id columns with Not_found -> failwith "header_draw" in
@@ -96,7 +97,7 @@ let header_draw ~columns ~nodes ~x ~y ~line_height ~padding ?align ~line_disjoin
           match col.col_title with
             | `Text text ->
               PDF.multi_cell ~width ~line_height ~border ?align ~text doc;
-              PDF.y doc -. y +. padding
+              PDF.y doc -. y +. padding;
             | `Func f -> (f ~x:(x +. padding) ~y:(y +. padding) ~width) +. padding;
         in
         points := (x +. col.col_width, y,  size_of_thickness (if level = 0 then `Medium else `Thin)) :: !points;
@@ -225,9 +226,8 @@ let print
   let print_titles ~x ~y () =
     let x0, y0 = !x, !y in
     PDF.set_font ~style:[] doc;
-    let line_height = (PDF.font_size doc) /. PDF.scale doc in
     let height, points = header_draw ~columns ~nodes:header_layout ~x:!x ~y:!y
-      ~line_height ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
+      ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
     x := x0;
     y := !y +. height;
     begin
@@ -309,7 +309,12 @@ let print
               begin
                 match properties.prop_image with
                   | None ->
-                    let text_width = PDF.get_string_width properties.prop_text doc in (* Works only with regular font *)
+                    let font =
+                      match doc.PDFDocument.current_font with
+                        | Some font -> font.PDFDocument.font_metrics
+                        | _ -> failwith "No current font"
+                    in
+                    let text_width = PDF.get_text_width font (PDF.font_size doc) properties.prop_text in (* Works only with regular font *)
                     let line_height = match properties.prop_font_size with None -> line_height | Some x -> PDF.font_size doc /. PDF.scale doc *. line_spacing in
                     if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
                   | Some image ->

@@ -25,29 +25,24 @@ open PDFDocument
 open PDFPage
 open PDFUtil
 open Printf
+open Font_metrics
 
-let font_height = 1.125 (* 1.125 *)
+(** get_text_width *)
+let get_text_width font font_size =
+  let cw = font.charMetrics in
+  fun str ->
+    let width = ref 0 in
+    String.iter (fun c -> width := !width + (cw c)) str;
+    (float !width) *. font_size /. 1000.;;
 
-(** get_string_width *)
-let get_string_width s doc =
-  let font = match doc.current_font with
-    | None -> failwith "get_string_width: no current font."
-    | Some f -> f in
-  let cw = font.font_cw in
-  let width = ref 0 in
-  String.iter begin fun c ->
-    width := !width + (cw c)
-  end s;
-  (float !width) *. doc.font_size /. 1000.;;
-
-(** get_string_width_gen *)
-let get_string_width_gen s font font_size =
-  let cw = font.font_cw in
-  let width = ref 0 in
-  String.iter begin fun c ->
-    width := !width + (cw c)
-  end s;
-  (float !width) *. font_size /. 1000.;;
+(** get_text_width_current_font *)
+let get_text_width_current_font str doc =
+  let font =
+    match doc.current_font with
+    | Some f -> f
+    | _ -> failwith "get_text_width_current_font: no current font."
+  in
+  get_text_width font.font_metrics doc.font_size str;;
 
 (** TODO *)
 let do_underline x y txt = ""
@@ -78,8 +73,9 @@ let newline ?height doc =
     | None -> doc.pos_y <- doc.pos_y +. doc.lasth
     | Some h -> doc.pos_y <- doc.pos_y +. h
 
+(** cell *)
 let cell
-    ~width
+    ?width
     ?height
     ?(text="")
     ?font_family
@@ -95,17 +91,25 @@ let cell
     ?(fill=false)
     ?(link="")
     doc =
-  let have_font          = font_family <> None || font_size <> None || font_style <> None in
-  let font_size          = match font_size with Some x -> x | _ -> doc.font_size_pt in
-  let font_index         = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
-  let have_font          = have_font && (font_family <> doc.font_family || font_size <> doc.font_size_pt) in
-  let padding            = match padding with None -> 0.0 (*doc.c_margin*) | Some padding -> padding in
-  let scale              = doc.k in
-  let extra_top_space    = font_size /. scale *. 0.1 in
-  let strict_text_height = font_size /. scale *. font_height in
-  let full_text_height   = strict_text_height +. extra_top_space in
-  let y0                 = doc.pos_y (*+. extra_top_space*) in
-  let height             = match height with Some h -> h | _ -> full_text_height (*strict_text_height*) in
+  let have_font    = font_family <> None || font_size <> None || font_style <> None in
+  let font_size_pt = match font_size with Some x -> x | _ -> doc.font_size_pt in
+  let font_index   = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
+  let have_font    = have_font && (font_family <> doc.font_family || font_size_pt <> doc.font_size_pt) in
+  let padding      = match padding with None -> 0.0 (*doc.c_margin*) | Some padding -> padding in
+  let scale        = doc.k in
+  let font_size    = font_size_pt /. scale in
+  let font_metrics =
+    let family =
+      match if have_font then font_family else doc.font_family with
+        | Some family -> family
+        | _ -> failwith "No current font"
+    in
+    let style = match font_style with Some style -> style | _ -> [] in
+    Font.find (Font.key_of_font style family)
+  in
+  let descent      = font_size *. Font.descent font_metrics in
+  let y0           = doc.pos_y in
+  let height       = match height with Some h -> h | _ -> font_size +. descent  in
   if doc.pos_y +. height > doc.pageBreakTrigger && (not doc.inFooter) && (doc.auto_page_break) then begin
     let x0 = doc.pos_x in
     let word_spacing = doc.ws in
@@ -120,8 +124,8 @@ let cell
       print_buffer doc "%.3f Tw\n" (word_spacing *. scale)
     end;
   end;
-  let text_width = get_string_width text in
-  let width = if width = 0. then doc.w (*-. doc.r_margin*) -. doc.pos_x else width in
+  let text_width = get_text_width_current_font text in
+  let width = match width with None ->  doc.w -. doc.r_margin -. doc.pos_x | Some width -> width in
   (* Frame *)
   let border, frame = match border with
     | None -> [], false
@@ -164,9 +168,8 @@ let cell
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
     code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)
-                       (*((doc.h -. doc.pos_y) *. scale -. font_size)*)
-                       ((doc.h -. doc.pos_y) *. scale -. font_size (*+. font_size *. 0.1*))
-                       (if have_font then sprintf " /F%d %f Tf" font_index font_size else "")
+                       ((doc.h -. doc.pos_y) *. scale -. font_size_pt)
+                       (if have_font then sprintf " /F%d %f Tf" font_index font_size_pt else "")
                        (match font_scale with Some x -> sprintf " %d Tz" x | _ -> "")
                        (match char_space with Some x -> sprintf " %f Tc" x | _ -> "")
                        (match rise with Some x -> sprintf " %f Ts" x | _ -> "")
@@ -188,7 +191,7 @@ let cell
 
 let write ~height ?padding ~text ?link doc =
   let padding = match padding with None -> doc.c_margin | Some padding -> padding in
-  let cw = match doc.current_font with None -> assert false | Some font -> font.font_cw in
+  let cw = match doc.current_font with None -> assert false | Some font -> font.font_metrics.charMetrics in
   let width = ref (doc.w -. doc.r_margin -. doc.pos_x) in
   let wmax = ref ((!width -. 2. *. padding) *. 1000. /. doc.font_size) in
   let text = Str.global_replace re_cr "" text in
@@ -251,7 +254,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
   let height = line_height in
   let padding = match padding with None -> doc.c_margin | Some x -> x in
   let cw = match doc.current_font with None -> failwith "multi_cell: no current font."
-    | Some f -> f.font_cw in
+    | Some f -> f.font_metrics.charMetrics in
   let text_lines = ref [] in
   let width = if width = 0. then doc.w -. doc.r_margin -. doc.pos_x else width in
   let wmax = (width -. 2. *. padding) *. 1000. /. doc.font_size in

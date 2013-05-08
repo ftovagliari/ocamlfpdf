@@ -230,11 +230,11 @@ let main () = begin
           PDF.rect ~x ~y ~width:child_width ~height ~radius doc;
           let text = sprintf "Horizontal box, child n. %d" (i + 1) in
           let font =
-            match Font.find ~family ~style:[] doc.PDFDocument.fonts with
+            match PDFDocument.find_font ~family ~style:[] doc with
               | Some x -> x | _ -> assert false
           in
           let size = PDFUtil.fixpoint begin fun size ->
-            let text_width = PDFText.get_string_width_gen text font size in
+            let text_width = PDF.get_text_width font.PDFDocument.font_metrics size text in
             let text_width = text_width /. (PDF.scale doc) in
             if text_width < child_inner_width then size else (size -. 0.25)
           end 30. in

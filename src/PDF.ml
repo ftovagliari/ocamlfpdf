@@ -207,7 +207,7 @@ let write               = PDFText.write
 let cell                = PDFText.cell
 let multi_cell          = PDFText.multi_cell
 let multi_cell_lines    = PDFText.multi_cell_lines
-let get_string_width    = PDFText.get_string_width
+let get_text_width = PDFText.get_text_width
 
 let get_image_dimensions = PDFImages.get_dimensions
 

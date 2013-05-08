@@ -24,6 +24,7 @@ open PDFTypes
 open Printf
 open PDFUtil
 open PDFImages
+open Font_metrics
 
 type state = Begin_document | End_page | Begin_page | End_document
 
@@ -31,16 +32,12 @@ type link = (float * float * float * float * link_dest) list
 and link_dest = Uri of string | Internal of int
 
 type obj = {mutable obj_offset : int}
-and font = {
-  font_index     : int; (* i *)
-  font_type      : font_type;
-  font_name      : string;
-  mutable font_n : int;
-  font_up        : int;
-  font_ut        : int;
-  font_cw        : (char -> int);
+
+and font_obj = {
+  font_metrics       : Font_metrics.t;
+  mutable font_n     : int;
+  mutable font_index : int;
 }
-and font_type = Core | Type1 | TrueType | Additional of string
 and font_file = {
   ff_name           : string;
   ff_info           : (string * string) list;
@@ -86,7 +83,7 @@ and annot = {
   mutable line_cap              : line_cap_style;           (*  *)
   mutable line_join             : line_join_style;          (*  *)
   mutable line_dash             : (int list * int);         (*  *)
-  mutable fonts                 : (Font.key * font) list;   (* array of used fonts [(key, font) list] *)
+  mutable fonts                 : (Font.key * font_obj) list;   (* array of used fonts [(key, font) list] *)
   mutable font_files            : font_file list;           (* array of font files *)
   mutable diffs                 : string list;              (* array of encoding differences *)
   mutable images                : PDFImages.Table.t;         (* array of used images *)
@@ -94,7 +91,7 @@ and annot = {
   mutable font_family           : Font.family option;       (* current font family *)
   mutable font_style            : Font.style list;          (* current font style *)
   mutable underline             : bool;                     (* underlining flag *)
-  mutable current_font          : font option;              (* current font info *)
+  mutable current_font          : font_obj option;          (* current font info *)
   mutable font_size_pt          : float;                    (* current font size in points *)
   mutable font_size             : float;                    (* current font size in user unit *)
   mutable font_scale            : int option;               (* current font scale *)
@@ -143,6 +140,10 @@ let string_of_style style =
   let italic = List.mem `Italic style in
   Printf.sprintf "%S%S"
     (if bold then "B" else "") (if italic then "I" else "")
+
+let find_font ?family ~style doc =
+  let font_key = Font.key_of_font style (match family with Some x -> x | _ -> `Courier) in
+  try Some (List.assoc font_key doc.fonts) with Not_found -> None;;
 
 let get_current_page doc =
   let len = List.length doc.pages in
@@ -328,9 +329,9 @@ let print_fonts doc =
   List.iter begin fun (_, fnt) ->
     (* Font objects *)
     fnt.font_n <- doc.current_object_number + 1;
-    let typ, name = fnt.font_type, fnt.font_name in
+    let typ, name = fnt.font_metrics.fontType, fnt.font_metrics.fontName in
     match typ with
-      | Core ->
+      | `Core ->
         (* Standard font *)
         new_obj doc;
         print doc "<</Type /Font ";
@@ -339,7 +340,7 @@ let print_fonts doc =
         if name <> "Symbol" && name <> "ZapfDingbats" then
           print doc "/Encoding /WinAnsiEncoding ";
         print doc ">>endobj\n";
-      | Type1 | TrueType -> failwith "print_font (Type1 | TrueType)"
+      | `Type1 | `TrueType -> failwith "print_font (Type1 | TrueType)"
 (*  //Additional Type1 or TrueType font
   $this->_newobj();
   $this->_out('<</Type /Font');
@@ -375,7 +376,7 @@ let print_fonts doc =
     $s.=' /FontFile'.($type=='Type1' ? '' : '2').' '.$this->FontFiles[$file]['n'].' 0 R';
   $this->_out($s.'>>');
   $this->_out('endobj');*)
-      | Additional atyp -> failwith ("print_font (Additional " ^ atyp ^ ")")
+      | `Additional atyp -> failwith ("print_font (Additional " ^ atyp ^ ")")
 (*        //Allow for additional types
         $mtd='_put'.strtolower($type);
         if(!let_exists($this,$mtd))

@@ -24,10 +24,11 @@ open PDFTypes
 open PDFDocument
 open PDFUtil
 open Printf
+open Font_metrics
 
 (** set_font *)
 let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space doc =
-  let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
+  let family = match family with None -> doc.font_family | x -> x in
   (* Select a font; size given in points. *)
   doc.underline <- List.mem `Underline style;
   let size = match size with None -> doc.font_size_pt | Some x -> x in (*if size = 0. then font_size_pt else size in*)
@@ -37,18 +38,15 @@ let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space do
     let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
     if not (PDFDocument.font_exists fkey doc) then begin
       try
+        let font_metrics = Font.find fkey in
         (* Check if one of the standard fonts *)
-        let name = Font.get_name fkey in
-        let cw = Font.get_metric fkey in
+        let name = font_metrics.fontName in
+        let cw = font_metrics.charMetrics in
         let i = (List.length doc.fonts) + 1 in
         doc.fonts <- (fkey, {
           font_index = i;
-          font_type = Core;
-          font_name = name;
-          font_up = -100;
-          font_ut = 50;
-          font_cw = cw;
-          font_n = 0
+          font_n = 0;
+          font_metrics;
         }) :: doc.fonts
       with Not_found -> failwith ("Undefined font: \"" ^ (Font.string_of_key fkey) ^ "\".")
     end;
@@ -75,18 +73,15 @@ let find_font_index ?family ?(style=([] : Font.style list)) doc =
   let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
   if not (PDFDocument.font_exists fkey doc) then begin
     try
+      let font_metrics = Font.find fkey in
       (* Check if one of the standard fonts *)
-      let name = Font.get_name fkey in
-      let cw = Font.get_metric fkey in
+      let name = font_metrics.fontName in
+      let cw = font_metrics.charMetrics in
       let i = (List.length doc.fonts) + 1 in
       doc.fonts <- (fkey, {
-        font_index = i;
-        font_type  = Core;
-        font_name  = name;
-        font_up    = -100;
-        font_ut    = 50;
-        font_cw    = cw;
-        font_n     = 0
+          font_index = i;
+          font_n = 0;
+          font_metrics;
       }) :: doc.fonts
     with Not_found -> failwith ("Undefined font: \"" ^ (Font.string_of_key fkey) ^ "\".")
   end;

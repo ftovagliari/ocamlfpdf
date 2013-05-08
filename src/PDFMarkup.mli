@@ -19,7 +19,7 @@ and cell = {
 and line = {
   mutable line_width                     : float;
   mutable line_height                    : float;
-  mutable line_max_font_size             : float;
+  mutable line_max_font_size             : (Font_metrics.t * float);
   mutable line_spacing                   : float;
   mutable line_cells                     : cell list;
 }
@@ -49,7 +49,7 @@ and attributes = {
 
     Recognized tags are [<SPAN>] and [<BR/>]. Attributes for the [<SPAN>] tag are:
 
-    - [family]: Families are those available from the module {!Font}, names are lowercase.
+    - [family]: Families are those available from the module [Font.family], names are lowercase.
     - [style]: ['italic'] and/or ['bold'], separated by comma.
     - [size]: Font size (float).
     - [scale]: Horizontal scaling, which is a number specifying the percentage of the normal width. Default is [100] (integer).

@@ -22,6 +22,7 @@
 
 open Printf
 open PDFError
+open Font_metrics
 
 type analysis = {
   mutable width                          : float;
@@ -42,7 +43,7 @@ and cell = {
 and line = {
   mutable line_width                     : float;
   mutable line_height                    : float;
-  mutable line_max_font_size             : float;
+  mutable line_max_font_size             : (Font_metrics.t * float);
   mutable line_spacing                   : float;
   mutable line_cells                     : cell list;
 }
@@ -93,7 +94,8 @@ let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re;;
 
 let char_width ~family ~style ~size ~scale ?(char_space=0.) ?(text_scale=1.) ?(rise=0.0) =
   let key = Font.key_of_font style family  in
-  let f = Font.get_metric key in
+  let font = Font.find key in
+  let f = font.charMetrics in
   function '\n' -> 0.0 | x ->
     ((((float (f x)) /. 1000.) *. size +. char_space) /. scale) *. text_scale ;;
 
@@ -268,9 +270,10 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
     let avail_width = ref width0 in
     first_block := true;
     List.rev (List.fold_left begin fun acc block ->
-      let extra_top_space = block.attr.size /. scale *. 0.1 in
-      block.cell_height <- (block.attr.size /. scale) *. PDFText.font_height +. extra_top_space;
       let family = block.attr.family in
+      let font_metrics = Font.find (Font.key_of_font block.attr.style family) in
+      let descent = block.attr.size *. Font.descent font_metrics in
+      block.cell_height <- (block.attr.size +. descent) /. scale;
       let text_scale = block.attr.scale in
       let char_space = block.attr.char_space in
       let rise = block.attr.rise in
@@ -292,12 +295,14 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
   end paragraphs
 ;;
 
+let dummy_max_font_size = Font.find Font.Courier, 0.0
+
 (** struct_by_lines *)
 let struct_by_lines paragraphs =
   List.map begin fun lines ->
     List.map begin fun line ->
       let line_width = List.fold_left (fun acc c -> acc +. c.cell_width) 0.0 line in
-      {line_width = line_width; line_height = 0.0; line_max_font_size = 0.0; line_spacing = 0.0; line_cells = line}
+      {line_width = line_width; line_height = 0.0; line_max_font_size = dummy_max_font_size; line_spacing = 0.0; line_cells = line}
     end lines
   end paragraphs;
 ;;
@@ -344,7 +349,11 @@ let set_paragraph_line_spacing paragraphs =
   List.iter begin fun par ->
     List.iter begin fun line ->
       line.line_height  <- List.fold_left (fun acc c -> max acc c.cell_height) 0.0 line.line_cells;
-      line.line_max_font_size <- List.fold_left (fun acc c -> max acc c.attr.size) 0.0 line.line_cells;
+      line.line_max_font_size <- List.fold_left begin fun ((_, cand) as acc) c ->
+        if cand > c.attr.size then acc else
+          let font = Font.find (Font.key_of_font c.attr.style c.attr.family) in
+          (font, c.attr.size)
+      end dummy_max_font_size line.line_cells;
       let ls = List.fold_left (fun acc c -> max acc c.attr.lspacing) 0.0 line.line_cells in
       line.line_spacing <- line.line_height *. (ls -. 1.);
       overall_height := !overall_height +. line.line_height +. line.line_spacing;
@@ -361,19 +370,19 @@ let draw_underline ~x ~y ~cell doc =
   let fs = cell.attr.size in
   let uw2 = fs /. 100. in
   let uw = uw2 +. uw2 in
-  let fss = fs /. scale in
   PDF.set_line_width uw doc;
   let red, green, blue = PDF.text_color doc in
   PDF.set_draw_color ~red ~green ~blue doc ;
   match cell.attr.underline with
     | `NONE -> ()
     | `SINGLE ->
-      let y = y +. fss +. uw in
+      let y = y +. fs /. scale +. uw in
       PDF.line
         ~x1:(x +. uw2) ~y1:y
         ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
     | `LOW ->
-      let y = y +. fss *. PDFText.font_height (*+. uw2*) in
+      let font_metrics = Font.find (Font.key_of_font cell.attr.style cell.attr.family) in
+      let y = y +. fs *. (1. +. Font.descent font_metrics) /. scale in
       PDF.line
         ~x1:(x +. uw2) ~y1:y
         ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
@@ -423,7 +432,11 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
   let y0 = y +. pad_top +. border_width in
   let x = ref x0 in
   let y = ref y0 in
-  let font_bottom_part font_size = (font_size *. PDFText.font_height +. font_size *. 0.1 -. font_size) /. PDF.scale doc in
+  let scale = PDF.scale doc in
+  let get_descent cell ?metrics size =
+    let font_metrics = match metrics with Some x -> x | _ -> Font.find (Font.key_of_font cell.attr.style cell.attr.family) in
+    size *. Font.descent font_metrics
+  in
   List.iter begin function { paragraph_align; paragraph_lines } ->
     List.iter begin function { line_width; line_height; line_cells; line_max_font_size; line_spacing } ->
       x := x0 +. (width -. pad_left -. pad_right -. line_width) *. paragraph_align;
@@ -431,7 +444,10 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
         if cell.cell_width > 0.0 then begin
           let yy =
             if line_height = cell.cell_height then !y
-            else !y +. line_height -. cell.cell_height +. (font_bottom_part cell.attr.size) -. (font_bottom_part line_max_font_size)
+            else
+              let metrics, max_size = line_max_font_size in
+              !y +. line_height -. cell.cell_height +.
+                ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
           in
           let text = cell.text in
           let red, green, blue = PDFUtil.rgb_of_hex cell.attr.color in
@@ -446,11 +462,13 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
             ?char_space:cell.attr.char_space
             ?rise:cell.attr.rise
             ~text (*~border:[`All]*) doc;
-         (* PDFGraphicsState.push doc;
+
+          (*PDFGraphicsState.push doc;
           PDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
           PDF.set_line_width 0.1 doc;
           PDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
           PDFGraphicsState.pop doc;*)
+
           if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy ~cell doc);
           x := !x +. cell.cell_width;
         end;

@@ -12,18 +12,41 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="fpdf" default="false" id="0">
+    <target name="font" default="false" id="17">
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
-      <package>str,unix,xml-light,zip</package>
-      <includes></includes>
+      <files>font/font.ml</files>
+      <package></package>
+      <includes>font</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
-      <inline></inline>
+      <inline>50</inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <cflags></cflags>
+      <lflags></lflags>
+      <target_type>Library</target_type>
+      <outname>font/font</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
+    <target name="fpdf" default="false" id="0">
+      <byt>true</byt>
+      <opt>true</opt>
+      <libs>font</libs>
+      <other_objects></other_objects>
+      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
+      <package>str,unix,xml-light,zip</package>
+      <includes>font</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline>50</inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
@@ -39,20 +62,22 @@
           <dir></dir>
           <cmd>ocamldoc</cmd>
           <args>
+            <arg enabled="true">*.mli</arg>
             <arg enabled="true">-d</arg>
             <arg enabled="true">../doc</arg>
-            <arg enabled="true">*.mli</arg>
             <arg enabled="true">-t</arg>
             <arg enabled="true">&quot;ocamlfpdf&quot;</arg>
             <arg enabled="true">-html</arg>
             <arg enabled="true">-I</arg>
             <arg enabled="true">+lablgtk2</arg>
+            <arg enabled="true">-I</arg>
+            <arg enabled="true">font</arg>
           </args>
           <phase>After_compile</phase>
         </task>
       </external_tasks>
       <restrictions></restrictions>
-      <dependencies></dependencies>
+      <dependencies>17</dependencies>
     </target>
     <target name="markup-editor" default="false" id="8">
       <byt>true</byt>
@@ -100,14 +125,14 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6">
+    <target name="test" default="true" id="6">
       <byt>false</byt>
       <opt>true</opt>
-      <libs></libs>
+      <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test.ml</files>
       <package>unix,str,xml-light,zip</package>
-      <includes>tests</includes>
+      <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
@@ -119,24 +144,7 @@
       <target_type>Executable</target_type>
       <outname>tests/test</outname>
       <lib_install_path></lib_install_path>
-      <external_tasks>
-        <task name="ocamldoc">
-          <always_run_in_project>false</always_run_in_project>
-          <always_run_in_script>true</always_run_in_script>
-          <env replace="false"/>
-          <dir></dir>
-          <cmd>ocamldoc</cmd>
-          <args>
-            <arg enabled="true">-d</arg>
-            <arg enabled="true">../doc</arg>
-            <arg enabled="true">-html</arg>
-            <arg enabled="true">*.mli</arg>
-            <arg enabled="true">-t</arg>
-            <arg enabled="true">&quot;ocamlfpdf&quot;</arg>
-          </args>
-          <phase>After_compile</phase>
-        </task>
-      </external_tasks>
+      <external_tasks/>
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
@@ -232,14 +240,14 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="true" id="15">
+    <target name="test-tabular" default="false" id="15">
       <byt>false</byt>
       <opt>true</opt>
-      <libs></libs>
+      <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_tabular.ml</files>
       <package>str,unix,xml-light,zip</package>
-      <includes>tests</includes>
+      <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
@@ -250,6 +258,29 @@
       <lflags></lflags>
       <target_type>Executable</target_type>
       <outname>tests/test-tabular</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies>0</dependencies>
+    </target>
+    <target name="test-metrics" default="false" id="16">
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs>font</libs>
+      <other_objects></other_objects>
+      <files>tests/test_metrics.ml</files>
+      <package>str,unix,xml-light,zip</package>
+      <includes>font tests</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <cflags>-w y -g</cflags>
+      <lflags></lflags>
+      <target_type>Executable</target_type>
+      <outname>tests/test-metrics</outname>
       <lib_install_path></lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
@@ -349,9 +380,15 @@
       <env replace="false"/>
       <args/>
     </executable>
+    <executable name="test-metrics" default="false" target_id="16" id="10">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false"/>
+      <args/>
+    </executable>
   </executables>
   <build_script filename="build.ml">
     <targets>
+      <target target_id="17" show="true"/>
       <target target_id="0" show="true"/>
       <target target_id="8" show="true"/>
       <target target_id="9" show="true"/>
@@ -361,6 +398,7 @@
       <target target_id="12" show="true"/>
       <target target_id="14" show="true"/>
       <target target_id="15" show="true"/>
+      <target target_id="16" show="true"/>
       <target target_id="11" show="false"/>
     </targets>
     <args/>

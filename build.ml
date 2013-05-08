@@ -32,25 +32,13 @@ let external_tasks = [
     et_env_replace           = false;
     et_dir                   = "";
     et_cmd                   = "ocamldoc";
-    et_args                  = [true,"-d"; true,"../doc"; true,"*.mli"; true,"-t"; true,"\"ocamlfpdf\""; true,"-html"; true,"-I"; true,"+lablgtk2"];
+    et_args                  = [true,"*.mli"; true,"-d"; true,"../doc"; true,"-t"; true,"\"ocamlfpdf\""; true,"-html"; true,"-I"; true,"+lablgtk2"; true,"-I"; true,"font"];
     et_phase                 = Some After_compile;
     et_always_run_in_project = true;
     et_always_run_in_script  = true;
   });
   
   1, (fun command -> {
-    et_name                  = "ocamldoc";
-    et_env                   = [];
-    et_env_replace           = false;
-    et_dir                   = "";
-    et_cmd                   = "ocamldoc";
-    et_args                  = [true,"-d"; true,"../doc"; true,"-html"; true,"*.mli"; true,"-t"; true,"\"ocamlfpdf\""];
-    et_phase                 = Some After_compile;
-    et_always_run_in_project = false;
-    et_always_run_in_script  = true;
-  });
-  
-  2, (fun command -> {
     et_name                  = "findlib-uninstall";
     et_env                   = [];
     et_env_replace           = false;
@@ -62,7 +50,7 @@ let external_tasks = [
     et_always_run_in_script  = false;
   });
   
-  3, (fun command -> {
+  2, (fun command -> {
     et_name                  = "findlib-install";
     et_env                   = [];
     et_env_replace           = false;
@@ -74,7 +62,7 @@ let external_tasks = [
     et_always_run_in_script  = false;
   });
   
-  4, (fun command -> {
+  3, (fun command -> {
     et_name                  = "distclean";
     et_env                   = [];
     et_env_replace           = false;
@@ -89,9 +77,9 @@ let external_tasks = [
 
 
 let general_commands = [
-  `Distclean, (4, "distclean");
-  `Install, (3, "findlib-install");
-  `Uninstall, (2, "findlib-uninstall");
+  `Distclean, (3, "distclean");
+  `Install, (2, "findlib-install");
+  `Uninstall, (1, "findlib-uninstall");
 ]
 
 
@@ -100,8 +88,36 @@ let general_commands = [
 let targets = [
   
   (* 1 *)
-  "fpdf", {
+  "font", {
     num                  = 1;
+    id                   = 17;
+    output_name          = "font/font";
+    target_type          = Library;
+    compilation_bytecode = true;
+    compilation_native   = true;
+    toplevel_modules     = "font/font.ml";
+    package              = "";
+    search_path          = "font"; (* -I *)
+    required_libraries   = "";
+    compiler_flags       = "";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = Some 50;
+    nodep                = false;
+    dontlinkdep          = false;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [];
+    show                 = true;
+  };
+  
+  (* 2 *)
+  "fpdf", {
+    num                  = 2;
     id                   = 0;
     output_name          = "fpdf";
     target_type          = Library;
@@ -109,27 +125,27 @@ let targets = [
     compilation_native   = true;
     toplevel_modules     = "PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml";
     package              = "str,unix,xml-light,zip";
-    search_path          = ""; (* -I *)
-    required_libraries   = "";
+    search_path          = "font"; (* -I *)
+    required_libraries   = "font";
     compiler_flags       = "-w y -g";
     linker_flags         = "-g";
     thread               = false;
     vmthread             = false;
     pp                   = "";
-    inline               = None;
+    inline               = Some 50;
     nodep                = false;
     dontlinkdep          = false;
     library_install_dir  = "fpdf"; (* Relative to the Standard Library Directory *)
     other_objects        = "";
     external_tasks       = [0];
     restrictions         = [];
-    dependencies         = [];
+    dependencies         = [17];
     show                 = true;
   };
   
-  (* 2 *)
+  (* 3 *)
   "markup-editor", {
-    num                  = 2;
+    num                  = 3;
     id                   = 8;
     output_name          = "gtk_pdfmarkup_editor";
     target_type          = Library;
@@ -155,9 +171,9 @@ let targets = [
     show                 = true;
   };
   
-  (* 3 *)
+  (* 4 *)
   "fpdf-byt", {
-    num                  = 3;
+    num                  = 4;
     id                   = 9;
     output_name          = "fpdf";
     target_type          = Library;
@@ -183,9 +199,9 @@ let targets = [
     show                 = true;
   };
   
-  (* 4 *)
+  (* 5 *)
   "test", {
-    num                  = 4;
+    num                  = 5;
     id                   = 6;
     output_name          = "tests/test";
     target_type          = Executable;
@@ -193,8 +209,8 @@ let targets = [
     compilation_native   = true;
     toplevel_modules     = "tests/test.ml";
     package              = "unix,str,xml-light,zip";
-    search_path          = "tests"; (* -I *)
-    required_libraries   = "";
+    search_path          = "font tests"; (* -I *)
+    required_libraries   = "font";
     compiler_flags       = "-w y -g";
     linker_flags         = "";
     thread               = false;
@@ -205,15 +221,15 @@ let targets = [
     dontlinkdep          = false;
     library_install_dir  = ""; (* Relative to the Standard Library Directory *)
     other_objects        = "";
-    external_tasks       = [1];
+    external_tasks       = [];
     restrictions         = [];
     dependencies         = [0];
     show                 = true;
   };
   
-  (* 5 *)
+  (* 6 *)
   "test-markup-editor", {
-    num                  = 5;
+    num                  = 6;
     id                   = 7;
     output_name          = "tests/test_pdfmarkup_editor";
     target_type          = Executable;
@@ -239,9 +255,9 @@ let targets = [
     show                 = true;
   };
   
-  (* 6 *)
+  (* 7 *)
   "test-form", {
-    num                  = 6;
+    num                  = 7;
     id                   = 10;
     output_name          = "tests/testForm";
     target_type          = Executable;
@@ -267,9 +283,9 @@ let targets = [
     show                 = true;
   };
   
-  (* 7 *)
+  (* 8 *)
   "test-compress", {
-    num                  = 7;
+    num                  = 8;
     id                   = 12;
     output_name          = "test_compress";
     target_type          = Executable;
@@ -295,9 +311,9 @@ let targets = [
     show                 = true;
   };
   
-  (* 8 *)
+  (* 9 *)
   "test-png", {
-    num                  = 8;
+    num                  = 9;
     id                   = 14;
     output_name          = "tests/test-png";
     target_type          = Executable;
@@ -323,16 +339,16 @@ let targets = [
     show                 = true;
   };
   
-  (* 9 *)
+  (* 10 *)
   "test-tabular", {
-    num                  = 9;
+    num                  = 10;
     id                   = 15;
     output_name          = "tests/test-tabular";
     target_type          = Executable;
     compilation_bytecode = false;
     compilation_native   = true;
     toplevel_modules     = "tests/test_tabular.ml";
-    package              = "unix,str,xml-light,zip";
+    package              = "str,unix,xml-light,zip";
     search_path          = "tests"; (* -I *)
     required_libraries   = "";
     compiler_flags       = "-w y -g";
@@ -351,7 +367,35 @@ let targets = [
     show                 = true;
   };
   
-  (* 9 *)
+  (* 11 *)
+  "test-metrics", {
+    num                  = 11;
+    id                   = 16;
+    output_name          = "tests/test-metrics";
+    target_type          = Executable;
+    compilation_bytecode = false;
+    compilation_native   = true;
+    toplevel_modules     = "tests/test_metrics.ml";
+    package              = "str,unix,xml-light,zip";
+    search_path          = "font tests"; (* -I *)
+    required_libraries   = "font";
+    compiler_flags       = "-w y -g";
+    linker_flags         = "";
+    thread               = false;
+    vmthread             = false;
+    pp                   = "";
+    inline               = None;
+    nodep                = false;
+    dontlinkdep          = false;
+    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
+    other_objects        = "";
+    external_tasks       = [];
+    restrictions         = [];
+    dependencies         = [0];
+    show                 = true;
+  };
+  
+  (* 11 *)
   "Tools", {
     num                  = 0;
     id                   = 11;
@@ -373,7 +417,7 @@ let targets = [
     dontlinkdep          = false;
     library_install_dir  = ""; (* Relative to the Standard Library Directory *)
     other_objects        = "";
-    external_tasks       = [2; 3; 4];
+    external_tasks       = [1; 2; 3];
     restrictions         = [];
     dependencies         = [];
     show                 = false;

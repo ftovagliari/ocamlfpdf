@@ -84,7 +84,12 @@ struct
       match text with None -> () | Some size ->
         let barcode_width = baseline *. (get_width ~barcode:input_barcode)  in
         PDF.set_font ~size doc;
-        let text_width = PDF.get_string_width barcode doc in
+        let font =
+          match doc.PDFDocument.current_font with
+            | Some font -> font.PDFDocument.font_metrics
+            | _ -> failwith "No current font"
+        in
+        let text_width = PDF.get_text_width font size barcode in
         PDF.text ~x:(x +.(* margin +. *)(barcode_width -. text_width) /. 2.)
           ~y:(y +. height +. (size -. 1.) /. PDF.scale doc) ~text:barcode doc;
     end;
@@ -203,7 +208,7 @@ struct
     let font =
       let family = `Helvetica in
       let style = [] in
-      let f () = Font.find ~family ~style doc.PDFDocument.fonts in
+      let f () = PDFDocument.find_font ~family ~style doc in
       match f () with Some x -> x | _ ->
         let old_family = PDF.font_family doc in
         let old_style = PDF.font_style doc in
@@ -215,7 +220,7 @@ struct
     let width' = 60. *. width in
     let scale = PDF.scale doc in
     let fsize = fixpoint begin fun size ->
-      let text_width = PDFText.get_string_width_gen barcode font size in
+      let text_width = PDFText.get_text_width font.PDFDocument.font_metrics size barcode in
       if text_width /. scale < width' then size else (size -. 0.25)
     end 30. in
     PDF.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
@@ -406,7 +411,12 @@ module Code128C =
           match text with None -> () | Some size ->
             PDF.set_font ~size doc;
             let text = Printf.sprintf "%s" barcode (*(check_symbol !values)*) in
-            let text_width = PDF.get_string_width text doc in
+            let font =
+              match doc.PDFDocument.current_font with
+                | Some font -> font.PDFDocument.font_metrics
+                | _ -> failwith "No current font"
+            in
+            let text_width = PDF.get_text_width font size text in
             let barcode_width = float (get_width ~barcode) *. baseline in
             let x = x +. (barcode_width -. text_width) /. 2. in
             PDF.text ~x ~y:(y +. height +. (size -. 1.) /. PDF.scale doc) ~text doc

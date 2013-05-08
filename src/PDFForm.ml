@@ -193,7 +193,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
   let font =
     let family = field.font_family in
     let style = field.font_style in
-    let f () = Font.find ?family ~style doc.fonts in
+    let f () = PDFDocument.find_font ?family ~style doc in
     match f () with Some x -> x | _ ->
       let old_family = PDF.font_family doc in
       let old_style = PDF.font_style doc in
@@ -220,8 +220,8 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     let x_offset =
       match field.justification with
         | `Left -> padding
-        | `Center -> (width -. PDFText.get_string_width_gen field.value_ap font font_size) /. 2.
-        | `Right -> width -. PDFText.get_string_width_gen field.value_ap font font_size -. padding
+        | `Center -> (width -. PDFText.get_text_width font.font_metrics font_size field.value_ap) /. 2.
+        | `Right -> width -. PDFText.get_text_width font.font_metrics font_size field.value_ap -. padding
     in
     (** Appearance object *)
     let stream = sprintf "%s/Tx BMC q BT /F%d %f Tf %s %f %f Td %s Tj ET Q EMC"
