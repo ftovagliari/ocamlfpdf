@@ -81,6 +81,24 @@ let main () = begin
         if !draw_marker then (PDF.line ~x1:(x0 +. x -. aw) ~y1:(last +. aw) ~x2:(x0 +. x +. aw) ~y2:(last -. aw) doc);
       in
 
+      (* characters *)
+      let characters = ref [] in
+      for i = 255 downto 32 do
+        let c = Char.chr i in
+        let s =
+          match c with
+            | '&' -> "&amp;"
+            | '\'' -> "&apos;"
+            | '"' -> "&quot;"
+            | '<' -> "&lt;"
+            | '>' -> "&gt;"
+            | '\\' -> "\092"
+            | _ -> String.make 1 c
+        in
+        characters := (sprintf "<SPAN family='courier' style='' size='8'>%d=</SPAN>%s" i s) :: !characters
+      done;
+      let characters = String.concat " " !characters in
+
       (* print_page *)
       let print_page key font =
         PDF.add_page doc;
@@ -133,6 +151,21 @@ let main () = begin
           (y0 +. baseline), None;
         ];
 
+        (* Print label "origin" *)
+        let text = "origin" in
+        let x0' = x0 +. PDF.line_width doc in
+        let y0' = y0 +. PDF.line_width doc in
+        let x = x0' +. 3. *. padding in
+        let y = y0' +. 3. *. padding in
+        let aw = 2. in
+        PDF.set ~x ~y doc;
+        PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;
+        PDF.set_line_width 0.1 doc;
+        PDF.line ~x1:x0' ~y1:x0' ~x2:x ~y2:y doc;
+        PDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw /. 3.) ~y2:(y0' +. aw) doc;
+        PDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw) ~y2:(y0' +. aw /. 3.) doc;
+        PDF.set_line_width 0.25 doc;
+
         (* Print label "baseline" *)
         let text = "baseline" in
         let tw = PDF.get_text_width label_font label_font_size text /. scale in
@@ -151,6 +184,11 @@ let main () = begin
           ~border:[]
           ~text
           doc;
+
+        (*  *)
+        PDF.set_font ~family ~size:14. ~style:font_style doc;
+        let markup = PDFMarkup.prepare ~width:width_avail ~padding:(1.,1.,1.,1.) ~markup:characters doc in
+        markup.PDFMarkup.print ~x:x0 ~y:(y0 +. baseline +. descent +. font_size *. (1. +. Font.descent font) /. scale +. 2. *. padding) ()
       in
       let ordered_fonts = ref [] in
       Hashtbl.iter (fun key font -> ordered_fonts := (key, font) :: !ordered_fonts) Font.fonts;

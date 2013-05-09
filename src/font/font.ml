@@ -44,6 +44,14 @@ let family_of_string name =
   | "symbol" -> `Symbol
   | _ -> Printf.kprintf failwith "family_of_string (%s)" name
 
+(** string_of_family *)
+let string_of_family = function
+  | `Times -> "times"
+  | `Helvetica -> "helvetica"
+  | `Courier -> "courier"
+  | `ZapfDingbats -> "zapfdingbats"
+  | `Symbol -> "symbol"
+
 (** style_of_string *)
 let style_of_string name =
   match String.lowercase name with
@@ -51,6 +59,12 @@ let style_of_string name =
   | "italic" -> `Italic
   | "bold" -> `Bold
   | _ -> Printf.kprintf failwith "style_of_string (%s)" name
+
+(** string_of_style *)
+let string_of_style = function
+  | `Italic -> "italic"
+  | `Bold -> "bold"
+  | `Underline -> "underline"
 
 (** string_of_key *)
 let string_of_key = function
