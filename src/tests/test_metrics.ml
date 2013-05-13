@@ -57,6 +57,8 @@ let main () = begin
       let x'                = width_avail *. 0.75 in
       let x''               = width_avail *. 0.85 in
       let gap               = label_font_size /. scale in
+      let sample_text =     "{\192g}" in
+      let sample_text =     "{\192g\131\190}" in
 
       PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
       PDF.set_line_cap `Round doc;
@@ -66,7 +68,11 @@ let main () = begin
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`LMRoman10 ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
 
       (* print_vmesurements *)
       let print_vmesurements x vlines =
@@ -105,7 +111,7 @@ let main () = begin
             | '"' -> "&quot;"
             | '<' -> "&lt;"
             | '>' -> "&gt;"
-            | '\\' -> "\\" (*"\092"*)
+            (*| '\\' -> "\\" (*"\092"*)*)
             | _ -> String.make 1 c
         in
         characters := (sprintf "<SPAN family='Courier' style='' size='8'>%d=</SPAN>%s" i s) :: !characters
@@ -116,8 +122,6 @@ let main () = begin
       let print_page key font =
         PDF.add_page doc;
         let hline x1 x2 y = PDF.line ~x1 ~y1:y ~x2 ~y2:y doc in
-
-        let text = "{\192g}" in
 
         let font_size = font_size_pt /. scale in
 
@@ -136,7 +140,7 @@ let main () = begin
           ~font_size:font_size_pt
           ~font_style:(Font.style font)
           ~border:[]
-          ~text
+          ~text:sample_text
           doc;
 
         (* Draw margins *)

@@ -27,7 +27,8 @@ INSTALL:
     ocaml build.ml fpdf
     ocaml build.ml test && pushd src/tests && ./test.opt && popd
 
-  You can generate a LablGtk markup editor (for use with PDFMarkup) with:
+  You can generate a simple LablGtk markup editor widget (for use with 
+  PDFMarkup) with:
 
     ocaml build.ml markup-editor
     ocaml build.ml test-markup-editor && src/tests/test_pdfmarkup_editor.opt

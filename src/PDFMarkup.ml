@@ -118,15 +118,15 @@ let find_word_bound_backward, find_word_bound_forward =
       | `STOP -> assert false
   end;;
 
-let default_family doc = match PDF.font_family doc with Some x -> x | _ -> `Courier;;
-let default_style doc = PDF.font_style doc;;
 
 (** markup_to_blocks *)
 let markup_to_blocks ~markup ~line_spacing doc =
   let default_line_spacing = line_spacing in
+  let default_family = match PDF.font_family doc with Some x -> x | _ -> `Courier in
+  let default_style = PDF.font_style doc in
   let attr doc = {
-    family       = (default_family doc);
-    style        = (default_style doc);
+    family       = default_family;
+    style        = default_style;
     size         = PDF.font_size doc;
     scale        = None;
     char_space   = None;
@@ -161,8 +161,8 @@ let markup_to_blocks ~markup ~line_spacing doc =
       newline ()
     | Xml.Element (tag, attrs, children) when (String.uppercase tag) = "SPAN" ->
       let attr     = {
-        family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family doc);
-        style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> default_style doc);
+        family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family);
+        style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> default_style);
         size         = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
         scale        = (try Some (float_of_string (List.assoc "scale" attrs) /. 100.) with Not_found -> None);
         char_space   = (try Some (float_of_string (List.assoc "char_space" attrs)) with Not_found -> None);
@@ -242,7 +242,7 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
           let exceeding_width = string_width exceeding in
           begin
             (*try*)
-              chunks := (!current_width -. exceeding_width, (String.sub text !i0 (word_stop - !i0))) :: !chunks;
+            chunks := (!current_width -. exceeding_width, (String.sub text !i0 (word_stop - !i0))) :: !chunks;
             (*with Invalid_argument("String.sub") ->
               Printf.printf "need_wrap_char=%b; can_wrap_char=%b; i0=%d; i=%d; word_start=%d; word_stop=%d; %S;\n%!"
                 need_wrap_char !can_wrap_char !i0 !i word_start word_stop text;
@@ -271,28 +271,28 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
     let avail_width = ref width0 in
     first_block := true;
     List.rev (List.fold_left begin fun acc block ->
-      let family = block.attr.family in
-      let font_metrics = Font.find (Font.key_of_font block.attr.style family) in
-      block.cell_height <- block.attr.size *. float (Font.height font_metrics) /. 1000. /. scale;
-      block.font_metrics <- font_metrics;
-      let text_scale = block.attr.scale in
-      let char_space = block.attr.char_space in
-      let rise = block.attr.rise in
-      let cw = char_width ~font_metrics:block.font_metrics ~size:block.attr.size ~scale ?char_space ?text_scale ?rise in
-      let chunks =
-        try split_text_by_width ~widths:[!avail_width; width0] ~cw ~can_wrap_char:!first_block block.text
-        with Width_is_less_than_first_char_width -> begin
-          avail_width := width0;
-          split_text_by_width ~widths:[!avail_width] ~cw ~can_wrap_char:!first_block block.text
-        end
-      in
-      List.iter begin fun (w, t) ->
-        avail_width := !avail_width -. w;
-        if !avail_width < 0.0 then (avail_width := width0 -. w);
-      end (List.rev chunks);
-      first_block := false;
-      (List.map (fun (w, t) -> {block with text=t; cell_width=w}) chunks) @ acc;
-    end [] paragraph)
+        let family = block.attr.family in
+        let font_metrics = Font.find (Font.key_of_font block.attr.style family) in
+        block.cell_height <- block.attr.size *. float (Font.height font_metrics) /. 1000. /. scale;
+        block.font_metrics <- font_metrics;
+        let text_scale = block.attr.scale in
+        let char_space = block.attr.char_space in
+        let rise = block.attr.rise in
+        let cw = char_width ~font_metrics:block.font_metrics ~size:block.attr.size ~scale ?char_space ?text_scale ?rise in
+        let chunks =
+          try split_text_by_width ~widths:[!avail_width; width0] ~cw ~can_wrap_char:!first_block block.text
+          with Width_is_less_than_first_char_width -> begin
+              avail_width := width0;
+              split_text_by_width ~widths:[!avail_width] ~cw ~can_wrap_char:!first_block block.text
+            end
+        in
+        List.iter begin fun (w, t) ->
+          avail_width := !avail_width -. w;
+          if !avail_width < 0.0 then (avail_width := width0 -. w);
+        end (List.rev chunks);
+        first_block := false;
+        (List.map (fun (w, t) -> {block with text=t; cell_width=w}) chunks) @ acc;
+      end [] paragraph)
   end paragraphs
 ;;
 
@@ -309,9 +309,9 @@ let struct_by_lines paragraphs =
 
 (** struct_by_paragraphs *)
 let struct_by_paragraphs paragraphs = List.map begin fun lines -> {
-  paragraph_align        = 0.0;
-  paragraph_lines        = lines;
-} end paragraphs
+      paragraph_align        = 0.0;
+      paragraph_lines        = lines;
+    } end paragraphs
 ;;
 
 (** set_line_numbers *)
@@ -351,10 +351,10 @@ let set_paragraph_line_spacing paragraphs =
     List.iter begin fun line ->
       line.line_height  <- List.fold_left (fun acc c -> max acc c.cell_height) 0.0 line.line_cells;
       line.line_max_font_size <- List.fold_left begin fun ((_, cand) as acc) c ->
-        if cand > c.attr.size then acc else
-          (*let font = Font.find (Font.key_of_font c.attr.style c.attr.family) in*)
-          (c.font_metrics, c.attr.size)
-      end dummy_max_font_size line.line_cells;
+          if cand > c.attr.size then acc else
+            (*let font = Font.find (Font.key_of_font c.attr.style c.attr.family) in*)
+            (c.font_metrics, c.attr.size)
+        end dummy_max_font_size line.line_cells;
       let ls = List.fold_left (fun acc c -> max acc c.attr.lspacing) 0.0 line.line_cells in
       line.line_spacing <- line.line_height *. (ls -. 1.);
       overall_height := !overall_height +. line.line_height +. line.line_spacing;
@@ -416,15 +416,16 @@ let analyze ~width ~markup ?(padding=(0., 0., 0., 0.)) ?(border_width=0.) ~line_
   (*List.iter begin fun {paragraph_lines; _} ->
     List.iter begin function {line_width; line_cells; line_height; _} ->
       List.iter begin fun cell ->
-        Printf.printf "%5.2f {w=%6.2f; ch=%5.2f; lh=%f; color=% 7s; l=%2d; p=%2d; text=%S}\n%!"
+        Printf.printf "%5.2f {w=%6.2f; ch=%5.2f; lh=%f; color=% 7s; l=%2d; p=%2d; text=%S; style=%S}\n%!"
           line_width
           cell.cell_width cell.cell_height line_height
-          cell.attr.color cell.line cell.par cell.text;
+          cell.attr.color cell.line cell.par cell.text
+          (String.concat "," (List.map Font.string_of_style cell.attr.style))
       end line_cells;
       (*Printf.printf "\n%!" ;*)
     end paragraph_lines;
     Printf.printf "======== %5.2f ========\n%!" width;
-  end paragraphs;*)
+    end paragraphs;*)
   (* Return analysis *)
   {
     width      = width;
@@ -477,10 +478,10 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
             ~text (*~border:[`All]*) doc;
 
           (*PDFGraphicsState.push doc;
-          PDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
-          PDF.set_line_width 0.1 doc;
-          PDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
-          PDFGraphicsState.pop doc;*)
+            PDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
+            PDF.set_line_width 0.1 doc;
+            PDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
+            PDFGraphicsState.pop doc;*)
 
           if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy ~cell doc);
           x := !x +. cell.cell_width;

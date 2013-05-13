@@ -12,7 +12,7 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="font" default="true" id="17">
+    <target name="font" default="false" id="17">
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
@@ -140,7 +140,7 @@
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
       <cflags>-w y -g</cflags>
-      <lflags></lflags>
+      <lflags>-g</lflags>
       <target_type>Executable</target_type>
       <outname>tests/test</outname>
       <lib_install_path></lib_install_path>
@@ -240,7 +240,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="false" id="15">
+    <target name="test-tabular" default="true" id="15">
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>

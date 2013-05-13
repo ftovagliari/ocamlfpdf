@@ -79,13 +79,13 @@ meaning, without further definition. As a <SPAN size='25.' line_spacing='1.5'>co
 out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
-<SPAN family='CenturySchoolbook'>Notations
+Notations
 
 The syntax of the language is given in BNF-like notation. Terminal symbols are set \
 in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
-denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.</SPAN>";;
+denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
 
 
 let main () = begin
@@ -100,6 +100,11 @@ let main () = begin
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold;`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
       PDF.set_display_mode `Fullwidth doc;
       (*PDF.set_compression false doc;*)
 
@@ -167,7 +172,7 @@ let main () = begin
       ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
       let x = margin /. 2. in
       let y = margin +. height_header *. 5. /. 3. in
-      PDF.set_font ~family:(*`Times*) `CenturySchoolbook ~size:12. doc;
+      PDF.set_font ~family:(*`Times*) `CMUSansSerif ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*width_avail*) PDF.page_width doc -. margin in
       let markup = PDFMarkup.prepare ~width ~markup:markup2 ~padding:(10.,10.,10.,10.)

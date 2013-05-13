@@ -91,16 +91,21 @@ let cell
     ?(fill=false)
     ?(link="")
     doc =
-  let have_font    = font_family <> None || font_size <> None || font_style <> None in
   let font_size_pt = match font_size with Some x -> x | _ -> doc.font_size_pt in
-  let font_index   = PDFFont.find_font_index ?family:font_family ?style:font_style doc in
-  let have_font    = have_font && (font_family <> doc.font_family || font_size_pt <> doc.font_size_pt) in
+  let font_index   =
+    if
+      font_family <> None && font_family <> doc.font_family ||
+      font_size <> None && font_size_pt <> doc.font_size_pt ||
+      font_style <> None && (match font_style with Some sty -> List.sort compare sty | _ -> []) <> doc.font_style
+    then Some (PDFFont.find_font_index ?family:font_family ?style:font_style doc)
+    else None
+  in
   let padding      = match padding with None -> 0.0 (*doc.c_margin*) | Some padding -> padding in
   let scale        = doc.k in
   let font_size    = font_size_pt /. scale in
   let font_metrics =
     let family =
-      match if have_font then font_family else doc.font_family with
+      match if font_index <> None then font_family else doc.font_family with
         | Some family -> family
         | _ -> failwith "No current font"
     in
@@ -172,8 +177,8 @@ let cell
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
     code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)
-                       ((doc.h -. doc.pos_y -. baseline) *. scale (*-. font_size_pt*))
-                       (if have_font then sprintf " /F%d %f Tf" font_index font_size_pt else "")
+                       ((doc.h -. doc.pos_y -. baseline) *. scale)
+                       (match font_index with Some font_index -> sprintf " /F%d %f Tf" font_index font_size_pt | _ ->  "")
                        (match font_scale with Some x -> sprintf " %d Tz" x | _ -> "")
                        (match char_space with Some x -> sprintf " %f Tc" x | _ -> "")
                        (match rise with Some x -> sprintf " %f Ts" x | _ -> "")

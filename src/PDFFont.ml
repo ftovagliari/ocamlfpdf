@@ -50,7 +50,7 @@ let set_font ?family ?(style=[]) ?size ?scale ?char_space doc =
     end;
     (* Select it *)
     doc.font_family <- family;
-    doc.font_style <- style;
+    doc.font_style <- List.sort compare style;
     doc.font_size_pt <- size;
     doc.font_size <- size /. doc.k;
     doc.font_scale <- scale;
