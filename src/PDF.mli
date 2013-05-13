@@ -172,7 +172,7 @@ val text : x:float -> y:float -> text:string -> t -> unit
 val newline : ?height:float -> t -> unit
 
 (** Return the width of a string in unscaled text space units computed with the given font. *)
-val get_text_width : Font_metrics.t -> float -> string -> float
+val get_text_width : Font.t -> float -> string -> float
 
 (** {6 Graphics} *)
 

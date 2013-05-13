@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@ open PDFDocument
 open PDFPage
 open PDFUtil
 open Printf
-open Font_metrics
+open Font
 
 (** get_text_width *)
 let get_text_width font font_size =
@@ -107,9 +107,13 @@ let cell
     let style = match font_style with Some style -> style | _ -> [] in
     Font.find (Font.key_of_font style family)
   in
-  let descent      = font_size *. Font.descent font_metrics in
+  let baseline     = font_size *. float (Font.baseline font_metrics) /. 1000. in
   let y0           = doc.pos_y in
-  let height       = match height with Some h -> h | _ -> font_size +. descent  in
+  let height       =
+    match height with
+      | Some h -> h
+      | _ -> font_size *. float (Font.height font_metrics) /. 1000. (*font_size +. descent*)
+  in
   if doc.pos_y +. height > doc.pageBreakTrigger && (not doc.inFooter) && (doc.auto_page_break) then begin
     let x0 = doc.pos_x in
     let word_spacing = doc.ws in
@@ -168,7 +172,7 @@ let cell
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
     code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)
-                       ((doc.h -. doc.pos_y) *. scale -. font_size_pt)
+                       ((doc.h -. doc.pos_y -. baseline) *. scale (*-. font_size_pt*))
                        (if have_font then sprintf " /F%d %f Tf" font_index font_size_pt else "")
                        (match font_scale with Some x -> sprintf " %d Tz" x | _ -> "")
                        (match char_space with Some x -> sprintf " %f Tc" x | _ -> "")

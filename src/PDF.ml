@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -78,6 +78,7 @@ let y doc = doc.pos_y
 
 (** create *)
 let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
+  if Hashtbl.length Font_loader.fonts = 0 then Font_loader.load_fonts();
 (*  //Some checks (LOCALE) $this->_dochecks();*)
   (* Scale factor *)
   let scale = match m_unit with
@@ -129,7 +130,7 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     line_join             = `Miter;
     line_dash             = ([], 0);
     fonts                 = [];
-    font_files            = [];
+    font_embed            = [];
     diffs                 = [];
     images                = PDFImages.Table.create();
     links                 = [];

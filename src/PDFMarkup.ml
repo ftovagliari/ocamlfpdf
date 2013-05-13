@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 
 open Printf
 open PDFError
-open Font_metrics
+open Font
 
 type analysis = {
   mutable width                          : float;
@@ -34,6 +34,7 @@ type analysis = {
 and cell = {
   mutable text                           : string;
   mutable attr                           : attributes;
+  mutable font_metrics                   : Font.t;
   mutable cell_width                     : float;
   mutable cell_height                    : float;
   mutable par                            : int;
@@ -43,7 +44,7 @@ and cell = {
 and line = {
   mutable line_width                     : float;
   mutable line_height                    : float;
-  mutable line_max_font_size             : (Font_metrics.t * float);
+  mutable line_max_font_size             : (Font.t * float);
   mutable line_spacing                   : float;
   mutable line_cells                     : cell list;
 }
@@ -92,12 +93,10 @@ let underline_of_string name =
 
 let split_attrib = let re = Str.regexp "[,;][ ]*" in Str.split re;;
 
-let char_width ~family ~style ~size ~scale ?(char_space=0.) ?(text_scale=1.) ?(rise=0.0) =
-  let key = Font.key_of_font style family  in
-  let font = Font.find key in
-  let f = font.charMetrics in
+let char_width ~font_metrics ~size ~scale ?(char_space=0.) ?(text_scale=1.) ?(rise=0.0) =
+  let f = font_metrics.charMetrics in
   function '\n' -> 0.0 | x ->
-    ((((float (f x)) /. 1000.) *. size +. char_space) /. scale) *. text_scale ;;
+    ((((float (f x)) /. 1000.) *. size +. char_space) /. scale) *. text_scale;;
 
 let find_word_bound_backward, find_word_bound_forward =
   let blanks = Str.regexp "[- \r\n\t]" in
@@ -120,13 +119,14 @@ let find_word_bound_backward, find_word_bound_forward =
   end;;
 
 let default_family doc = match PDF.font_family doc with Some x -> x | _ -> `Courier;;
+let default_style doc = PDF.font_style doc;;
 
 (** markup_to_blocks *)
 let markup_to_blocks ~markup ~line_spacing doc =
   let default_line_spacing = line_spacing in
   let attr doc = {
     family       = (default_family doc);
-    style        = [];
+    style        = (default_style doc);
     size         = PDF.font_size doc;
     scale        = None;
     char_space   = None;
@@ -137,7 +137,8 @@ let markup_to_blocks ~markup ~line_spacing doc =
     align        = 0.0;
     lspacing     = default_line_spacing;
   } in
-  let cell ~text ~attr ~par = {text=text; attr=attr; cell_width=0.0; cell_height=0.0; par=par; line=0} in
+  let dummy_metrics = Font.find Font.Courier in
+  let cell ~text ~attr ~par = {text; attr; cell_width=0.0; cell_height=0.0; par; line=0; font_metrics=dummy_metrics} in
   let markup = Str.global_replace (Str.regexp "\n") "<BR/>" markup in
   let xml = Xml.parse_string ("<MARKUP>" ^ markup ^ "</MARKUP>") in
   (*(Printf.printf "%s\n----------------------------------------\n%!" (Xml.to_string_fmt xml));*)
@@ -161,7 +162,7 @@ let markup_to_blocks ~markup ~line_spacing doc =
     | Xml.Element (tag, attrs, children) when (String.uppercase tag) = "SPAN" ->
       let attr     = {
         family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family doc);
-        style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> []);
+        style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> default_style doc);
         size         = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
         scale        = (try Some (float_of_string (List.assoc "scale" attrs) /. 100.) with Not_found -> None);
         char_space   = (try Some (float_of_string (List.assoc "char_space" attrs)) with Not_found -> None);
@@ -272,12 +273,12 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
     List.rev (List.fold_left begin fun acc block ->
       let family = block.attr.family in
       let font_metrics = Font.find (Font.key_of_font block.attr.style family) in
-      let descent = block.attr.size *. Font.descent font_metrics in
-      block.cell_height <- (block.attr.size +. descent) /. scale;
+      block.cell_height <- block.attr.size *. float (Font.height font_metrics) /. 1000. /. scale;
+      block.font_metrics <- font_metrics;
       let text_scale = block.attr.scale in
       let char_space = block.attr.char_space in
       let rise = block.attr.rise in
-      let cw = char_width ~family ~style:block.attr.style ~size:block.attr.size ~scale ?char_space ?text_scale ?rise in
+      let cw = char_width ~font_metrics:block.font_metrics ~size:block.attr.size ~scale ?char_space ?text_scale ?rise in
       let chunks =
         try split_text_by_width ~widths:[!avail_width; width0] ~cw ~can_wrap_char:!first_block block.text
         with Width_is_less_than_first_char_width -> begin
@@ -295,10 +296,9 @@ let split_blocks_at_line_break ~paragraphs ~avail_width doc =
   end paragraphs
 ;;
 
-let dummy_max_font_size = Font.find Font.Courier, 0.0
-
 (** struct_by_lines *)
 let struct_by_lines paragraphs =
+  let dummy_max_font_size = Font.find Font.Courier, 0.0 in
   List.map begin fun lines ->
     List.map begin fun line ->
       let line_width = List.fold_left (fun acc c -> acc +. c.cell_width) 0.0 line in
@@ -345,14 +345,15 @@ let set_paragraph_align paragraphs =
 
 (** set_paragraph_line_spacing *)
 let set_paragraph_line_spacing paragraphs =
+  let dummy_max_font_size = Font.find Font.Courier, 0.0 in
   let overall_height = ref 0.0 in
   List.iter begin fun par ->
     List.iter begin fun line ->
       line.line_height  <- List.fold_left (fun acc c -> max acc c.cell_height) 0.0 line.line_cells;
       line.line_max_font_size <- List.fold_left begin fun ((_, cand) as acc) c ->
         if cand > c.attr.size then acc else
-          let font = Font.find (Font.key_of_font c.attr.style c.attr.family) in
-          (font, c.attr.size)
+          (*let font = Font.find (Font.key_of_font c.attr.style c.attr.family) in*)
+          (c.font_metrics, c.attr.size)
       end dummy_max_font_size line.line_cells;
       let ls = List.fold_left (fun acc c -> max acc c.attr.lspacing) 0.0 line.line_cells in
       line.line_spacing <- line.line_height *. (ls -. 1.);
@@ -364,30 +365,38 @@ let set_paragraph_line_spacing paragraphs =
 
 (** draw_underline *)
 let draw_underline ~x ~y ~cell doc =
-  let scale = PDF.scale doc in
-  let old = PDF.line_width doc in
-  let r, g, b = PDF.draw_color doc in
-  let fs = cell.attr.size in
-  let uw2 = fs /. 100. in
-  let uw = uw2 +. uw2 in
+  let scale        = PDF.scale doc in
+  let old          = PDF.line_width doc in
+  let fs           = cell.attr.size in
+  let font_metrics = cell.font_metrics in
+  let uthick       = fs *. float (font_metrics.underlineThickness) /. 1000. /. scale in
+  let baseline     = Font.baseline font_metrics in
+  let uw           = uthick in
+  let uw2          = uw /. 2. in
+  PDFGraphicsState.push doc;
   PDF.set_line_width uw doc;
   let red, green, blue = PDF.text_color doc in
   PDF.set_draw_color ~red ~green ~blue doc ;
-  match cell.attr.underline with
-    | `NONE -> ()
-    | `SINGLE ->
-      let y = y +. fs /. scale +. uw in
-      PDF.line
-        ~x1:(x +. uw2) ~y1:y
-        ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
-    | `LOW ->
-      let font_metrics = Font.find (Font.key_of_font cell.attr.style cell.attr.family) in
-      let y = y +. fs *. (1. +. Font.descent font_metrics) /. scale in
-      PDF.line
-        ~x1:(x +. uw2) ~y1:y
-        ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
-      PDF.set_line_width old doc;
-      PDF.set_draw_color ~red:r ~green:g ~blue:b doc
+  let r, g, b = PDF.draw_color doc in
+  begin
+    match cell.attr.underline with
+      | `NONE -> ()
+      | `SINGLE ->
+        let upos = font_metrics.underlinePosition in
+        let y = y +. fs *. (float (baseline - upos)) /. 1000. /. scale in
+        PDF.line
+          ~x1:(x +. uw2) ~y1:y
+          ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
+      | `LOW ->
+        let descent = Font.descent font_metrics in
+        let y = y +. fs *. (float (baseline + descent)) /. 1000. /. scale +. uw2 in
+        PDF.line
+          ~x1:(x +. uw2) ~y1:y
+          ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
+        PDF.set_draw_color ~red:r ~green:g ~blue:b doc
+  end;
+  PDF.set_line_width old doc;
+  PDFGraphicsState.pop doc;
 ;;
 
 (** analyze *)
@@ -434,8 +443,12 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
   let y = ref y0 in
   let scale = PDF.scale doc in
   let get_descent cell ?metrics size =
-    let font_metrics = match metrics with Some x -> x | _ -> Font.find (Font.key_of_font cell.attr.style cell.attr.family) in
-    size *. Font.descent font_metrics
+    let font_metrics =
+      match metrics with
+        | Some x -> x
+        | _ -> cell.font_metrics (*Font.find (Font.key_of_font cell.attr.style cell.attr.family)*)
+    in
+    size *. float (Font.descent font_metrics) /. 1000.
   in
   List.iter begin function { paragraph_align; paragraph_lines } ->
     List.iter begin function { line_width; line_height; line_cells; line_max_font_size; line_spacing } ->
@@ -449,7 +462,7 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
               !y +. line_height -. cell.cell_height +.
                 ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
           in
-          let text = cell.text in
+          let text = PDFUtil.rtrim_newline cell.text in
           let red, green, blue = PDFUtil.rgb_of_hex cell.attr.color in
           PDF.set_text_color ~red ~green ~blue doc;
           let hscaling = match cell.attr.scale with Some z -> Some (int_of_float (z *. 100.)) | _ -> None in

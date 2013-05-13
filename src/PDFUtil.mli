@@ -2,9 +2,7 @@ exception Continue
 val fread : string -> Buffer.t
 val re_cr : Str.regexp
 val fixpoint : ('a -> 'a) -> 'a -> 'a
-val trim : string -> string
-val rtrim : string -> string
-val ltrim : string -> string
+val rtrim_newline : string -> string
 val may : f:('a -> 'b) -> 'a option -> unit
 val remove_dupl : 'a list -> 'a list
 val gz_compress : string -> string

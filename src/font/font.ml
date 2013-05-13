@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,36 +21,50 @@
 *)
 
 
-open Font_metrics
-
 type key =
     | Courier | Courier_Oblique | Courier_Bold | Courier_BoldOblique
     | Helvetica | Helvetica_Oblique | Helvetica_Bold | Helvetica_BoldOblique
     | Times_Roman | Times_Bold | Times_Italic | Times_BoldItalic
     | ZapfDingbats
     | Symbol
+    | CenturySchoolbook | CenturySchoolbook_Italic | CenturySchoolbook_Bold | CenturySchoolbook_BoldItalic
+    | LMRoman10
 
-type family = [ `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats ]
+type family = [ `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook | `LMRoman10 ]
 
 type style = [ `Underline | `Italic | `Bold ]
 
-(** family_of_string *)
-let family_of_string name =
-  match String.lowercase name with
-  | "times" -> `Times
-  | "helvetica" -> `Helvetica
-  | "courier" -> `Courier
-  | "zapfdingbats" -> `ZapfDingbats
-  | "symbol" -> `Symbol
-  | _ -> Printf.kprintf failwith "family_of_string (%s)" name
+type t = {
+  fontType           : [ `Core | `Type1 | `TrueType | `Additional of string ];
+  fontName           : string;
+  fontFamily         : family;
+  fontWeight         : int;
+  flags              : int option;
+  italicAngle        : float;
+  ascent             : int option;
+  descent            : int option;
+  capHeight          : int option;
+  stemV              : int option;
+  missingWidth       : int option;
+  fontFile           : (int * string) option; (* original size and gz-compressed data of the font file *)
+  diff               : string option;
+  encoding           : string option;
+  fontBBox           : (int * int * int * int); (* lowerLeftX, lowerLeftY, upperRightX, upperRightY *)
+  underlinePosition  : int;
+  underlineThickness : int;
+  charMetrics        : char -> int;
+}
 
-(** string_of_family *)
-let string_of_family = function
-  | `Times -> "times"
-  | `Helvetica -> "helvetica"
-  | `Courier -> "courier"
-  | `ZapfDingbats -> "zapfdingbats"
-  | `Symbol -> "symbol"
+(** family_of_string *)
+let family_of_string = function
+  | "Times" -> `Times
+  | "Helvetica" -> `Helvetica
+  | "Courier" -> `Courier
+  | "ZapfDingbats" -> `ZapfDingbats
+  | "Symbol" -> `Symbol
+  | "CenturySchoolbook" -> `CenturySchoolbook
+  | "LMRoman10" -> `LMRoman10
+  | name -> Printf.kprintf failwith "family_of_string (%s)" name
 
 (** style_of_string *)
 let style_of_string name =
@@ -65,23 +79,6 @@ let string_of_style = function
   | `Italic -> "italic"
   | `Bold -> "bold"
   | `Underline -> "underline"
-
-(** string_of_key *)
-let string_of_key = function
-  | Courier -> "Courier"
-  | Courier_Oblique -> "Courier-Oblique"
-  | Courier_Bold -> "Courier-Bold"
-  | Courier_BoldOblique -> "Courier-BoldOblique"
-  | Helvetica -> "Helvetica"
-  | Helvetica_Oblique -> "Helvetica-Oblique"
-  | Helvetica_Bold -> "Helvetica-Bold"
-  | Helvetica_BoldOblique -> "Helvetica-BoldOblique"
-  | Times_Roman -> "Times-Roman"
-  | Times_Bold -> "Times-Bold"
-  | Times_Italic -> "Times-Italic"
-  | Times_BoldItalic -> "Times-BoldItalic"
-  | ZapfDingbats -> "ZapfDingbats"
-  | Symbol -> "Symbol"
 
 (** key_of_font *)
 let key_of_font style =
@@ -102,68 +99,56 @@ let key_of_font style =
     | `Courier -> Courier
     | `Symbol -> Symbol
     | `ZapfDingbats -> ZapfDingbats
+    | `CenturySchoolbook when bold && italic -> CenturySchoolbook_BoldItalic
+    | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
+    | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
+    | `CenturySchoolbook -> CenturySchoolbook
+    | `LMRoman10 -> LMRoman10
     | _ -> raise Not_found
 
-(** fonts *)
-let fonts : (key, Font_metrics.t) Hashtbl.t = Hashtbl.create 17
-
-let _ =
-  Hashtbl.add fonts Courier Courier.descriptor;
-  Hashtbl.add fonts Courier_Oblique Courier_Oblique.descriptor;
-  Hashtbl.add fonts Courier_Bold Courier_Bold.descriptor;
-  Hashtbl.add fonts Courier_BoldOblique Courier_BoldOblique.descriptor;
-
-  Hashtbl.add fonts Helvetica Helvetica.descriptor;
-  Hashtbl.add fonts Helvetica_Oblique Helvetica_Oblique.descriptor;
-  Hashtbl.add fonts Helvetica_Bold Helvetica_Bold.descriptor;
-  Hashtbl.add fonts Helvetica_BoldOblique Helvetica_BoldOblique.descriptor;
-
-  Hashtbl.add fonts Times_Roman Times_Roman.descriptor;
-  Hashtbl.add fonts Times_Bold Times_Bold.descriptor;
-  Hashtbl.add fonts Times_Italic Times_Italic.descriptor;
-  Hashtbl.add fonts Times_BoldItalic Times_BoldItalic.descriptor;
-
-  Hashtbl.add fonts ZapfDingbats ZapfDingbats.descriptor;
-
-  Hashtbl.add fonts Symbol Symbol.descriptor;
-;;
-
-(** find *)
-let find = Hashtbl.find fonts
-
-(** family *)
-let family = function
-  | Courier | Courier_Oblique | Courier_Bold | Courier_BoldOblique -> `Courier
-  | Helvetica | Helvetica_Oblique | Helvetica_Bold | Helvetica_BoldOblique -> `Helvetica
-  | Times_Roman | Times_Bold | Times_Italic | Times_BoldItalic -> `Times
-  | ZapfDingbats -> `ZapfDingbats
-  | Symbol -> `Symbol
-
-(** style *)
-let style = function
-  | Courier -> []
-  | Courier_Oblique -> [`Italic]
-  | Courier_Bold -> [`Bold]
-  | Courier_BoldOblique -> [`Bold; `Italic]
-  | Helvetica -> []
-  | Helvetica_Oblique -> [`Italic]
-  | Helvetica_Bold -> [`Bold]
-  | Helvetica_BoldOblique -> [`Bold; `Italic]
-  | Times_Roman -> []
-  | Times_Bold -> [`Bold]
-  | Times_Italic -> [`Italic]
-  | Times_BoldItalic -> [`Bold; `Italic]
-  | ZapfDingbats -> []
-  | Symbol -> []
-
-(** line_gap *)
-let line_gap font =
-  let _, _, _, ruy = font.fontBBox in
-  (float (1000 - ruy)) /. 1000.
+(** ascent *)
+let ascent font =
+  match font.ascent with
+      | Some x -> x
+      | _ -> let _, _, _, ruy = font.fontBBox in ruy
 
 (** descent *)
 let descent font =
   let _, lby, _, _ = font.fontBBox in (* lby < 0 *)
-  -.((float lby) /. 1000.)
+  -lby
+
+(** baseline *)
+let baseline font =
+  let _, _, _, ruy = font.fontBBox in
+  max 1000 ruy
+
+(** line_gap *)
+let line_gap font =
+  let _, _, _, ruy = font.fontBBox in
+  let ascent =
+    match font.ascent with
+      | Some x -> x
+      | _ -> ruy
+  in
+  max 1000 ruy - ascent   (*baseline font - ascent font*)
+
+(** height *)
+let height font =
+  let _, lby, _, ruy = font.fontBBox in (* lby < 0 *)
+  max ruy 1000 - lby
+
+(** style *)
+let style font =
+  (if font.fontWeight > 400 then [`Bold] else []) @ (if font.italicAngle <> 0. then [`Italic] else [])
+
+(** find *)
+let fonts : (key, t) Hashtbl.t option ref = ref None
+
+let find key = match !fonts with
+  | Some fonts -> Hashtbl.find fonts key
+  | _ -> failwith "Font.find"
+
+
+
 
 

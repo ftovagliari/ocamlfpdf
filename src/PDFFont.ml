@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,10 +24,10 @@ open PDFTypes
 open PDFDocument
 open PDFUtil
 open Printf
-open Font_metrics
+open Font
 
 (** set_font *)
-let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space doc =
+let set_font ?family ?(style=[]) ?size ?scale ?char_space doc =
   let family = match family with None -> doc.font_family | x -> x in
   (* Select a font; size given in points. *)
   doc.underline <- List.mem `Underline style;
@@ -40,15 +40,13 @@ let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space do
       try
         let font_metrics = Font.find fkey in
         (* Check if one of the standard fonts *)
-        let name = font_metrics.fontName in
-        let cw = font_metrics.charMetrics in
         let i = (List.length doc.fonts) + 1 in
         doc.fonts <- (fkey, {
           font_index = i;
           font_n = 0;
           font_metrics;
         }) :: doc.fonts
-      with Not_found -> failwith ("Undefined font: \"" ^ (Font.string_of_key fkey) ^ "\".")
+      with Not_found -> failwith ("Undefined font.")
     end;
     (* Select it *)
     doc.font_family <- family;
@@ -67,8 +65,37 @@ let set_font ?family ?(style=([] : Font.style list)) ?size ?scale ?char_space do
     end
   end;;
 
+(** embed_font *)
+let embed_font ~family ~style doc =
+  let key = Font.key_of_font style family in
+  if not (List.mem_assoc key doc.fonts) then begin
+    try
+      let font_metrics = Font.find key in
+      begin
+        match font_metrics.diff with
+          | Some diff -> failwith "\"diff\" not implemented"
+          | _ -> ()
+      end;
+      begin
+        match font_metrics.fontFile with
+          | Some _ when font_metrics.fontType = `TrueType ->
+            doc.font_embed <- {
+              fe_obj     = 0;
+              fe_metrics = font_metrics;
+            } :: doc.font_embed
+          | _ -> ()
+      end;
+      doc.fonts <- (key, {
+        font_index = List.length doc.fonts + 1;
+        font_n = 0;
+        font_metrics;
+      }) :: doc.fonts
+    with Not_found -> failwith "Font not found"
+  end
+;;
+
 (** find_font_index *)
-let find_font_index ?family ?(style=([] : Font.style list)) doc =
+let find_font_index ?family ?(style=[]) doc =
   let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
   let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
   if not (PDFDocument.font_exists fkey doc) then begin
@@ -83,7 +110,7 @@ let find_font_index ?family ?(style=([] : Font.style list)) doc =
           font_n = 0;
           font_metrics;
       }) :: doc.fonts
-    with Not_found -> failwith ("Undefined font: \"" ^ (Font.string_of_key fkey) ^ "\".")
+    with Not_found -> failwith ("Undefined font.")
   end;
   let font = List.assoc fkey doc.fonts in
   font.font_index

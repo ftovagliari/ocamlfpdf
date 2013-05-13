@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='
 dove l\xB4umano spirito si purga
 e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
 
-<SPAN family='courier' size='10' scale='70'>Ma qui la morta poes\xEC resurga,
+<SPAN family='Courier' size='10' scale='70'>Ma qui la morta poes\xEC resurga,
 o sante Muse, poi che vostro sono;
 e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
 
@@ -59,12 +59,12 @@ lo colpo tal, che disperar perdono.</SPAN> <SPAN color='#0000FF' size='7'>12</SP
 che s\xB4accoglieva nel sereno aspetto
 del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</SPAN>
 
-<SPAN family='helvetica' >a li occhi miei ricominci\xF2 diletto,
+<SPAN family='Helvetica' >a li occhi miei ricominci\xF2 diletto,
 tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
 
 let markup2 = "\
-<SPAN size='30' align='0.5'>{\192}The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30'> language</SPAN>
+<SPAN size='30' align='0.5'>{\192}The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30' underline='low' style='bold,italic'> language</SPAN>
 
 
 Foreword
@@ -79,13 +79,13 @@ meaning, without further definition. As a <SPAN size='25.' line_spacing='1.5'>co
 out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
 definitely part of a full formal definition of the language.
 
-Notations
+<SPAN family='CenturySchoolbook'>Notations
 
 The syntax of the language is given in BNF-like notation. Terminal symbols are set \
 in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
 Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
 several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
-denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
+denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.</SPAN>";;
 
 
 let main () = begin
@@ -96,6 +96,10 @@ let main () = begin
     try
       let radius = 1.0 in
       let doc = PDF.create ~outchan () in
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold;`Italic] doc;
       PDF.set_display_mode `Fullwidth doc;
       (*PDF.set_compression false doc;*)
 
@@ -163,7 +167,7 @@ let main () = begin
       ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
       let x = margin /. 2. in
       let y = margin +. height_header *. 5. /. 3. in
-      PDF.set_font ~family:`Times ~size:12. doc;
+      PDF.set_font ~family:(*`Times*) `CenturySchoolbook ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*width_avail*) PDF.page_width doc -. margin in
       let markup = PDFMarkup.prepare ~width ~markup:markup2 ~padding:(10.,10.,10.,10.)
@@ -306,7 +310,7 @@ let main () = begin
       let width = width_avail *. 0.7 in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header +. spacing +. 40. in
-      PDF.set_font ~family:`Times ~size:9. doc;
+      PDF.set_font ~family:`CenturySchoolbook ~size:9. doc;
       ignore (PDFBookmark.add ~text:"PDFTable Example" ~y:(y -. 10.) doc);
       (**  *)
       PDFTable.print ~x:10. ~y

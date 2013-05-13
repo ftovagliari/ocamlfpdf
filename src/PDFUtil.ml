@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -43,16 +43,8 @@ let rec fixpoint f v =
   let v' = f v in
   if v = v' then v else fixpoint f v'
 
-let trim =
-   let replace = Str.global_replace (Str.regexp "\\(^[ \t\r\n]+\\)\\|\\([ \t\r\n]+$\\)") in
-   fun str -> replace "" str
-
-let rtrim =
-   let replace = Str.global_replace (Str.regexp "[ \t\r\n]+$") in
-   fun str -> replace "" str
-
-let ltrim =
-   let replace = Str.global_replace (Str.regexp "^[ \t\r\n]+") in
+let rtrim_newline =
+   let replace = Str.global_replace (Str.regexp "[\r\n]+$") in
    fun str -> replace "" str
 
 let may ~f x =
@@ -97,7 +89,7 @@ let escape =
   let ro, rc, rbs = Str.regexp "(", Str.regexp ")", Str.regexp "\\" in fun s ->
     Str.global_replace rc "\\)"
       (Str.global_replace ro "\\("
-        (Str.global_replace rbs "\\\\" s))
+        (Str.global_replace rbs "\\\\\\\\" s))
 
 (** Color *)
 let rgb_of_hex name = Scanf.sscanf name "#%2x%2x%2x" (fun r g b -> (r, g, b));;

@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ open PDFTypes
 open Printf
 open PDFUtil
 open PDFImages
-open Font_metrics
+open Font
 
 type state = Begin_document | End_page | Begin_page | End_document
 
@@ -34,14 +34,13 @@ and link_dest = Uri of string | Internal of int
 type obj = {mutable obj_offset : int}
 
 and font_obj = {
-  font_metrics       : Font_metrics.t;
+  font_metrics       : Font.t;
   mutable font_n     : int;
   mutable font_index : int;
 }
-and font_file = {
-  ff_name           : string;
-  ff_info           : (string * string) list;
-  mutable ff_number : int
+and font_embed = {
+  fe_metrics         : Font.t;
+  mutable fe_obj     : int;
 }
 and page = {
   mutable pg_buffer             : Buffer.t;
@@ -84,7 +83,7 @@ and annot = {
   mutable line_join             : line_join_style;          (*  *)
   mutable line_dash             : (int list * int);         (*  *)
   mutable fonts                 : (Font.key * font_obj) list;   (* array of used fonts [(key, font) list] *)
-  mutable font_files            : font_file list;           (* array of font files *)
+  mutable font_embed            : font_embed list;           (* array of font files *)
   mutable diffs                 : string list;              (* array of encoding differences *)
   mutable images                : PDFImages.Table.t;         (* array of used images *)
   mutable links                 : (int * float) list;       (* array of internal links *)
@@ -282,52 +281,29 @@ let print_pages doc =
 
 let get_font_path () = failwith "get_font_path" (*"../fpdf153/font"*)
 
+(** print_fonts *)
 let print_fonts doc =
+  (* Encodings *)
   List.iter begin fun diff ->
     new_obj doc;
     print doc "<</Type /Encoding /BaseEncoding /WindAnsiEncoding /Differences [%s]>>endobj\n" diff;
   end doc.diffs;
-  (*let mqr = get_magic_quotes_runtime(); set_magic_quotes_runtime(0) in*)
-  List.iter begin fun ({ff_name = file; ff_info = info} as ff) ->
-    (* Font file embedding *)
-    new_obj doc;
-    ff.ff_number <- doc.current_object_number;
-    let filename = Filename.concat (get_font_path()) file in
-    if not (Sys.file_exists filename) then failwith ("Font file \"" ^ filename ^ "\" not found.");
-    let font = fread filename in
-    let compressed = false in (* compress *)
-
-    if compressed && (List.exists (fun (a, _) -> a = "length2") info) then begin
-(*        let header = *)
-    end;
-
-(*    $compressed=(substr($file,-2)=='.z');
-    if(!$compressed && isset($info['length2']))
-    {
-      $header=(ord($font{0})==128);
-      if($header)
-      {
-        //Strip first binary header
-        $font=substr($font,6);
-      }
-      if($header && ord($font{$info['length1']})==128)
-      {
-        //Strip second binary header
-        $font=substr($font,0,$info['length1']).substr($font,$info['length1']+6);
-      }
-    }*)
-
-    print doc "<</Length %d\n" (Buffer.length font);
-    if compressed then print doc "/Filter /FlateDecode\n";
-    print doc "/Length1 %s\n" (List.assoc "length1" info);
-    try print doc "/Length2 %s /Length3 0\n" (List.assoc "length2" info);
-    with Not_found -> ();
-    print doc ">>\n";
-    print_stream (Buffer.contents font) doc;
-    print doc "endobj\n"
-  end doc.font_files;
+  (** Font file embedding *)
+  List.iter begin fun fe  ->
+    match fe.fe_metrics.fontFile with
+      | None -> assert false
+      | Some (original_size, fontFile) ->
+        new_obj doc;
+        fe.fe_obj <- doc.current_object_number;
+        print doc "<</Length %d " (String.length fontFile);
+        if true (*compressed*) then print doc "/Filter /FlateDecode ";
+        print doc "/Length1 %d " original_size;
+        print doc ">>\n";
+        print_stream fontFile doc;
+        print doc "endobj\n"
+  end doc.font_embed;
+  (** Font objects *)
   List.iter begin fun (_, fnt) ->
-    (* Font objects *)
     fnt.font_n <- doc.current_object_number + 1;
     let typ, name = fnt.font_metrics.fontType, fnt.font_metrics.fontName in
     match typ with
@@ -337,53 +313,55 @@ let print_fonts doc =
         print doc "<</Type /Font ";
         print doc "/BaseFont /%s " name;
         print doc "/Subtype /Type1 ";
-        if name <> "Symbol" && name <> "ZapfDingbats" then
-          print doc "/Encoding /WinAnsiEncoding ";
+        if name <> "Symbol" && name <> "ZapfDingbats" then print doc "/Encoding /WinAnsiEncoding ";
         print doc ">>endobj\n";
-      | `Type1 | `TrueType -> failwith "print_font (Type1 | TrueType)"
-(*  //Additional Type1 or TrueType font
-  $this->_newobj();
-  $this->_out('<</Type /Font');
-  $this->_out('/BaseFont /'.$name);
-  $this->_out('/Subtype /'.$type);
-  $this->_out('/FirstChar 32 /LastChar 255');
-  $this->_out('/Widths '.($this->n+1).' 0 R');
-  $this->_out('/FontDescriptor '.($this->n+2).' 0 R');
-  if($font['enc'])
-  {
-    if(isset($font['diff']))
-      $this->_out('/Encoding '.($nf+$font['diff']).' 0 R');
-    else
-      $this->_out('/Encoding /WinAnsiEncoding');
-  }
-  $this->_out('>>');
-  $this->_out('endobj');
-  //Widths
-  $this->_newobj();
-  $cw=&$font['cw'];
-  $s='[';
-  for($i=32;$i<=255;$i++)
-    $s.=$cw[chr($i)].' ';
-  $this->_out($s.']');
-  $this->_out('endobj');
-  //Descriptor
-  $this->_newobj();
-  $s='<</Type /FontDescriptor /FontName /'.$name;
-  foreach($font['desc'] as $k=>$v)
-    $s.=' /'.$k.' '.$v;
-  $file=$font['file'];
-  if($file)
-    $s.=' /FontFile'.($type=='Type1' ? '' : '2').' '.$this->FontFiles[$file]['n'].' 0 R';
-  $this->_out($s.'>>');
-  $this->_out('endobj');*)
+      | `Type1 | `TrueType  ->
+        (* Additional Type1 or TrueType/OpenType font *)
+        new_obj doc;
+        let first_char = 32 in
+        let last_char = 255 in
+        print doc "<</Type /Font ";
+        print doc "/BaseFont /%s " name;
+        print doc "/Subtype /%s " (match typ with `Type1 -> "Type1" | _ -> "TrueType");
+        print doc "/FirstChar %d /LastChar %d " first_char last_char;
+        print doc "/Widths %d 0 R " (doc.current_object_number + 1);
+        print doc "/FontDescriptor %d 0 R " (doc.current_object_number + 2);
+        print doc "/Encoding /WinAnsiEncoding ";
+        print doc ">>endobj\n";
+        (* Widths *)
+        new_obj doc;
+        let widths = ref [] in
+        let metrics = fnt.font_metrics in
+        let cw = metrics.charMetrics in
+        for i = last_char downto first_char do widths := string_of_int (cw (Char.chr i)) :: !widths done;
+        print doc "\n[%s]\nendobj\n" (String.concat " " !widths);
+        (* Descriptor *)
+        new_obj doc;
+        print doc "<</Type /FontDescriptor /FontName /%s " name;
+        let a, b, c, d = metrics.fontBBox in
+        print doc "/FontBBox [%d %d %d %d] " a b c d;
+        print doc "/FontWeight %d " metrics.fontWeight;
+        (match metrics.flags with Some x -> print doc "/Flags %d " x | _ -> ());
+        print doc "/ItalicAngle %.2f " metrics.italicAngle;
+        (match metrics.ascent with Some x -> print doc "/Ascent %d " x | _ -> ());
+        (match metrics.descent with Some x -> print doc "/Descent %d " x | _ -> ());
+        (match metrics.capHeight with Some x -> print doc "/CapHeight %d " x | _ -> ());
+        (match metrics.stemV with Some x -> print doc "/StemV %d " x | _ -> ());
+        (match metrics.missingWidth with Some x -> print doc "/MissingWidth %d " x | _ -> ());
+        (match metrics.fontFile with
+            | Some _ ->
+              let fe =
+                try List.find (fun fe -> fe.fe_metrics.fontName = name) doc.font_embed
+                with Not_found ->
+                  kprintf failwith "Cannot embed font %s" name
+              in
+              print doc "/FontFile%s %d 0 R " (match typ with `Type1 -> "" | _ -> "2") fe.fe_obj
+            | _ -> ());
+        print doc ">>endobj\n";
       | `Additional atyp -> failwith ("print_font (Additional " ^ atyp ^ ")")
-(*        //Allow for additional types
-        $mtd='_put'.strtolower($type);
-        if(!let_exists($this,$mtd))
-        $this->Error('Unsupported font type: '.$type);
-        $this->$mtd($font);*)
   end doc.fonts
 
+(** print_images *)
 let print_images doc =
   let open PDFImages in
   (* reset($this->images);

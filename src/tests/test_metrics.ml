@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,10 +21,17 @@
 *)
 
 open Printf
-open Font_metrics
+open Font
 open PDFDocument
 
 let (//) = Filename.concat
+
+
+let sample = "\
+Per correr <SPAN underline='single'>miglior</SPAN> acque alza le vele
+omai la navicella del mio <SPAN underline='low'>ingegno</SPAN>,
+che lascia dietro a s\xE9 mar s\xEC crudele;"
+
 let main () = begin
   let filename = Sys.argv.(0) ^ ".pdf" in
   let outchan = open_out_bin filename in
@@ -46,7 +53,7 @@ let main () = begin
       let label_font_size   = 8. in
       let label_font_family = `Helvetica in
       let label_font        = Font.find Font.Helvetica_Oblique in
-      let font_size_pt      = (height_avail *. 0.47) *. scale in
+      let font_size_pt      = (height_avail *. 0.23) *. scale in
       let x'                = width_avail *. 0.75 in
       let x''               = width_avail *. 0.85 in
       let gap               = label_font_size /. scale in
@@ -54,6 +61,12 @@ let main () = begin
       PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
       PDF.set_line_cap `Round doc;
       PDF.set_line_width 0.25 doc;
+
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
+      PDFFont.embed_font ~family:`LMRoman10 ~style:[] doc;
 
       (* print_vmesurements *)
       let print_vmesurements x vlines =
@@ -81,7 +94,7 @@ let main () = begin
         if !draw_marker then (PDF.line ~x1:(x0 +. x -. aw) ~y1:(last +. aw) ~x2:(x0 +. x +. aw) ~y2:(last -. aw) doc);
       in
 
-      (* characters *)
+      (* Printable Characters *)
       let characters = ref [] in
       for i = 255 downto 32 do
         let c = Char.chr i in
@@ -92,10 +105,10 @@ let main () = begin
             | '"' -> "&quot;"
             | '<' -> "&lt;"
             | '>' -> "&gt;"
-            | '\\' -> "\092"
+            | '\\' -> "\\" (*"\092"*)
             | _ -> String.make 1 c
         in
-        characters := (sprintf "<SPAN family='courier' style='' size='8'>%d=</SPAN>%s" i s) :: !characters
+        characters := (sprintf "<SPAN family='Courier' style='' size='8'>%d=</SPAN>%s" i s) :: !characters
       done;
       let characters = String.concat " " !characters in
 
@@ -105,25 +118,23 @@ let main () = begin
         let hline x1 x2 y = PDF.line ~x1 ~y1:y ~x2 ~y2:y doc in
 
         let text = "{\192g}" in
-        let family = Font.family key in
-        let font_style = Font.style key in
 
         let font_size = font_size_pt /. scale in
 
-        let line_gap = font_size *. Font.line_gap font in
+        let line_gap = font_size *. float (Font.line_gap font) /. 1000. in
         hline x0 (x0 +. x') (y0 +. line_gap);
 
-        let baseline = font_size in
+        let baseline = font_size *. float (Font.baseline font) /. 1000. in
         hline x0 (x0 +. width_avail) (y0 +. baseline);
 
-        let descent = font_size *. Font.descent font in
+        let descent = font_size *. float (Font.descent font) /. 1000. in
         hline x0 (x0 +. width_avail) (y0 +. baseline +. descent);
 
         (* Font preview *)
         PDF.cell
-          ~font_family:family
+          ~font_family:font.fontFamily
           ~font_size:font_size_pt
-          ~font_style
+          ~font_style:(Font.style font)
           ~border:[]
           ~text
           doc;
@@ -147,7 +158,7 @@ let main () = begin
         ];
         print_vmesurements x'' [
           (y0 +. baseline /. 2. -. gap), None;
-          (y0 +. baseline /. 2. +. gap), Some "font size";
+          (y0 +. baseline /. 2. +. gap), Some "baseline";
           (y0 +. baseline), None;
         ];
 
@@ -166,11 +177,11 @@ let main () = begin
         PDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw) ~y2:(y0' +. aw /. 3.) doc;
         PDF.set_line_width 0.25 doc;
 
-        (* Print label "baseline" *)
-        let text = "baseline" in
-        let tw = PDF.get_text_width label_font label_font_size text /. scale in
-        PDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline -. label_font_size /. scale -. padding /. 3.) doc;
-        PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;
+        (*(* Print label "baseline" *)
+          let text = "baseline" in
+          let tw = PDF.get_text_width label_font label_font_size text /. scale in
+          PDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline -. label_font_size /. scale -. padding /. 3.) doc;
+          PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;*)
 
         (* Print font name *)
         let font_size = 20. in
@@ -178,29 +189,39 @@ let main () = begin
         let tw = PDF.get_text_width font font_size text /. scale in
         PDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline +. descent) doc;
         PDF.cell
-          ~font_family:family
+          ~font_family:font.fontFamily
           ~font_size
-          ~font_style
+          ~font_style:(Font.style font)
           ~border:[]
           ~text
           doc;
 
         (*  *)
-        PDF.set_font ~family ~size:14. ~style:font_style doc;
-        let markup = PDFMarkup.prepare ~width:width_avail ~padding:(1.,1.,1.,1.) ~markup:characters doc in
-        markup.PDFMarkup.print ~x:x0 ~y:(y0 +. baseline +. descent +. font_size *. (1. +. Font.descent font) /. scale +. 2. *. padding) ()
+        let y = y0 +. baseline +. descent +. font_size *. (1. +. float (Font.descent font) /. 1000.) /. scale +. 2. *. padding in
+        let padding = (2.,2.,2.,2.) in
+        PDF.set_font ~family:font.fontFamily ~size:14. ~style:(Font.style font) doc;
+        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:characters doc in
+        markup.PDFMarkup.print ~x:x0 ~y ();
+
+        let y = y +. markup.PDFMarkup.height in
+        PDF.set_font ~family:font.fontFamily ~size:24. ~style:(Font.style font) doc;
+        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:sample doc in
+        markup.PDFMarkup.print ~x:x0 ~y ()
       in
       let ordered_fonts = ref [] in
-      Hashtbl.iter (fun key font -> ordered_fonts := (key, font) :: !ordered_fonts) Font.fonts;
+      Hashtbl.iter begin fun key font ->
+        (*if key = Times_BoldItalic then*)
+        ordered_fonts := (key, font) :: !ordered_fonts
+      end Font_loader.fonts;
       let ordered_fonts = List.sort compare !ordered_fonts in
       List.iter (fun (k, f) -> print_page k f) ordered_fonts;
       (**  *)
       PDF.close_document doc;
       close_file();
     with ex -> begin
-      close_file();
-      raise ex
-    end
+        close_file();
+        raise ex
+      end
   end;
   Printf.printf "
   +-----------------------------------------------------------------------------

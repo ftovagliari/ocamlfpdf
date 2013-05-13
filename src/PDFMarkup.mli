@@ -10,6 +10,7 @@ type analysis = {
 and cell = {
   mutable text                           : string;
   mutable attr                           : attributes;
+  mutable font_metrics                   : Font.t;
   mutable cell_width                     : float;
   mutable cell_height                    : float;
   mutable par                            : int;
@@ -19,7 +20,7 @@ and cell = {
 and line = {
   mutable line_width                     : float;
   mutable line_height                    : float;
-  mutable line_max_font_size             : (Font_metrics.t * float);
+  mutable line_max_font_size             : (Font.t * float);
   mutable line_spacing                   : float;
   mutable line_cells                     : cell list;
 }
@@ -49,7 +50,7 @@ and attributes = {
 
     Recognized tags are [<SPAN>] and [<BR/>]. Attributes for the [<SPAN>] tag are:
 
-    - [family]: Families are those available from the module [Font.family], names are lowercase.
+    - [family]: Families are those available from the module [Font.family], names are case sensitive.
     - [style]: ['italic'] and/or ['bold'], separated by comma.
     - [size]: Font size (float).
     - [scale]: Horizontal scaling, which is a number specifying the percentage of the normal width. Default is [100] (integer).
@@ -63,7 +64,7 @@ and attributes = {
     Nesting multiple [<SPAN>] tags is not permitted.
 
     Example:
-    {[<SPAN bgcolor='#f0f0ff' color='#ff1010' family='courier' size='12.5' style='italic,bold'>...</SPAN>]}
+    {[<SPAN bgcolor='#f0f0ff' color='#ff1010' family='Courier' size='12.5' style='italic,bold'>...</SPAN>]}
 
     @param x Absolute abscissa of the upper-left corner.
     @param y Absolute ordinate of the upper-left corner.

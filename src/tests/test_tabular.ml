@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,10 @@ let main () = begin
   begin
     try
       let doc = PDF.create ~orientation:`Landscape ~outchan () in
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
       let font_size     = 9.0 in
       let small_font    = font_size -. 2.0 in
       let line_spacing  = 1.5 in
@@ -39,7 +43,7 @@ let main () = begin
       let margin_left   = 10.0 in
       let width_avail   = PDFPage.page_width doc -. margin_left -. margin_right in
       let height_avail  = PDFPage.page_height doc -. margin_top -. margin_bottom in
-      PDF.set_font ~family:`Times ~size:font_size doc;
+      PDF.set_font ~family:`CenturySchoolbook ~size:font_size doc;
       PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
 
 
@@ -51,7 +55,7 @@ let main () = begin
       let table = Tabular.create ~x ~y ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
 
       let set = Tabular.set_markup table in
-      let markup ?(style="") ?(align=0.5) ?(family="Times") ?char_space ?font_scale ?font_size text =
+      let markup ?(style="") ?(align=0.5) ?(family="CenturySchoolbook") ?char_space ?font_scale ?font_size text =
         sprintf "<SPAN family='%s' align='%f' style='%s'%s%s%s>%s</SPAN>"
           family align style
           (match char_space with Some x -> sprintf " char_space='%f'" x | _ -> "")
@@ -60,7 +64,7 @@ let main () = begin
           text
       in
 
-      set 0 0 ~rowspan:3 ~colspan:2 (markup ~char_space:2. ~font_scale:105 "GRANDEZZE");
+      set 0 0 ~rowspan:3 ~colspan:2 (markup ~char_space:2. ~font_scale:105 ~style:"italic" "GRANDEZZE");
       set 0 2 ~rowspan:3 (markup "Simbolo\ne\nlegame dimensionale");
       set 0 3 ~rowspan:3 ("<SPAN align='0.5' scale='90'>Dimensioni (1)</SPAN>");
 
@@ -81,7 +85,7 @@ let main () = begin
 
       set 0 10 ~colspan:2 ~rowspan:2
         (sprintf
-           "<SPAN align='0.5'>EQUIVALENZA<BR/></SPAN><SPAN size='%f' align='0.5'>tra le unit\224 del </SPAN><SPAN style='italic' size='%f' align='0.5'>sist. Giorgi</SPAN><BR/><SPAN align='0.5' size='%f'>e le corrispondenti<BR/>del </SPAN><SPAN style='italic' size='%f'>sist. C. G. S.</SPAN>"
+           "<SPAN align='0.5' style='italic'>EQUIVALENZA</SPAN><BR/><SPAN size='%f' align='0.5' style='bold'>tra le unit\224 del </SPAN><SPAN style='italic' size='%f' align='0.5'>sist. Giorgi</SPAN><BR/><SPAN align='0.5' size='%f'>e le corrispondenti<BR/>del </SPAN><SPAN style='italic' size='%f'>sist. C. G. S.</SPAN>"
            small_font small_font small_font small_font);
       set 2 10 (markup ~font_size:small_font "Sist. Giorgi");
       set 2 11 (markup ~font_size:small_font "Sist. C.G.S.");

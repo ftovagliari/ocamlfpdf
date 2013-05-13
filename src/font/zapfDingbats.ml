@@ -1,7 +1,7 @@
 (*
 
   OCaml-FPDF
-  Copyright (C) 2010-2012 Francesco Tovagliari
+  Copyright (C) 2010-2013 Francesco Tovagliari
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,11 +20,23 @@
 
 *)
 
-open Font_metrics
+open Font
 
 let descriptor = {
   fontType           = `Core;
   fontName           = "ZapfDingbats";
+  fontFamily         = `ZapfDingbats;
+  fontWeight         = 400;
+  flags              = None;
+  italicAngle        = 0.;
+  ascent             = None;
+  descent            = None;
+  capHeight          = None;
+  stemV              = None;
+  missingWidth       = None;
+  fontFile           = None;
+  diff	             = None;
+  encoding           = None;
   fontBBox           = -1, -143, 981, 820; (* lowerLeftX, lowerLeftY, upperRightX, upperRightY *)
   underlinePosition  = -100;
   underlineThickness = 50;
