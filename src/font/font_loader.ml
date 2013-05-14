@@ -48,10 +48,16 @@ let load_fonts () =
   Hashtbl.add fonts CenturySchoolbook_BoldItalic CenturySchoolbook_BoldItalic.descriptor;
   (*  *)
   Hashtbl.add fonts CMUSerif CMUSerif.descriptor;
+  Hashtbl.add fonts CMUSerif_Bold CMUSerif_Bold.descriptor;
+  Hashtbl.add fonts CMUSerif_Italic CMUSerif_Italic.descriptor;
   Hashtbl.add fonts CMUSansSerif CMUSansSerif.descriptor;
   Hashtbl.add fonts CMUSansSerif_Bold CMUSansSerif_Bold.descriptor;
   Hashtbl.add fonts CMUSansSerif_Oblique CMUSansSerif_Oblique.descriptor;
   Hashtbl.add fonts CMUSansSerif_BoldOblique CMUSansSerif_BoldOblique.descriptor;
+  Hashtbl.add fonts CMUSansSerif_DemiCondensed CMUSansSerif_DemiCondensed.descriptor;
+  Hashtbl.add fonts CMUSerif_BoldNonextended CMUSerif_BoldNonextended.descriptor;
+  Hashtbl.add fonts CMUSerif_BoldItalic CMUSerif_BoldItalic.descriptor;
+
   (*  *)
   Font.fonts := Some fonts
 ;;

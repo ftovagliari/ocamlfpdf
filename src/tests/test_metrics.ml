@@ -28,9 +28,17 @@ let (//) = Filename.concat
 
 
 let sample = "\
-Per correr <SPAN underline='single'>miglior</SPAN> acque alza le vele
-omai la navicella del mio <SPAN underline='low'>ingegno</SPAN>,
-che lascia dietro a s\xE9 mar s\xEC crudele;"
+Lorem ipsum dolor sit amet, consectetur <SPAN underline='single'>adipiscing</SPAN> elit. Vestibulum imperdiet \
+diam id diam aliquam porta at ac urna. <SPAN underline='low'>Quisque justo</SPAN> est, cursus ac rutrum sed, \
+accumsan sed arcu. Maecenas at urna velit."
+
+let sample_long = "Fusce sagittis ullamcorper urna vel\
+commodo. Integer gravida feugiat eros nec vestibulum. Praesent quis gravida mi. \
+Suspendisse eu magna enim. Cras quis augue sed purus posuere consequat. \
+Mauris vestibulum tempus ipsum ac iaculis. Nunc lorem augue, semper eget gravida\
+sed, placerat volutpat nunc. Quisque sed tortor diam, ut blandit justo. \
+Pellentesque consectetur mauris tellus. Integer pellentesque elit vel orci\
+venenatis sollicitudin. Sed lacinia magna vitae ante elementum suscipit. "
 
 let main () = begin
   let filename = Sys.argv.(0) ^ ".pdf" in
@@ -69,10 +77,15 @@ let main () = begin
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
       PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
 
       (* print_vmesurements *)
       let print_vmesurements x vlines =
@@ -114,7 +127,7 @@ let main () = begin
             (*| '\\' -> "\\" (*"\092"*)*)
             | _ -> String.make 1 c
         in
-        characters := (sprintf "<SPAN family='Courier' style='' size='8'>%d=</SPAN>%s" i s) :: !characters
+        characters := (sprintf "<SPAN family='Courier' style='' size='7'>%d=</SPAN>%s" i s) :: !characters
       done;
       let characters = String.concat " " !characters in
 
@@ -203,18 +216,23 @@ let main () = begin
         (*  *)
         let y = y0 +. baseline +. descent +. font_size *. (1. +. float (Font.descent font) /. 1000.) /. scale +. 2. *. padding in
         let padding = (2.,2.,2.,2.) in
-        PDF.set_font ~family:font.fontFamily ~size:14. ~style:(Font.style font) doc;
+        PDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
         let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:characters doc in
         markup.PDFMarkup.print ~x:x0 ~y ();
 
         let y = y +. markup.PDFMarkup.height in
-        PDF.set_font ~family:font.fontFamily ~size:24. ~style:(Font.style font) doc;
+        PDF.set_font ~family:font.fontFamily ~size:18. ~style:(Font.style font) doc;
         let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:sample doc in
+        markup.PDFMarkup.print ~x:x0 ~y ();
+
+        let y = y +. markup.PDFMarkup.height in
+        PDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
+        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:sample_long doc in
         markup.PDFMarkup.print ~x:x0 ~y ()
       in
       let ordered_fonts = ref [] in
       Hashtbl.iter begin fun key font ->
-        (*if key = Times_BoldItalic then*)
+        (*if List.mem key [CMUSerif_Bold; CMUSerif_BoldNonextended] then*)
         ordered_fonts := (key, font) :: !ordered_fonts
       end Font_loader.fonts;
       let ordered_fonts = List.sort compare !ordered_fonts in

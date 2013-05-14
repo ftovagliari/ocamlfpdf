@@ -63,29 +63,51 @@ del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</
 tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
 che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
 
-let markup2 = "\
-<SPAN size='30' align='0.5'>{\192}The Objective </SPAN><SPAN size='30' style='bold' color='#ff0000' underline='single'>Caml</SPAN><SPAN size='30' underline='low' style='bold,italic'> language</SPAN>
+let lorem_ipsum = "\
+<SPAN size='30' align='0.5' style='bold'>Lorem ipsum</SPAN>
 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum imperdiet \
+diam id diam aliquam porta at ac urna. Quisque justo est, cursus ac rutrum sed, \
+accumsan sed arcu. Maecenas at urna velit. Fusce sagittis ullamcorper urna vel \
+commodo. <SPAN size='20'>Integer gravida feugiat</SPAN> eros nec vestibulum. Praesent quis gravida mi. \
+Suspendisse eu magna enim. Cras quis augue sed purus posuere consequat. \
 
-Foreword
+Mauris vestibulum tempus ipsum ac iaculis. Nunc lorem augue, semper eget gravida \
+sed, placerat volutpat nunc. <SPAN scale='60' underline='single'>Quisque sed tortor diam, ut blandit justo.</SPAN> \
+Pellentesque consectetur mauris tellus. Integer <SPAN size='6' underline='single'>pellentesque</SPAN> elit vel orci \
+venenatis sollicitudin. Sed lacinia magna vitae ante elementum suscipit. \
+Praesent faucibus aliquam eros, ac porta lectus rutrum sed. Nulla consequat \
+velit ac risus congue scelerisque. Sed quis luctus dui. Donec ipsum nisi, \
+posuere sit amet venenatis vel, varius quis nunc. <SPAN char_space='1.0' underline='single'>Phasellus interdum laoreet \
+arcu sit amet bibendum</SPAN>. Donec tempus ligula pretium ipsum bibendum non cursus \
+augue aliquam. \
 
-This document is intended as a reference manual for the <SPAN size='30'>Objective Caml language</SPAN>. \
-It lists the language constructs, and gives their precise syntax and informal semantics. \
-It is by no means a tutorial introduction to the language: there is not a <SPAN size='6'>single</SPAN> example. \
-A good working knowledge of Caml is assumed.
+Quisque purus risus, hendrerit eget venenatis eget, tempus ut nunc. Cum sociis \
+natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. \
+<SPAN family='CMUSerif_BoldNonextended'>Integer est leo, eleifend quis pellentesque ac, sagittis viverra nisi</SPAN>. Aenean \
+fermentum tempus tristique. <SPAN style='bold'>Fusce nec placerat risus. Fusce convallis sapien \
+ante</SPAN>. Aenean sit amet ipsum sed odio laoreet vulputate sit amet nec ipsum. \
+<SPAN style='italic'>Pellentesque ultrices leo ut arcu sagittis sit amet consequat erat hendrerit</SPAN>. \
+Duis a purus lorem. Integer iaculis sodales convallis. <SPAN style='bold,italic'>Nulla dui mi, condimentum \
+at faucibus eget, tristique in metus</SPAN>. \
 
-No attempt has been made at mathematical rigor: words are employed with their intuitive \
-meaning, without further definition. As a <SPAN size='25.' line_spacing='1.5'>cons{\192}equence</SPAN>, the <SPAN underline='single'>typing</SPAN> rules have been left \
-out, by   lack of the mathematical framework <SPAN underline='low'>required</SPAN> to express them, while they are \
-definitely part of a full formal definition of the language.
+Nam ullamcorper faucibus turpis, sit amet pharetra eros accumsan sagittis. \
+Suspendisse potenti. Praesent sit amet imperdiet nibh. Cum sociis natoque \
+penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque \
+felis risus, commodo nec pretium at, hendrerit sed ante. Aliquam auctor egestas \
+lorem sed vulputate. Nulla semper purus vitae nisl congue quis eleifend odio \
+tempor. <SPAN char_space='1.0' line_spacing='1.5' underline='single'>Donec iaculis accumsan convallis. Fusce lacinia mattis est at interdum. \
+Suspendisse potenti. In hac habitasse platea dictumst. Praesent consectetur, \
+dolor ac pellentesque adipiscing, mauris libero bibendum mi, sit amet dictum \
+lacus ante non velit</SPAN>. Nunc laoreet odio nec risus pellentesque a pharetra turpis\
+malesuada. Maecenas suscipit molestie turpis, et fringilla orci mattis ut. \
 
-Notations
-
-The syntax of the language is given in BNF-like notation. Terminal symbols are set \
-in typewriter font (like this). Non-terminal symbols are set in italic font (like that). \
-Square brackets […] denote optional components. Curly brackets {…} denotes zero, one or \
-several repetitions of the enclosed components. Curly bracket with a trailing plus sign {…}+ \
-denote one or several repetitions of the enclosed components. Parentheses (…) denote grouping.";;
+Quisque imperdiet convallis cursus. Nulla interdum libero non sapien aliquet eu \
+hendrerit lorem lacinia. Nunc porta faucibus nibh, eget fringilla mauris \
+scelerisque in. Mauris faucibus malesuada nulla, vel convallis justo fermentum \
+vel. Quisque id faucibus metus. Nam mollis mattis nulla a commodo. Proin nibh \
+lorem, tincidunt quis vestibulum at, iaculis vitae nunc. \
+"
 
 
 let main () = begin
@@ -97,14 +119,20 @@ let main () = begin
       let radius = 1.0 in
       let doc = PDF.create ~outchan () in
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold;`Italic] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
       PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
+      PDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
+
       PDF.set_display_mode `Fullwidth doc;
       (*PDF.set_compression false doc;*)
 
@@ -167,16 +195,16 @@ let main () = begin
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
       markup.PDFMarkup.print ~x ~y ();
 
-      (** Markup2 *)
+      (** Lorem Ipsum *)
       PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Markup - Wrap (2)" doc);
+      ignore (PDFBookmark.add ~text:"Markup" doc);
       let x = margin /. 2. in
       let y = margin +. height_header *. 5. /. 3. in
-      PDF.set_font ~family:(*`Times*) `CMUSansSerif ~size:12. doc;
+      PDF.set_font ~family:(*`Times*) `CMUSerif ~size:12. doc;
       PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*width_avail*) PDF.page_width doc -. margin in
-      let markup = PDFMarkup.prepare ~width ~markup:markup2 ~padding:(10.,10.,10.,10.)
-        ~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3. doc
+      let markup = PDFMarkup.prepare ~width ~markup:lorem_ipsum ~padding:(10.,10.,10.,10.)
+        (*~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc
       in
       markup.PDFMarkup.print ~x ~y ();
 
@@ -307,7 +335,7 @@ let main () = begin
       PDF.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
           (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
-      PDF.set_font ~family ~size:9. doc;
+      PDF.set_font ~family:`CMUSansSerif ~size:9. doc;
       PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 
       (** PDFTable *)

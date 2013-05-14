@@ -28,10 +28,15 @@ type key =
     | ZapfDingbats
     | Symbol
     | CenturySchoolbook | CenturySchoolbook_Italic | CenturySchoolbook_Bold | CenturySchoolbook_BoldItalic
-    | CMUSerif
+    | CMUSerif | CMUSerif_Bold | CMUSerif_Italic | CMUSerif_BoldItalic
     | CMUSansSerif | CMUSansSerif_Bold | CMUSansSerif_Oblique | CMUSansSerif_BoldOblique
+    | CMUSerif_BoldNonextended
+    | CMUSansSerif_DemiCondensed
 
-type family = [ `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook | `CMUSerif | `CMUSansSerif ]
+type family = [
+    | `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook
+    | `CMUSerif | `CMUSansSerif | `CMUSansSerif_DemiCondensed | `CMUSerif_BoldNonextended
+]
 
 type style = [ `Underline | `Italic | `Bold ]
 
@@ -66,6 +71,8 @@ let family_of_string = function
   | "CenturySchoolbook" -> `CenturySchoolbook
   | "CMUSerif" -> `CMUSerif
   | "CMUSansSerif" -> `CMUSansSerif
+  | "CMUSansSerif_DemiCondensed" -> `CMUSansSerif_DemiCondensed
+  | "CMUSerif_BoldNonextended" -> `CMUSerif_BoldNonextended
   | name -> Printf.kprintf failwith "family_of_string (%s)" name
 
 (** style_of_string *)
@@ -105,11 +112,16 @@ let key_of_font style =
     | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
     | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
     | `CenturySchoolbook -> CenturySchoolbook
+    | `CMUSerif when bold && italic -> CMUSerif_BoldItalic
+    | `CMUSerif when bold -> CMUSerif_Bold
+    | `CMUSerif when italic -> CMUSerif_Italic
     | `CMUSerif -> CMUSerif
     | `CMUSansSerif when bold && italic -> CMUSansSerif_BoldOblique
     | `CMUSansSerif when italic -> CMUSansSerif_Oblique
     | `CMUSansSerif when bold -> CMUSansSerif_Bold
     | `CMUSansSerif -> CMUSansSerif
+    | `CMUSansSerif_DemiCondensed -> CMUSansSerif_DemiCondensed
+    | `CMUSerif_BoldNonextended -> CMUSerif_BoldNonextended
     | _ -> raise Not_found
 
 (** ascent *)
