@@ -233,13 +233,15 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
         end
       in
       let remaining_width =
-        if need_wrap_char && can_wrap_char then begin
-          chunks := (!current_width -. w, (String.sub text !i0 (!i - !i0))) :: !chunks;
+        if need_wrap_char (*&& can_wrap_char*) then begin
+          let cc = String.sub text !i0 (!i - !i0) in
+          chunks := (!current_width -. w, cc) :: !chunks;
+          decr i;
           w
         end else begin
           let word_stop = if need_wrap_char then word_start else find_word_bound_backward `STOP text !i in
           let exceeding = String.sub text word_stop (!i - word_stop + 1) in
-          let exceeding_width = string_width exceeding in
+          let exceeding_width = string_width (String.trim exceeding) in
           begin
             (*try*)
             chunks := (!current_width -. exceeding_width, (String.sub text !i0 (word_stop - !i0))) :: !chunks;
