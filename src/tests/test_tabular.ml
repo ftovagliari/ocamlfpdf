@@ -35,6 +35,9 @@ let main () = begin
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
       PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
       PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;

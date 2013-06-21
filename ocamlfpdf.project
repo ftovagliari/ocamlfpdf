@@ -40,7 +40,7 @@
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
+      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml tabular.ml</files>
       <package>str,unix,xml-light,zip</package>
       <includes>font</includes>
       <thread>false</thread>
