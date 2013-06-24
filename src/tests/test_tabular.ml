@@ -58,9 +58,9 @@ let main () = begin
       PDF.add_page doc;
       PDF.set_font ~family:`CMUSerif ~size:font_size doc;
       let x = margin_left in
-      let y = margin_top in
+      let y0 = margin_top +. 50. in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
-      let table = Tabular.create ~x ~y ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
+      let table = Tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
 
       let set = Tabular.set_markup table in
       let markup ?(style="") ?(align=0.5) ?(family="CMUSerif") ?char_space ?font_scale ?font_size text =
@@ -135,8 +135,9 @@ let main () = begin
       set 6 7 (markup ~align:0.0 "");
 
       let last_h = ref 0. in
+      let count_table_pages = ref 0 in
       for i = 7 to 70 do
-        set i 0 (markup "A");
+        set i 0 (kprintf markup "%d" i);
         set i 1 (markup "A");
         set i 2 (markup "A");
         set i 3 (markup "A");
@@ -144,10 +145,12 @@ let main () = begin
         set i 5 (markup "A");
         set i 6 (markup "A");
         set i 7 (markup "A");
-        let h = Tabular.table_height table -. !last_h in
-        if h > margin_top +. height_avail then begin
+        let cur_height_in_page = Tabular.table_height table -. !last_h in
+        let yy = (if !count_table_pages = 0 then y0 else margin_top) +. cur_height_in_page in
+        if yy > margin_top +. height_avail then begin
+          incr count_table_pages;
+          last_h := cur_height_in_page -. Tabular.row_height table i;
           Tabular.add_page_break_before i table;
-          last_h := h;
         end
       done;
 

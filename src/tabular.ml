@@ -179,6 +179,11 @@ let pack t =
     Array.blit row_heights start hh 0 len;
     Array.fold_left (fun sum h -> sum +. h +. 2. *. t.padding) 0.0 hh
   in
+  let thin = size_of_thickness `Thin in
+  let medium = size_of_thickness `Medium in
+  let v_lines = ref [] in
+  let current_lw = ref 0.0 in
+  let page_start_row = ref 0 in
   (* Print table border *)
   let print_table_border ~start ~stop () =
     match t.border_width with
@@ -186,15 +191,14 @@ let pack t =
         PDF.push_graphics_state t.doc;
         PDF.set_line_width (size_of_thickness border_width) t.doc;
         let height = table_height_rows start stop in
-        PDF.rect ~x:t.x0 ~y:t.y0 ~width:table_width ~height(*:table_height*) t.doc;
+        let y = if !page_start_row = 0 then t.y0 else begin
+            let margin_top, _, _, _ = PDF.margins t.doc in
+            margin_top
+          end in
+        PDF.rect ~x:t.x0 ~y ~width:table_width ~height(*:table_height*) t.doc;
         PDF.pop_graphics_state t.doc;
       | _ -> ()
   in
-  let thin = size_of_thickness `Thin in
-  let medium = size_of_thickness `Medium in
-  let v_lines = ref [] in
-  let current_lw = ref 0.0 in
-  let page_start_row = ref 0 in
   (* Draw grid vertical lines *)
   let print_vertical_lines ~pstart ~pstop () =
     PDF.push_graphics_state t.doc;
@@ -210,6 +214,11 @@ let pack t =
             | Some c1 ->
               begin
                 let rowstop = match rowstop with Some x -> x | _ -> pstop in
+                let rowstop =
+                  if rowstop < pstart then raise Exit
+                  else if rowstop <= pstop then rowstop
+                  else pstop
+                in
                 let x = c1.x -. t.padding in
                 let y1 = c1.y -. t.padding +. line_disjoin in
                 let x, y1, y2 =
@@ -224,7 +233,7 @@ let pack t =
                           margin_top
                         end
                       in
-                      let y2 = y_start +. table_height -. line_disjoin in
+                      let y2 = y_start +. (table_height_rows pstart pstop) -. line_disjoin in
                       x, y1, y2
                 in
                 let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
@@ -241,6 +250,44 @@ let pack t =
     end t.v_lines;
     PDF.pop_graphics_state t.doc;
   in
+  (* Draw grid horizontal lines *)
+  let print_horizontal_lines ~pstart ~pstop () =
+    List.iter begin fun (lw, colstart, colstop, row) ->
+      if pstart <= row && row <= pstop then
+        match matrix.(row).(colstart) with
+          | Some c1 ->
+            PDF.push_graphics_state t.doc;
+            let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
+            let stop =
+              match matrix.(row).(colstop) with
+                | Some c2 -> c2.x +. c2.cell_width +. t.padding
+                | _ -> t.x0 +. table_width
+            in
+            let y = c1.y -. t.padding in
+            let x1 = c1.x -. t.padding  in
+            let x2 = stop in
+            let lw = match lw with Some x -> size_of_thickness x | _ -> if colstart = 0 then medium else thin in
+            let i_points =
+              List.rev (List.fold_left begin fun acc (xv, yv1, _, yv2) ->
+                  match line_intersection x1 x2 y xv yv1 yv2 with
+                    | Some x' -> x' :: acc
+                    | _ -> acc
+                end [] !v_lines);
+            in
+            let segments = List.combine (x1 :: i_points) (List.concat [i_points; [x2]]) in
+            if lw <> !current_lw then begin
+              current_lw := lw;
+              PDF.set_line_width lw t.doc;
+            end;
+            List.iter begin fun (x1, x2) ->
+              let x1 = x1 +. line_disjoin in
+              let x2 = x2 -. line_disjoin in
+              PDF.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
+            end segments;
+            PDF.pop_graphics_state t.doc;
+          | _ -> ();
+    end t.h_lines;
+  in
   (* Print cell contents *)
   let y = ref t.y0 in
   Array.iteri begin fun i row ->
@@ -248,6 +295,7 @@ let pack t =
     if List.mem i t.page_breaks then begin
       print_table_border ~start:!page_start_row ~stop:(i - 1) ();
       print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
+      print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
       PDF.add_page t.doc;
       let margin_top, _, _, _ = PDF.margins t.doc in
       page_start_row := i;
@@ -300,41 +348,7 @@ let pack t =
   end matrix;
   print_table_border ~start:!page_start_row ~stop:(t.rows - 1) ();
   print_vertical_lines ~pstart:!page_start_row ~pstop:(t.rows - 1) ();
-  (*(* Draw grid horizontal lines *)
-    PDF.push_graphics_state t.doc;
-    List.iter begin fun (lw, colstart, colstop, row) ->
-    match matrix.(row).(colstart) with
-      | Some c1 ->
-        let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
-        let stop =
-          match matrix.(row).(colstop) with
-            | Some c2 -> c2.x +. c2.cell_width +. t.padding
-            | _ -> t.x0 +. table_width
-        in
-        let y = c1.y -. t.padding in
-        let x1 = c1.x -. t.padding  in
-        let x2 = stop in
-        let lw = match lw with Some x -> size_of_thickness x | _ -> if colstart = 0 then medium else thin in
-        let i_points =
-          List.rev (List.fold_left begin fun acc (xv, yv1, _, yv2) ->
-              match line_intersection x1 x2 y xv yv1 yv2 with
-                | Some x' -> x' :: acc
-                | _ -> acc
-            end [] !v_lines);
-        in
-        let segments = List.combine (x1 :: i_points) (List.concat [i_points; [x2]]) in
-        if lw <> !current_lw then begin
-          current_lw := lw;
-          PDF.set_line_width lw t.doc;
-        end;
-        List.iter begin fun (x1, x2) ->
-          let x1 = x1 +. line_disjoin in
-          let x2 = x2 -. line_disjoin in
-          PDF.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
-        end segments
-      | _ -> ();
-    end t.h_lines;
-    PDF.pop_graphics_state t.doc;*)
+  print_horizontal_lines ~pstart:!page_start_row ~pstop:(t.rows - 1) ();
 ;;
 
 
