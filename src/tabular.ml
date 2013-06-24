@@ -25,18 +25,19 @@ open PDFError
 open Printf
 
 type t = {
-  doc             : PDF.t;
-  x0              : float;
-  y0              : float;
-  mutable rows    : int;
-  mutable cols    : int;
-  mutable cells   : ((int * int) * cell) list; (* row x column *)
-  colwidths       : float array;
-  border_width    : thickness option;
-  padding         : float;
-  mutable v_lines : (thickness option * int * int option * int) list; (* line_width, rowstart, rowstop, col *)
-  mutable h_lines : (thickness option * int * int option * int) list; (* line_width, colstart, colstop, row *)
-  debug           : bool;
+  doc                      : PDF.t;
+  x0                       : float;
+  y0                       : float;
+  mutable rows             : int;
+  mutable cols             : int;
+  mutable cells            : ((int * int) * cell) list; (* row x column *)
+  colwidths                : float array;
+  border_width             : thickness option;
+  padding                  : float;
+  mutable v_lines          : (thickness option * int * int option * int) list; (* line_width, rowstart, rowstop, col *)
+  mutable h_lines          : (thickness option * int * int option * int) list; (* line_width, colstart, colstop, row *)
+  mutable page_breaks      : int list; (* Row indexes before whose a page break is inserted *)
+  debug                    : bool;
 }
 
 and cell = {
@@ -66,16 +67,17 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
   let colwidths = Array.map (!!) colwidths in
   {
     doc;
-    x0           = x;
-    y0           = y;
-    rows         = 0;
-    cols         = 0;
-    cells        = [];
+    x0               = x;
+    y0               = y;
+    rows             = 0;
+    cols             = 0;
+    cells            = [];
     colwidths;
-    border_width = Some border_width;
-    padding      = padding;
-    h_lines      = [];
-    v_lines      = [];
+    border_width     = Some border_width;
+    padding          = padding;
+    h_lines          = [];
+    v_lines          = [];
+    page_breaks      = [];
     debug;
   }
 
@@ -132,6 +134,8 @@ let table_height t =
 let add_vertical_line ?line_width ~rowstart ?rowstop ~col table =  table.v_lines <- (line_width, rowstart, rowstop, col) :: table.v_lines
 let add_horizontal_line ?line_width ~colstart ?colstop ~row table =  table.h_lines <- (line_width, colstart, colstop, row) :: table.h_lines
 
+let add_page_break_before row table = table.page_breaks <- row :: table.page_breaks
+
 let line_intersection xh1 xh2 yh    xv yv1 yv2 =
   if xh1 < xv && xv < xh2 && yv1 < yh && yh < yv2 then Some xv else None
 
@@ -146,18 +150,14 @@ let pack t =
       col_widths.(c) <- max col_widths.(c) (match matrix.(i).(c) with Some c when c.colspan = 1 -> c.width | _ -> 0.0)
     done
   end col_widths;
-
-
   let row_heights = Array.create t.rows 0.0 in
   Array.iteri begin fun r _ ->
     for i = 0 to t.cols - 1 do
       row_heights.(r) <- max row_heights.(r) (match matrix.(r).(i) with Some c when c.rowspan = 1 -> c.height | _ -> 0.0)
     done
   end row_heights;
-
-
   (*let rowspan_heights = Array.create t.rows (0.0, 0) in
-  Array.iteri begin fun r _ ->
+    Array.iteri begin fun r _ ->
     for i = 0 to t.cols - 1 do
       rowspan_heights.(r) <-
         match matrix.(r).(i) with
@@ -166,29 +166,94 @@ let pack t =
             else rowspan_heights.(r)
           | _ -> rowspan_heights.(r)
     done
-  end rowspan_heights;
+    end rowspan_heights;
 
-  Array.iteri begin fun r _ ->
+    Array.iteri begin fun r _ ->
     ()
-  end row_heights;*)
-
-
-
+    end row_heights;*)
   let table_width = Array.fold_left (fun sum w -> sum +. w +. 2. *. t.padding) 0.0 col_widths in
   let table_height = Array.fold_left (fun sum h -> sum +. h +. 2. *. t.padding) 0.0 row_heights in
+  let table_height_rows start stop =
+    let len = stop - start + 1 in
+    let hh = Array.make len 0.0 in
+    Array.blit row_heights start hh 0 len;
+    Array.fold_left (fun sum h -> sum +. h +. 2. *. t.padding) 0.0 hh
+  in
   (* Print table border *)
-  begin
+  let print_table_border ~start ~stop () =
     match t.border_width with
       | Some border_width ->
         PDF.push_graphics_state t.doc;
         PDF.set_line_width (size_of_thickness border_width) t.doc;
-        PDF.rect ~x:t.x0 ~y:t.y0 ~width:table_width ~height:table_height t.doc;
+        let height = table_height_rows start stop in
+        PDF.rect ~x:t.x0 ~y:t.y0 ~width:table_width ~height(*:table_height*) t.doc;
         PDF.pop_graphics_state t.doc;
       | _ -> ()
-  end;
+  in
+  let thin = size_of_thickness `Thin in
+  let medium = size_of_thickness `Medium in
+  let v_lines = ref [] in
+  let current_lw = ref 0.0 in
+  let page_start_row = ref 0 in
+  (* Draw grid vertical lines *)
+  let print_vertical_lines ~pstart ~pstop () =
+    PDF.push_graphics_state t.doc;
+    List.iter begin fun (lw, rowstart, rowstop, col) ->
+      try
+        let rowstart =
+          if pstart <= rowstart && rowstart <= pstop then rowstart
+          else if rowstart <= pstart then pstart
+          else if rowstart > pstop then raise Exit else raise Exit
+        in
+        begin
+          match matrix.(rowstart).(col) with
+            | Some c1 ->
+              begin
+                let rowstop = match rowstop with Some x -> x | _ -> pstop in
+                let x = c1.x -. t.padding in
+                let y1 = c1.y -. t.padding +. line_disjoin in
+                let x, y1, y2 =
+                  match matrix.(rowstop).(col) with
+                    | Some c2 ->
+                      let y2 = c2.y +. c2.cell_height +. t.padding -. line_disjoin in
+                      x, y1, y2;
+                    | _ ->
+                      let y_start =
+                        if !page_start_row = 0 then t.y0 else begin
+                          let margin_top, _, _, _ = PDF.margins t.doc in
+                          margin_top
+                        end
+                      in
+                      let y2 = y_start +. table_height -. line_disjoin in
+                      x, y1, y2
+                in
+                let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
+                if lw <> !current_lw then begin
+                  current_lw := lw;
+                  PDF.set_line_width lw t.doc;
+                end;
+                v_lines := (x, y1, x, y2) :: !v_lines;
+                PDF.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
+              end;
+            | _ -> ()
+        end;
+      with Exit -> ()
+    end t.v_lines;
+    PDF.pop_graphics_state t.doc;
+  in
   (* Print cell contents *)
   let y = ref t.y0 in
   Array.iteri begin fun i row ->
+    (* Page Break *)
+    if List.mem i t.page_breaks then begin
+      print_table_border ~start:!page_start_row ~stop:(i - 1) ();
+      print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
+      PDF.add_page t.doc;
+      let margin_top, _, _, _ = PDF.margins t.doc in
+      page_start_row := i;
+      y := margin_top
+    end;
+    (* Print row *)
     let x = ref t.x0 in
     let rh = row_heights.(i) in
     y := !y +. t.padding;
@@ -216,54 +281,28 @@ let pack t =
               PDFGraphicsState.push t.doc;
               PDF.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
               PDF.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
-              PDF.set_draw_color ~red:150 ~green:150 ~blue:150 t.doc;
+              PDF.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
               PDF.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(3.0 *. line_disjoin) t.doc;
               PDF.line ~x1:!x ~y1:!y ~x2:(!x +. cell.cell_width) ~y2:(!y +. cell.cell_height) t.doc;
               PDF.line ~x1:(!x +. cell.cell_width) ~y1:!y ~x2:!x ~y2:(!y +. cell.cell_height) t.doc;
               PDF.set ~x:cell.x ~y:(cell.y +. 1.) t.doc;
-              PDF.cell ~width:10. ~font_size:4. ~font_style:[`Italic] ~text:(sprintf "(%d, %d) h=%F" i j row_heights.(i)) t.doc;
+              PDF.cell ~width:10. ~font_size:3. ~font_family:`Helvetica ~font_style:[`Italic]
+                ~text:(sprintf "(%.1d, %.1d) h=%.1f y=%.1f"
+                         i j row_heights.(i) cell.y) t.doc;
               PDFGraphicsState.pop t.doc;
             end
           | _ -> ()
       end;
       x := !x +. cw +. t.padding;
     end row;
+    (* Increment Y *)
     y := !y +. rh +. t.padding;
   end matrix;
-  (* Draw grid vertical lines *)
-  let thin = size_of_thickness `Thin in
-  let medium = size_of_thickness `Medium in
-  let v_lines = ref [] in
-  PDF.push_graphics_state t.doc;
-  let current_lw = ref 0.0 in
-  List.iter begin fun (lw, rowstart, rowstop, col) ->
-    match matrix.(rowstart).(col) with
-      | Some c1 ->
-        begin
-          let rowstop = match rowstop with Some x -> x | _ -> t.rows - 1 in
-          let x = c1.x -. t.padding in
-          let y1 = c1.y -. t.padding +. line_disjoin in
-          let x, y1, y2 =
-            match matrix.(rowstop).(col) with
-              | Some c2 ->
-                let y2 = c2.y +. c2.cell_height +. t.padding -. line_disjoin in
-                x, y1, y2;
-              | _ ->
-                let y2 = t.y0 +. table_height -. line_disjoin in
-                x, y1, y2
-          in
-          let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
-          if lw <> !current_lw then begin
-            current_lw := lw;
-            PDF.set_line_width lw t.doc;
-          end;
-          v_lines := (x, y1, x, y2) :: !v_lines;
-          PDF.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
-        end;
-      | _ -> ()
-  end t.v_lines;
-  (* Draw grid horizontal lines *)
-  List.iter begin fun (lw, colstart, colstop, row) ->
+  print_table_border ~start:!page_start_row ~stop:(t.rows - 1) ();
+  print_vertical_lines ~pstart:!page_start_row ~pstop:(t.rows - 1) ();
+  (*(* Draw grid horizontal lines *)
+    PDF.push_graphics_state t.doc;
+    List.iter begin fun (lw, colstart, colstop, row) ->
     match matrix.(row).(colstart) with
       | Some c1 ->
         let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
@@ -294,8 +333,8 @@ let pack t =
           PDF.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
         end segments
       | _ -> ();
-  end t.h_lines;
-  PDF.pop_graphics_state t.doc;
+    end t.h_lines;
+    PDF.pop_graphics_state t.doc;*)
 ;;
 
 

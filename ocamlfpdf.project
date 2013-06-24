@@ -375,12 +375,12 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-tabular" default="false" target_id="15" id="9">
+    <executable name="test-tabular" default="true" target_id="15" id="9">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-metrics" default="true" target_id="16" id="10">
+    <executable name="test-metrics" default="false" target_id="16" id="10">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>

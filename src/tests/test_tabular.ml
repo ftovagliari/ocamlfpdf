@@ -51,12 +51,12 @@ let main () = begin
       let margin_left   = 10.0 in
       let width_avail   = PDFPage.page_width doc -. margin_left -. margin_right in
       let height_avail  = PDFPage.page_height doc -. margin_top -. margin_bottom in
-      PDF.set_font ~family:`CMUSerif ~size:font_size doc;
       PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
 
 
       (**  *)
       PDF.add_page doc;
+      PDF.set_font ~family:`CMUSerif ~size:font_size doc;
       let x = margin_left in
       let y = margin_top in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
@@ -133,6 +133,23 @@ let main () = begin
       set 4 7 (markup ~align:0.0 "");
       set 5 7 (markup ~align:0.0 "");
       set 6 7 (markup ~align:0.0 "");
+
+      let last_h = ref 0. in
+      for i = 7 to 70 do
+        set i 0 (markup "A");
+        set i 1 (markup "A");
+        set i 2 (markup "A");
+        set i 3 (markup "A");
+        set i 4 (markup "A");
+        set i 5 (markup "A");
+        set i 6 (markup "A");
+        set i 7 (markup "A");
+        let h = Tabular.table_height table -. !last_h in
+        if h > margin_top +. height_avail then begin
+          Tabular.add_page_break_before i table;
+          last_h := h;
+        end
+      done;
 
       Tabular.add_vertical_line ~rowstart:3 ~col:1 table;
       Tabular.add_vertical_line ~rowstart:0 ~col:2 table;
