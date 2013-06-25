@@ -241,7 +241,7 @@ let pack t =
                   current_lw := lw;
                   PDF.set_line_width lw t.doc;
                 end;
-                v_lines := (x, y1, x, y2) :: !v_lines;
+                v_lines := ((pstart, pstop), x, y1, x, y2) :: !v_lines;
                 PDF.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
               end;
             | _ -> ()
@@ -268,11 +268,14 @@ let pack t =
             let x2 = stop in
             let lw = match lw with Some x -> size_of_thickness x | _ -> if colstart = 0 then medium else thin in
             let i_points =
-              List.rev (List.fold_left begin fun acc (xv, yv1, _, yv2) ->
-                  match line_intersection x1 x2 y xv yv1 yv2 with
-                    | Some x' -> x' :: acc
-                    | _ -> acc
-                end [] !v_lines);
+              List.rev (List.fold_left begin fun acc ((p1, p2), xv, yv1, _, yv2) ->
+                  if p1 = pstart && p2 = pstop then begin
+                    (*Printf.printf "===> %F -- %F (%F)\n%!" yv1 yv2 xv;*)
+                    match line_intersection x1 x2 y xv yv1 yv2 with
+                      | Some x' -> x' :: acc
+                      | _ -> acc
+                  end else acc
+                end [] (List.sort (fun (_, x1, _, _, _) (_, x2, _, _, _) -> compare x1 x2) !v_lines));
             in
             let segments = List.combine (x1 :: i_points) (List.concat [i_points; [x2]]) in
             if lw <> !current_lw then begin
@@ -283,6 +286,7 @@ let pack t =
               let x1 = x1 +. line_disjoin in
               let x2 = x2 -. line_disjoin in
               PDF.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
+              (*Printf.printf "---------->H %d, %d -- %F -- %F (%F)\n%!" pstart pstop x1 x2 y;*)
             end segments;
             PDF.pop_graphics_state t.doc;
           | _ -> ();
@@ -296,6 +300,7 @@ let pack t =
       print_table_border ~start:!page_start_row ~stop:(i - 1) ();
       print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
       print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
+      v_lines := [];
       PDF.add_page t.doc;
       let margin_top, _, _, _ = PDF.margins t.doc in
       page_start_row := i;

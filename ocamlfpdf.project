@@ -220,11 +220,11 @@
     <target name="test-png" default="false" id="14">
       <byt>false</byt>
       <opt>true</opt>
-      <libs></libs>
+      <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_png.ml</files>
       <package>unix,str,xml-light,zip</package>
-      <includes>tests</includes>
+      <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>

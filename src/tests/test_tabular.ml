@@ -136,7 +136,7 @@ let main () = begin
 
       let last_h = ref 0. in
       let count_table_pages = ref 0 in
-      for i = 7 to 70 do
+      for i = 7 to 170 do
         set i 0 (kprintf markup "%d" i);
         set i 1 (markup "A");
         set i 2 (markup "A");
@@ -154,7 +154,7 @@ let main () = begin
         end
       done;
 
-      Tabular.add_vertical_line ~rowstart:3 ~col:1 table;
+      (*Tabular.add_vertical_line ~rowstart:3 ~col:1 table;
       Tabular.add_vertical_line ~rowstart:0 ~col:2 table;
       Tabular.add_vertical_line ~rowstart:0 ~col:3 table;
       Tabular.add_vertical_line ~rowstart:0 ~col:4 table;
@@ -164,11 +164,16 @@ let main () = begin
       Tabular.add_vertical_line ~rowstart:0 ~col:8 table;
       Tabular.add_vertical_line ~rowstart:2 ~col:9 table;
       Tabular.add_vertical_line ~rowstart:0 ~col:10 table;
-      Tabular.add_vertical_line ~rowstart:2 ~col:11 table;
+      Tabular.add_vertical_line ~rowstart:2 ~col:11 table;*)
 
-      Tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
+      Tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
+      Tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;
+      Tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:5 table;
+      Tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;
+
+      (*Tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
       Tabular.add_horizontal_line ~colstart:4 ~colstop:11 ~row:2 table;
-      Tabular.add_horizontal_line ~colstart:0 ~row:3 table;
+      Tabular.add_horizontal_line ~colstart:0 ~row:3 table;*)
 
       Tabular.pack table;
 
