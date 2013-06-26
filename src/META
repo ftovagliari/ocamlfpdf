@@ -1,7 +1,7 @@
 name="fpdf"
 version="1.0"
 description="Library for generating PDF documents."
-requires="str,xml-light,zip"
+requires="str,xml-light,zip,cpdf"
 archive(byte)="font.cma,fpdf.cma"
 archive(native)="font.cmxa,fpdf.cmxa"
 
