@@ -40,7 +40,7 @@ type action = [
 ]
 
 (** [get doc] returns the form object associated with the document [doc]. *)
-val get : PDF.t -> t
+val get : FPDF.t -> t
 
 (** The list of fields currently present in the form. *)
 val fields : t -> field list

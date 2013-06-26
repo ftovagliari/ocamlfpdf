@@ -21,7 +21,7 @@
 *)
 
 open Printf
-open PDFError
+open FPDFError
 open Font
 
 type analysis = {
@@ -122,17 +122,17 @@ let find_word_bound_backward, find_word_bound_forward =
 (** markup_to_blocks *)
 let markup_to_blocks ~markup ~line_spacing doc =
   let default_line_spacing = line_spacing in
-  let default_family = match PDF.font_family doc with Some x -> x | _ -> `Courier in
-  let default_style = PDF.font_style doc in
+  let default_family = match FPDF.font_family doc with Some x -> x | _ -> `Courier in
+  let default_style = FPDF.font_style doc in
   let attr doc = {
     family       = default_family;
     style        = default_style;
-    size         = PDF.font_size doc;
+    size         = FPDF.font_size doc;
     scale        = None;
     char_space   = None;
     rise         = None;
     underline    = `NONE;
-    color        = (PDFUtil.hex_of_rgb (PDF.text_color doc));
+    color        = (FPDFUtil.hex_of_rgb (FPDF.text_color doc));
     bgcolor      = None;
     align        = 0.0;
     lspacing     = default_line_spacing;
@@ -163,12 +163,12 @@ let markup_to_blocks ~markup ~line_spacing doc =
       let attr     = {
         family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family);
         style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> default_style);
-        size         = (try float_of_string (List.assoc "size" attrs) with Not_found -> PDF.font_size doc);
+        size         = (try float_of_string (List.assoc "size" attrs) with Not_found -> FPDF.font_size doc);
         scale        = (try Some (float_of_string (List.assoc "scale" attrs) /. 100.) with Not_found -> None);
         char_space   = (try Some (float_of_string (List.assoc "char_space" attrs)) with Not_found -> None);
         rise         = (try Some (float_of_string (List.assoc "rise" attrs)) with Not_found -> None);
         underline    = (try underline_of_string (List.assoc "underline" attrs) with Not_found -> `NONE);
-        color        = (try List.assoc "color" attrs with Not_found -> PDFUtil.hex_of_rgb (PDF.text_color doc));
+        color        = (try List.assoc "color" attrs with Not_found -> FPDFUtil.hex_of_rgb (FPDF.text_color doc));
         bgcolor      = (try Some (List.assoc "bgcolor" attrs) with Not_found -> None);
         align        = (try float_of_string (List.assoc "align" attrs) with Not_found -> 0.0);
         lspacing     = (try float_of_string (List.assoc "line_spacing" attrs) with Not_found -> default_line_spacing);
@@ -266,7 +266,7 @@ let split_text_by_width ~widths ~cw ~can_wrap_char text =
 
 (** split_blocks_at_line_break *)
 let split_blocks_at_line_break ~paragraphs ~avail_width doc =
-  let scale = PDF.scale doc in
+  let scale = FPDF.scale doc in
   let width0 = avail_width in
   let first_block = ref true in
   List.map begin fun paragraph ->
@@ -367,38 +367,38 @@ let set_paragraph_line_spacing paragraphs =
 
 (** draw_underline *)
 let draw_underline ~x ~y ~cell doc =
-  let scale        = PDF.scale doc in
-  let old          = PDF.line_width doc in
+  let scale        = FPDF.scale doc in
+  let old          = FPDF.line_width doc in
   let fs           = cell.attr.size in
   let font_metrics = cell.font_metrics in
   let uthick       = fs *. float (font_metrics.underlineThickness) /. 1000. /. scale in
   let baseline     = Font.baseline font_metrics in
   let uw           = uthick in
   let uw2          = uw /. 2. in
-  PDFGraphicsState.push doc;
-  PDF.set_line_width uw doc;
-  let red, green, blue = PDF.text_color doc in
-  PDF.set_draw_color ~red ~green ~blue doc ;
-  let r, g, b = PDF.draw_color doc in
+  FPDFGraphicsState.push doc;
+  FPDF.set_line_width uw doc;
+  let red, green, blue = FPDF.text_color doc in
+  FPDF.set_draw_color ~red ~green ~blue doc ;
+  let r, g, b = FPDF.draw_color doc in
   begin
     match cell.attr.underline with
       | `NONE -> ()
       | `SINGLE ->
         let upos = font_metrics.underlinePosition in
         let y = y +. fs *. (float (baseline - upos)) /. 1000. /. scale in
-        PDF.line
+        FPDF.line
           ~x1:(x +. uw2) ~y1:y
           ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
       | `LOW ->
         let descent = Font.descent font_metrics in
         let y = y +. fs *. (float (baseline + descent)) /. 1000. /. scale +. uw2 in
-        PDF.line
+        FPDF.line
           ~x1:(x +. uw2) ~y1:y
           ~x2:(x +. cell.cell_width -. uw2) ~y2:y doc;
-        PDF.set_draw_color ~red:r ~green:g ~blue:b doc
+        FPDF.set_draw_color ~red:r ~green:g ~blue:b doc
   end;
-  PDF.set_line_width old doc;
-  PDFGraphicsState.pop doc;
+  FPDF.set_line_width old doc;
+  FPDFGraphicsState.pop doc;
 ;;
 
 (** analyze *)
@@ -444,7 +444,7 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
   let y0 = y +. pad_top +. border_width in
   let x = ref x0 in
   let y = ref y0 in
-  let scale = PDF.scale doc in
+  let scale = FPDF.scale doc in
   let get_descent cell ?metrics size =
     let font_metrics =
       match metrics with
@@ -465,12 +465,12 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
               !y +. line_height -. cell.cell_height +.
                 ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
           in
-          let text = PDFUtil.rtrim_newline cell.text in
-          let red, green, blue = PDFUtil.rgb_of_hex cell.attr.color in
-          PDF.set_text_color ~red ~green ~blue doc;
+          let text = FPDFUtil.rtrim_newline cell.text in
+          let red, green, blue = FPDFUtil.rgb_of_hex cell.attr.color in
+          FPDF.set_text_color ~red ~green ~blue doc;
           let hscaling = match cell.attr.scale with Some z -> Some (int_of_float (z *. 100.)) | _ -> None in
-          PDF.set ~x:!x ~y:yy doc;
-          PDF.cell ~width:cell.cell_width ~fill:false ~padding:0.
+          FPDF.set ~x:!x ~y:yy doc;
+          FPDF.cell ~width:cell.cell_width ~fill:false ~padding:0.
             ~font_family:cell.attr.family
             ~font_style:cell.attr.style
             ~font_size:cell.attr.size
@@ -479,11 +479,11 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
             ?rise:cell.attr.rise
             ~text (*~border:[`All]*) doc;
 
-          (*PDFGraphicsState.push doc;
-            PDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
-            PDF.set_line_width 0.1 doc;
-            PDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
-            PDFGraphicsState.pop doc;*)
+          (*FPDFGraphicsState.push doc;
+            FPDF.set_text_color ~red:0 ~green:255 ~blue:0 doc;
+            FPDF.set_line_width 0.1 doc;
+            FPDF.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
+            FPDFGraphicsState.pop doc;*)
 
           if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy ~cell doc);
           x := !x +. cell.cell_width;
@@ -499,20 +499,20 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=
   let analysis = analyze ~width ~markup ~padding ?border_width ~line_spacing doc in
   analysis.print <- begin fun ~x ~y ?valign () ->
     let width = analysis.width in
-    let old_text_color = PDF.text_color doc in
-    let old_bgcolor = PDF.fill_color doc in
-    let old_draw_color = PDF.draw_color doc in
-    let old_font_family = PDF.font_family doc in
-    let old_font_size = PDF.font_size doc in
-    let old_font_style = PDF.font_style doc in
-    let old_font_scale = PDF.font_scale doc in
+    let old_text_color = FPDF.text_color doc in
+    let old_bgcolor = FPDF.fill_color doc in
+    let old_draw_color = FPDF.draw_color doc in
+    let old_font_family = FPDF.font_family doc in
+    let old_font_size = FPDF.font_size doc in
+    let old_font_style = FPDF.font_style doc in
+    let old_font_scale = FPDF.font_scale doc in
     let y = match valign with Some (h, valign) when h >= analysis.height -> y +. (h -. analysis.height) *. valign | _ -> y in
     begin
-      (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = PDFUtil.rgb_of_hex bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
-      (match border_color with None -> () | Some color -> let red, green, blue = PDFUtil.rgb_of_hex color in PDF.set_draw_color ~red ~green ~blue doc);
+      (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = FPDFUtil.rgb_of_hex bgcolor in FPDF.set_fill_color ~red ~green ~blue doc);
+      (match border_color with None -> () | Some color -> let red, green, blue = FPDFUtil.rgb_of_hex color in FPDF.set_draw_color ~red ~green ~blue doc);
       begin match border_width with None -> () | Some line_width ->
-        PDFGraphicsState.push doc;
-        PDF.set_line_width line_width doc
+        FPDFGraphicsState.push doc;
+        FPDF.set_line_width line_width doc
       end;
       let style = match bgcolor, (border_color, border_width) with
         | None, (None, None) -> None
@@ -524,17 +524,17 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?(border_radius=
       (match style with None -> () | Some style ->
         let bw = match border_width with None -> 0. | Some x -> x in
         (*let height = match height with Some h -> h | _ -> analysis.height in*)
-        PDF.rect ~x:(x +. bw /. 2.) ~y:(y +. bw /. 2.) ~radius:border_radius
+        FPDF.rect ~x:(x +. bw /. 2.) ~y:(y +. bw /. 2.) ~radius:border_radius
           ~width:(width -. bw)
           ~height:(analysis.height -. bw) ~style doc);
     end;
     (*(match pre with Some f -> f analysis | _ -> ());*)
     print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
-    if PDF.text_color doc <> old_text_color then (let red, green, blue = old_text_color in PDF.set_text_color ~red ~green ~blue doc);
-    if PDF.fill_color doc <> old_bgcolor then (let red, green, blue = old_bgcolor in PDF.set_fill_color ~red ~green ~blue doc);
-    if PDF.draw_color doc <> old_draw_color then (let red, green, blue = old_draw_color in PDF.set_draw_color ~red ~green ~blue doc);
-    PDF.set_font ?family:old_font_family ~size:old_font_size ?scale:old_font_scale ~style:old_font_style doc;
-    if border_width <> None then (PDFGraphicsState.pop doc)
+    if FPDF.text_color doc <> old_text_color then (let red, green, blue = old_text_color in FPDF.set_text_color ~red ~green ~blue doc);
+    if FPDF.fill_color doc <> old_bgcolor then (let red, green, blue = old_bgcolor in FPDF.set_fill_color ~red ~green ~blue doc);
+    if FPDF.draw_color doc <> old_draw_color then (let red, green, blue = old_draw_color in FPDF.set_draw_color ~red ~green ~blue doc);
+    FPDF.set_font ?family:old_font_family ~size:old_font_size ?scale:old_font_scale ~style:old_font_style doc;
+    if border_width <> None then (FPDFGraphicsState.pop doc)
   end;
   analysis
 ;;

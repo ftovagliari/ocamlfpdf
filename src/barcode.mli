@@ -35,7 +35,7 @@ module Code39 :
       x:float ->
       y:float ->
       barcode:string ->
-      ?baseline:float -> ?height:float -> ?text:float -> PDF.t -> unit
+      ?baseline:float -> ?height:float -> ?text:float -> FPDF.t -> unit
 
     val bar_char : (char * string) list
     val get_width : barcode:string -> float
@@ -54,7 +54,7 @@ module EAN13 :
       x:float ->
       y:float ->
       ?height:float ->
-      ?width:float -> barcode:string -> ?upc_a:bool -> PDF.t -> unit
+      ?width:float -> barcode:string -> ?upc_a:bool -> FPDF.t -> unit
   end
 
 module Code128C :
@@ -68,6 +68,6 @@ module Code128C :
       ?height:float ->
       ?width:float ->
       ?set:[ `A | `B | `C ] ->
-      ?text:float -> barcode:string -> PDF.t -> unit
+      ?text:float -> barcode:string -> FPDF.t -> unit
   end
 

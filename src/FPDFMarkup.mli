@@ -44,7 +44,7 @@ and attributes = {
   mutable lspacing                       : float;
 }
 
-(** Analyzes text containing markup and returns a {!PDFMarkup.analysis} record.
+(** Analyzes text containing markup and returns a {!FPDFMarkup.analysis} record.
     The markup can be actually printed to the PDF document through the field [print] of
     the analysis record.
 
@@ -76,7 +76,7 @@ and attributes = {
     @param border_color Border color.
     @param border_radius Radius for boxes with rounded corners.
     @param padding Top, right, bottom and left internal padding.
-    @return A {!PDFMarkup.analysis} record.
+    @return A {!FPDFMarkup.analysis} record.
     @raise Error(Invalid_markup) If an error occurs.
 *)
 val prepare :
@@ -90,10 +90,10 @@ val prepare :
   ?border_radius:float ->
   ?padding:(float * float * float * float) ->
   ?line_spacing:float ->
-  PDF.t -> analysis
+  FPDF.t -> analysis
 
 (**
-    @deprecated Use {!PDFMarkup.prepare}
+    @deprecated Use {!FPDFMarkup.prepare}
 *)
 val print :
   x:float ->
@@ -107,4 +107,4 @@ val print :
   ?border_color:string ->
   ?border_radius:float ->
   ?padding:(float * float * float * float) ->
-  PDF.t -> float * float
+  FPDF.t -> float * float

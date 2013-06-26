@@ -29,28 +29,28 @@ let main () = begin
   let close_file () = close_out outchan in
   begin
     try
-      let doc = PDF.create ~outchan () in
-      PDF.add_page doc;
+      let doc = FPDF.create ~outchan () in
+      FPDF.add_page doc;
       let x = 0. in
       let y = 0. in
       let height_image = 50. in
       let dirname = Filename.dirname Sys.executable_name in
 
       let size = 200. in
-      PDF.set_font ~family:`Times ~size doc;
-      let scale = PDF.scale doc in
+      FPDF.set_font ~family:`Times ~size doc;
+      let scale = FPDF.scale doc in
       let width = size /. scale in
       let height = size /. scale in
-      PDF.text ~x ~y:height ~text:"AB" doc;
+      FPDF.text ~x ~y:height ~text:"AB" doc;
 
       let name = "Lena.png" in
-      let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
-      PDF.image ~x ~y ~name ~data ~height:height_image doc;
+      let data = Buffer.contents (FPDFUtil.fread (dirname // name)) in
+      FPDF.image ~x ~y ~name ~data ~height:height_image doc;
       let name = "Lena.jpg" in
-      let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
-      PDF.image ~x:(x +. height_image) ~y ~name ~data ~height:height_image doc;
+      let data = Buffer.contents (FPDFUtil.fread (dirname // name)) in
+      FPDF.image ~x:(x +. height_image) ~y ~name ~data ~height:height_image doc;
 
-      PDF.close_document doc;
+      FPDF.close_document doc;
       close_file();
     with ex -> begin
       close_file();

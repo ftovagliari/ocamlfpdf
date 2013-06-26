@@ -20,7 +20,6 @@
 
 *)
 
-open PDF
 
 class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc =
   let n, m = float columns, float rows in
@@ -36,7 +35,7 @@ class table ~x ~y ~width ~height ~rows ~columns ?(spacing=0.) ?(padding=0.) doc 
         for j = 0 to columns - 1 do
           let x = x0 +. (width +. spacing) *. (float j) in
           let y = y0 +. (height +. spacing) *. (float i) in
-          PDF.rect ~x ~y ~width ~height (*~radius:5.0*) ~style:`Outline doc;
+          FPDF.rect ~x ~y ~width ~height (*~radius:5.0*) ~style:`Outline doc;
           let x = x +. padding in
           let y = y +. padding in
           let width = width -. 2. *. padding in
@@ -71,16 +70,16 @@ class vbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
       let cbs = Array.of_list (List.rev callbacks) in
       let length = float (Array.length cbs) in
       if border then begin
-        PDF.set_draw_color ~red:255 ~green:0 ~blue:0 doc;
-        PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
-        PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
+        FPDF.set_draw_color ~red:255 ~green:0 ~blue:0 doc;
+        FPDF.rect ~x ~y ~width ~height ~style:`Outline doc;
+        FPDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
       end;
       let x = (x +. padding) in
       let y = y +. padding in
       let width = width -. 2. *. padding in
       let height = height -. (length -. 1.) *. spacing -. 2. *. padding in
       ignore (Array.fold_left begin fun (y, height) cb ->
-        PDF.set ~x ~y doc;
+        FPDF.set ~x ~y doc;
         let previous_h = cb ~x ~y ~width ~height in
         let y = y +. previous_h +. spacing in
         let height = height -. previous_h in
@@ -100,16 +99,16 @@ class hbox ~x ~y ~width ~height ?(spacing=0.) ?(padding=0.) ?(border=false) doc 
       let cbs = Array.of_list (List.rev callbacks) in
       let length = float (Array.length cbs) in
       if border then begin
-        PDF.set_draw_color ~red:0 ~green:255 ~blue:0 doc;
-        PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
-        PDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
+        FPDF.set_draw_color ~red:0 ~green:255 ~blue:0 doc;
+        FPDF.rect ~x ~y ~width ~height ~style:`Outline doc;
+        FPDF.set_draw_color ~red:0 ~green:0 ~blue:0 doc;
       end;
       let x = x +. padding in
       let y = y +. padding in
       let width = width -. (length -. 1.) *. spacing -. 2. *. padding in
       let height = height -. 2. *. padding in
       ignore (Array.fold_left begin fun (x, width) cb ->
-        PDF.set ~x ~y doc;
+        FPDF.set ~x ~y doc;
         let previous_w = cb ~x ~y ~width ~height in
         let x = x +. previous_w +. spacing in
         let width = width -. previous_w in

@@ -21,7 +21,7 @@
 *)
 
 open Printf
-open PDFError
+open FPDFError
 
 type info = {
   mutable image_name         : string;
@@ -238,7 +238,7 @@ module Png = struct
         end data;
         if color_space = "Indexed" && info.image_palette = "" then (raise (Error (Missing_palette, "")));
         if color_type >= 4 then begin
-          info.image_data <- PDFUtil.gz_uncompress info.image_data;
+          info.image_data <- FPDFUtil.gz_uncompress info.image_data;
           let len = (if color_type = 4 then 2 else 4) * info.image_width in
           let color = Buffer.create 100 in
           let alpha = Buffer.create 100 in
@@ -256,8 +256,8 @@ module Png = struct
               incr j;
             done;
           done;
-          info.image_data <- PDFUtil.gz_compress (Buffer.contents color);
-          info.image_smask <- Some (PDFUtil.gz_compress (Buffer.contents alpha));
+          info.image_data <- FPDFUtil.gz_compress (Buffer.contents color);
+          info.image_smask <- Some (FPDFUtil.gz_compress (Buffer.contents alpha));
         end;
         info
 end

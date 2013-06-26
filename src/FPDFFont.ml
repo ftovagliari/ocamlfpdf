@@ -20,9 +20,9 @@
 
 *)
 
-open PDFTypes
-open PDFDocument
-open PDFUtil
+open FPDFTypes
+open FPDFDocument
+open FPDFUtil
 open Printf
 open Font
 
@@ -36,7 +36,7 @@ let set_font ?family ?(style=[]) ?size ?scale ?char_space doc =
   if doc.font_family <> family || doc.font_style <> style || doc.font_size_pt <> size then begin
     (* Test if font is used for the first time *)
     let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
-    if not (PDFDocument.font_exists fkey doc) then begin
+    if not (FPDFDocument.font_exists fkey doc) then begin
       try
         let font_metrics = Font.find fkey in
         (* Check if one of the standard fonts *)
@@ -98,7 +98,7 @@ let embed_font ~family ~style doc =
 let find_font_index ?family ?(style=[]) doc =
   let family = match (family : Font.family option) with None -> doc.font_family | x -> x in
   let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
-  if not (PDFDocument.font_exists fkey doc) then begin
+  if not (FPDFDocument.font_exists fkey doc) then begin
     try
       let font_metrics = Font.find fkey in
       (* Check if one of the standard fonts *)

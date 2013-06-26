@@ -22,7 +22,7 @@
 
 open Printf
 open Font
-open PDFDocument
+open FPDFDocument
 
 let (//) = Filename.concat
 
@@ -41,20 +41,21 @@ Pellentesque consectetur mauris tellus. Integer pellentesque elit vel orci\
 venenatis sollicitudin. Sed lacinia magna vitae ante elementum suscipit. "
 
 let main () = begin
+  let filename_tmp = Sys.argv.(0) ^ ".tmp" in
   let filename = Sys.argv.(0) ^ ".pdf" in
-  let outchan = open_out_bin filename in
+  let outchan = open_out_bin filename_tmp in
   let close_file () = close_out outchan in
   begin
     try
-      let doc               = PDF.create ~orientation:`Landscape ~outchan () in
+      let doc               = FPDF.create ~orientation:`Landscape ~outchan () in
       let margin            = 10.0 in
       let margin_top        = margin in
       let margin_right      = margin in
       let margin_bottom     = margin in
       let margin_left       = margin in
-      let width_avail       = PDFPage.page_width doc -. margin_left -. margin_right in
-      let height_avail      = PDFPage.page_height doc -. margin_top -. margin_bottom in
-      let scale             = PDF.scale doc in
+      let width_avail       = FPDFPage.page_width doc -. margin_left -. margin_right in
+      let height_avail      = FPDFPage.page_height doc -. margin_top -. margin_bottom in
+      let scale             = FPDF.scale doc in
       let x0                = margin_left in
       let y0                = margin_top in
       let padding           = 3. in
@@ -68,24 +69,24 @@ let main () = begin
       let sample_text =     "{\192g}" in
       let sample_text =     "{\192g\131\190}" in
 
-      PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
-      PDF.set_line_cap `Round doc;
-      PDF.set_line_width 0.25 doc;
+      FPDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
+      FPDF.set_line_cap `Round doc;
+      FPDF.set_line_width 0.25 doc;
 
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
 
       (* print_vmesurements *)
       let print_vmesurements x vlines =
@@ -96,21 +97,21 @@ let main () = begin
             begin
               match label with
                 | Some text ->
-                  let tw = PDF.get_text_width label_font label_font_size text /. scale in
+                  let tw = FPDF.get_text_width label_font label_font_size text /. scale in
                   let x = x0 +. x -. tw /. 2. in
                   let y = y -. 3. /. 2. *. gap in
-                  PDF.set ~x ~y doc;
-                  PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size ~border:[] doc;
+                  FPDF.set ~x ~y doc;
+                  FPDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size ~border:[] doc;
                   draw_marker := false;
                 | None ->
-                  if !draw_marker then (PDF.line ~x1:(x0 +. x -. aw) ~y1:(prev +. aw) ~x2:(x0 +. x +. aw) ~y2:(prev -. aw) doc);
+                  if !draw_marker then (FPDF.line ~x1:(x0 +. x -. aw) ~y1:(prev +. aw) ~x2:(x0 +. x +. aw) ~y2:(prev -. aw) doc);
                   draw_marker := true;
-                  PDF.line ~x1:(x0 +. x) ~y1:prev ~x2:(x0 +. x) ~y2:y doc;
+                  FPDF.line ~x1:(x0 +. x) ~y1:prev ~x2:(x0 +. x) ~y2:y doc;
             end;
             p
           end (y0, None) vlines
         in
-        if !draw_marker then (PDF.line ~x1:(x0 +. x -. aw) ~y1:(last +. aw) ~x2:(x0 +. x +. aw) ~y2:(last -. aw) doc);
+        if !draw_marker then (FPDF.line ~x1:(x0 +. x -. aw) ~y1:(last +. aw) ~x2:(x0 +. x +. aw) ~y2:(last -. aw) doc);
       in
 
       (* Printable Characters *)
@@ -133,8 +134,8 @@ let main () = begin
 
       (* print_page *)
       let print_page key font =
-        PDF.add_page doc;
-        let hline x1 x2 y = PDF.line ~x1 ~y1:y ~x2 ~y2:y doc in
+        FPDF.add_page doc;
+        let hline x1 x2 y = FPDF.line ~x1 ~y1:y ~x2 ~y2:y doc in
 
         let font_size = font_size_pt /. scale in
 
@@ -148,7 +149,7 @@ let main () = begin
         hline x0 (x0 +. width_avail) (y0 +. baseline +. descent);
 
         (* Font preview *)
-        PDF.cell
+        FPDF.cell
           ~font_family:font.fontFamily
           ~font_size:font_size_pt
           ~font_style:(Font.style font)
@@ -157,11 +158,11 @@ let main () = begin
           doc;
 
         (* Draw margins *)
-        PDFGraphicsState.push doc;
-        PDF.set_draw_color ~red:255 ~green:0 ~blue:0 doc;
-        PDF.set_line_dash [1; 2] doc;
-        PDF.rect ~x:x0 ~y:y0 ~width:width_avail ~height:height_avail ~style:`Outline doc;
-        PDFGraphicsState.pop doc;
+        FPDFGraphicsState.push doc;
+        FPDF.set_draw_color ~red:255 ~green:0 ~blue:0 doc;
+        FPDF.set_line_dash [1; 2] doc;
+        FPDF.rect ~x:x0 ~y:y0 ~width:width_avail ~height:height_avail ~style:`Outline doc;
+        FPDFGraphicsState.pop doc;
 
         (* Measurement lines *)
         print_vmesurements x' [
@@ -181,31 +182,31 @@ let main () = begin
 
         (* Print label "origin" *)
         let text = "origin" in
-        let x0' = x0 +. PDF.line_width doc in
-        let y0' = y0 +. PDF.line_width doc in
+        let x0' = x0 +. FPDF.line_width doc in
+        let y0' = y0 +. FPDF.line_width doc in
         let x = x0' +. 3. *. padding in
         let y = y0' +. 3. *. padding in
         let aw = 2. in
-        PDF.set ~x ~y doc;
-        PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;
-        PDF.set_line_width 0.1 doc;
-        PDF.line ~x1:x0' ~y1:x0' ~x2:x ~y2:y doc;
-        PDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw /. 3.) ~y2:(y0' +. aw) doc;
-        PDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw) ~y2:(y0' +. aw /. 3.) doc;
-        PDF.set_line_width 0.25 doc;
+        FPDF.set ~x ~y doc;
+        FPDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;
+        FPDF.set_line_width 0.1 doc;
+        FPDF.line ~x1:x0' ~y1:x0' ~x2:x ~y2:y doc;
+        FPDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw /. 3.) ~y2:(y0' +. aw) doc;
+        FPDF.line ~x1:x0' ~y1:x0' ~x2:(x0' +. aw) ~y2:(y0' +. aw /. 3.) doc;
+        FPDF.set_line_width 0.25 doc;
 
         (*(* Print label "baseline" *)
           let text = "baseline" in
-          let tw = PDF.get_text_width label_font label_font_size text /. scale in
-          PDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline -. label_font_size /. scale -. padding /. 3.) doc;
-          PDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;*)
+          let tw = FPDF.get_text_width label_font label_font_size text /. scale in
+          FPDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline -. label_font_size /. scale -. padding /. 3.) doc;
+          FPDF.cell ~text ~font_family:label_font_family ~font_style:[`Italic] ~font_size:label_font_size doc;*)
 
         (* Print font name *)
         let font_size = 20. in
         let text = font.fontName in
-        let tw = PDF.get_text_width font font_size text /. scale in
-        PDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline +. descent) doc;
-        PDF.cell
+        let tw = FPDF.get_text_width font font_size text /. scale in
+        FPDF.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline +. descent) doc;
+        FPDF.cell
           ~font_family:font.fontFamily
           ~font_size
           ~font_style:(Font.style font)
@@ -216,19 +217,19 @@ let main () = begin
         (*  *)
         let y = y0 +. baseline +. descent +. font_size *. (1. +. float (Font.descent font) /. 1000.) /. scale +. 2. *. padding in
         let padding = (2.,2.,2.,2.) in
-        PDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
-        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:characters doc in
-        markup.PDFMarkup.print ~x:x0 ~y ();
+        FPDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
+        let markup = FPDFMarkup.prepare ~width:width_avail ~padding ~markup:characters doc in
+        markup.FPDFMarkup.print ~x:x0 ~y ();
 
-        let y = y +. markup.PDFMarkup.height in
-        PDF.set_font ~family:font.fontFamily ~size:18. ~style:(Font.style font) doc;
-        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:sample doc in
-        markup.PDFMarkup.print ~x:x0 ~y ();
+        let y = y +. markup.FPDFMarkup.height in
+        FPDF.set_font ~family:font.fontFamily ~size:18. ~style:(Font.style font) doc;
+        let markup = FPDFMarkup.prepare ~width:width_avail ~padding ~markup:sample doc in
+        markup.FPDFMarkup.print ~x:x0 ~y ();
 
-        let y = y +. markup.PDFMarkup.height in
-        PDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
-        let markup = PDFMarkup.prepare ~width:width_avail ~padding ~markup:sample_long doc in
-        markup.PDFMarkup.print ~x:x0 ~y ()
+        let y = y +. markup.FPDFMarkup.height in
+        FPDF.set_font ~family:font.fontFamily ~size:11. ~style:(Font.style font) doc;
+        let markup = FPDFMarkup.prepare ~width:width_avail ~padding ~markup:sample_long doc in
+        markup.FPDFMarkup.print ~x:x0 ~y ()
       in
       let ordered_fonts = ref [] in
       Hashtbl.iter begin fun key font ->
@@ -238,8 +239,11 @@ let main () = begin
       let ordered_fonts = List.sort compare !ordered_fonts in
       List.iter (fun (k, f) -> print_page k f) ordered_fonts;
       (**  *)
-      PDF.close_document doc;
+      FPDF.close_document doc;
       close_file();
+      let cpdf = Pdfread.pdf_of_file None filename_tmp in
+      if Sys.file_exists filename_tmp then Sys.remove filename_tmp;
+      Pdfwrite.pdf_to_file_options true None false cpdf filename
     with ex -> begin
         close_file();
         raise ex
@@ -257,4 +261,4 @@ let main () = begin
   else ignore (kprintf Sys.command "xpdf %s" filename)
 end
 
-let _ = PDFError.handle_error main ()
+let _ = FPDFError.handle_error main ()

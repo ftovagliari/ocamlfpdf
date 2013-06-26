@@ -29,19 +29,19 @@ let main () = begin
   let close_file () = close_out outchan in
   begin
     try
-      let doc = PDF.create ~orientation:`Landscape ~outchan () in
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
+      let doc = FPDF.create ~orientation:`Landscape ~outchan () in
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
       let font_size     = 9.0 in
       let small_font    = font_size -. 2.0 in
       let line_spacing  = 1.5 in
@@ -49,14 +49,14 @@ let main () = begin
       let margin_right  = 10.0 in
       let margin_bottom = 10.0 in
       let margin_left   = 10.0 in
-      let width_avail   = PDFPage.page_width doc -. margin_left -. margin_right in
-      let height_avail  = PDFPage.page_height doc -. margin_top -. margin_bottom in
-      PDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
+      let width_avail   = FPDFPage.page_width doc -. margin_left -. margin_right in
+      let height_avail  = FPDFPage.page_height doc -. margin_top -. margin_bottom in
+      FPDF.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
 
 
       (**  *)
-      PDF.add_page doc;
-      PDF.set_font ~family:`CMUSerif ~size:font_size doc;
+      FPDF.add_page doc;
+      FPDF.set_font ~family:`CMUSerif ~size:font_size doc;
       let x = margin_left in
       let y0 = margin_top +. 50. in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
@@ -178,42 +178,42 @@ let main () = begin
       Tabular.pack table;
 
       (*let line_spacing = None in
-      PDF.set_font ~family:`Times ~style:[`Bold] doc;
-      let markup = PDFMarkup.prepare ~markup:"<span align='0.0' size='5' style='bold,italic'>{Prov\199}\192\n}\192}\192}\192}\192}\192}\192</span>"
+      FPDF.set_font ~family:`Times ~style:[`Bold] doc;
+      let markup = FPDFMarkup.prepare ~markup:"<span align='0.0' size='5' style='bold,italic'>{Prov\199}\192\n}\192}\192}\192}\192}\192}\192</span>"
           ~width:100. ~border_width:0.1 ~border_radius:5. ?line_spacing doc
       in
-      markup.PDFMarkup.print~x:100. ~y:100. (*~valign:()*) ();
+      markup.FPDFMarkup.print~x:100. ~y:100. (*~valign:()*) ();
 
-      let markup = PDFMarkup.prepare ~markup:"<span align='0.0' size='12' style='bold,italic'>{Prov\199}\192\n}\192}\192}\192}\192}\192}\192</span>"
+      let markup = FPDFMarkup.prepare ~markup:"<span align='0.0' size='12' style='bold,italic'>{Prov\199}\192\n}\192}\192}\192}\192}\192}\192</span>"
           ~width:100. ~border_width:0.1 ~border_radius:5. ?line_spacing doc
       in
-      markup.PDFMarkup.print~x:100. ~y:120. (*~valign:()*) ();
+      markup.FPDFMarkup.print~x:100. ~y:120. (*~valign:()*) ();
 
-      let markup = PDFMarkup.prepare ~markup:"<span align='0.0' size='12' style='bold,italic'>{AAAA\192</span>"
+      let markup = FPDFMarkup.prepare ~markup:"<span align='0.0' size='12' style='bold,italic'>{AAAA\192</span>"
           ~width:100. ~border_width:5. ~border_radius:5. ~border_color:"#ff0000" ?line_spacing doc
       in
-      markup.PDFMarkup.print~x:0. ~y:0. (*~valign:()*) ();
+      markup.FPDFMarkup.print~x:0. ~y:0. (*~valign:()*) ();
 
 
-      let markup = PDFMarkup.prepare ~markup:"<span align='0.0' size='25'>{Prov\199}\192}\192}\192\n}\192}\192}\192}\192</span>"
+      let markup = FPDFMarkup.prepare ~markup:"<span align='0.0' size='25'>{Prov\199}\192}\192}\192\n}\192}\192}\192}\192</span>"
           ~width:100. ~border_width:0.1 ~border_radius:5. ?line_spacing doc
       in
-      markup.PDFMarkup.print~x:100. ~y:140. (*~valign:()*) ();
+      markup.FPDFMarkup.print~x:100. ~y:140. (*~valign:()*) ();
 
-      PDF.add_page doc;
-      PDF.set ~x:0. ~y:0. doc;
-      PDF.set_font ~family:`Times ~size:100. doc;
-      PDF.cell ~width:50. ~text:"A{\199\199\199\199\199(0,0)}\192" ~border:[`All] doc;*)
+      FPDF.add_page doc;
+      FPDF.set ~x:0. ~y:0. doc;
+      FPDF.set_font ~family:`Times ~size:100. doc;
+      FPDF.cell ~width:50. ~text:"A{\199\199\199\199\199(0,0)}\192" ~border:[`All] doc;*)
 
-     (* let lh = PDF.font_size doc /. PDF.scale doc *. 1.125 in
+     (* let lh = FPDF.font_size doc /. FPDF.scale doc *. 1.125 in
       Printf.printf "---> lh = %f\n%!" lh;
-      PDF.set ~x:0. ~y:lh doc;
-      PDF.cell ~width:50. ~text:"A{Prova(0,0)}\192" doc;
-      PDF.rect ~x:0. ~y:0. ~width:20. ~height:(PDF.font_size doc /. PDF.scale doc) doc;
+      FPDF.set ~x:0. ~y:lh doc;
+      FPDF.cell ~width:50. ~text:"A{Prova(0,0)}\192" doc;
+      FPDF.rect ~x:0. ~y:0. ~width:20. ~height:(FPDF.font_size doc /. FPDF.scale doc) doc;
 *)
 
       (**  *)
-      PDF.close_document doc;
+      FPDF.close_document doc;
       close_file();
     with ex -> begin
       close_file();
@@ -232,4 +232,4 @@ let main () = begin
   else ignore (kprintf Sys.command "xpdf %s" filename)
 end
 
-let _ = PDFError.handle_error main ()
+let _ = FPDFError.handle_error main ()

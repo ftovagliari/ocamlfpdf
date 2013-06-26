@@ -21,7 +21,7 @@
 *)
 
 open Printf
-open PDFTypes
+open FPDFTypes
 
 let (//) = Filename.concat
 
@@ -31,26 +31,26 @@ let main () = begin
   let close_file () = close_out outchan in
   begin
     try
-      let doc = PDF.create ~outchan () in
-      PDF.set_display_mode (`Custom_zoom 300.) doc;
+      let doc = FPDF.create ~outchan () in
+      FPDF.set_display_mode (`Custom_zoom 300.) doc;
       let margin = 20. in
-      PDF.set_margins ~left:margin ~top:margin doc;
-      PDF.set_font ~family:`Helvetica ~size:40. doc;
-      PDF.set_open_actions [
+      FPDF.set_margins ~left:margin ~top:margin doc;
+      FPDF.set_font ~family:`Helvetica ~size:40. doc;
+      FPDF.set_open_actions [
         (*`ResetForm;*)
         `GoTo {dest_page = 0; dest_display = `FitH None}
       ] doc;
 
-      let form = PDFForm.get doc in
+      let form = FPDFForm.get doc in
 
       let create_page default_value =
-        PDF.add_page doc;
+        FPDF.add_page doc;
         let x = margin in
         let y = margin in
-        PDFGraphics.rect ~x ~y ~width:(PDF.page_width doc -. 2. *. margin) ~height:(PDF.page_height doc -. 2. *. margin) doc;
-        let name = sprintf "text_field_%d_1" (PDF.page_count doc) in
+        FPDFGraphics.rect ~x ~y ~width:(FPDF.page_width doc -. 2. *. margin) ~height:(FPDF.page_height doc -. 2. *. margin) doc;
+        let name = sprintf "text_field_%d_1" (FPDF.page_count doc) in
         let field_1 =
-          PDFForm.add_text_field ~x ~y ~width:160. ~height:20.
+          FPDFForm.add_text_field ~x ~y ~width:160. ~height:20.
             ~maxlength:5 ~readonly:false ~hidden:false ~justification:`Center
             ~name ~alt_name:name
             ~value:"" ~value_ap:"Enter a number here..."
@@ -61,16 +61,16 @@ let main () = begin
             ]
             (*~border:(`Dashed, "#000000")*) form
         in
-        ignore (PDFMarkup.print ~x:(x +. 80.) ~y ~width:50. ~markup:"3" doc);
+        ignore (FPDFMarkup.print ~x:(x +. 80.) ~y ~width:50. ~markup:"3" doc);
         let y = y +. 30. in
-        let name = sprintf "text_field_%d_2" (PDF.page_count doc) in
+        let name = sprintf "text_field_%d_2" (FPDF.page_count doc) in
         let field_2 =
-          PDFForm.add_text_field ~x ~y ~width:100. ~height:5. ~font_size:8.
+          FPDFForm.add_text_field ~x ~y ~width:100. ~height:5. ~font_size:8.
             ~readonly:false ~hidden:false ~justification:`Left
             ~name ~alt_name:name
             ~value:default_value ~default_value
             ~actions:(
-              (if PDF.page_count doc = 2 then
+              (if FPDF.page_count doc = 2 then
               [`Calculate "AFSimple_Calculate(\"SUM\", new Array (\"text_field_1_1\", \"text_field_1_2\"));"] else [])
               @ [`Keystroke "AFNumber_Keystroke(0,1,0,0,\"\",false);";]
             )
@@ -82,9 +82,9 @@ let main () = begin
       let _, field_calc = create_page "" in
       ignore (create_page "88888");
 
-      PDFForm.set_calculation_order [field_calc] form;
+      FPDFForm.set_calculation_order [field_calc] form;
 
-      PDF.close_document doc;
+      FPDF.close_document doc;
       close_file();
     with ex -> begin
       close_file();

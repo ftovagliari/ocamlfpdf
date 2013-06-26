@@ -22,10 +22,10 @@
 
 
 open Printf
-open PDFDocument
+open FPDFDocument
 
 type t = {
-  doc                       : PDFDocument.t;
+  doc                       : FPDFDocument.t;
   mutable root_obj          : int;
   mutable fields            : field list;
   mutable calculation_order : field list option;
@@ -70,7 +70,7 @@ let (!!) = List.fold_left (fun acc (v, c) -> acc lor (if c then v else 0)) 0;;
 let instances = ref []
 
 (** js_validation_numeric *)
-let js_validation_numeric = PDFUtil.escape "event.rc = event.change.toString().length <= 0 || event.change.match(\"[-.0-9]\")"
+let js_validation_numeric = FPDFUtil.escape "event.rc = event.change.toString().length <= 0 || event.change.match(\"[-.0-9]\")"
 
 (** get_calculation_order_default *)
 let get_calculation_order_default form =
@@ -81,17 +81,17 @@ let get_calculation_order_default form =
 (** print_actions *)
 let print_actions actions doc =
   if actions <> [] then begin
-    PDFDocument.print doc "/AA<<";
+    FPDFDocument.print doc "/AA<<";
     List.iter begin fun action ->
       let js =
         match action with
-        | `Keystroke js -> PDFDocument.print doc "/K"; js
-        | `Value_changed js -> PDFDocument.print doc "/V"; js
-        | `Calculate js -> PDFDocument.print doc "/C"; js
+        | `Keystroke js -> FPDFDocument.print doc "/K"; js
+        | `Value_changed js -> FPDFDocument.print doc "/V"; js
+        | `Calculate js -> FPDFDocument.print doc "/C"; js
       in
-      PDFDocument.print doc "<</S/JavaScript/JS(%s)>>" (PDFUtil.escape js);
+      FPDFDocument.print doc "<</S/JavaScript/JS(%s)>>" (FPDFUtil.escape js);
     end actions;
-    PDFDocument.print doc ">>";
+    FPDFDocument.print doc ">>";
   end;;
 
 (** create *)
@@ -105,15 +105,15 @@ let create doc =
   } in
   let _, doc_default_font = match List.rev doc.fonts with f :: _ -> f | _ -> assert false in
   (** Add resource *)
-  PDFDocument.add_resource begin fun () ->
+  FPDFDocument.add_resource begin fun () ->
     if form.length > 0 then begin
       (* Interactive Form Dictionary *)
-      PDFDocument.new_obj doc;
-      PDFDocument.print doc "<</Fields [ %s ] /NeedAppearances false "
+      FPDFDocument.new_obj doc;
+      FPDFDocument.print doc "<</Fields [ %s ] /NeedAppearances false "
         (String.concat " " (List.map (fun f -> sprintf "%d 0 R" f.obj) form.fields));
-      PDFDocument.print doc "/DR <</Font <</F%d %d 0 R>>>> " (* Default resource dictionary *)
+      FPDFDocument.print doc "/DR <</Font <</F%d %d 0 R>>>> " (* Default resource dictionary *)
         doc_default_font.font_index doc_default_font.font_n;
-      PDFDocument.print doc "/DA ()"; (* Default appearance string *)
+      FPDFDocument.print doc "/DA ()"; (* Default appearance string *)
       (* Calculation Order *)
       let co =
         match form.calculation_order with
@@ -121,16 +121,16 @@ let create doc =
           | _ -> get_calculation_order_default form
       in
       let co = List.map (fun field -> sprintf "%d 0 R" field.obj) co in
-      if co <> [] then (PDFDocument.print doc "/CO[%s]" (String.concat " " co));
+      if co <> [] then (FPDFDocument.print doc "/CO[%s]" (String.concat " " co));
       (*  *)
-      PDFDocument.print doc ">>endobj\n";
-      form.root_obj <- PDFDocument.current_object_number doc;
+      FPDFDocument.print doc ">>endobj\n";
+      form.root_obj <- FPDFDocument.current_object_number doc;
     end
   end doc;
   (** Add catalog *)
-  PDFDocument.add_catalog begin fun () ->
+  FPDFDocument.add_catalog begin fun () ->
     if form.length > 0 then begin
-      PDFDocument.print doc "/AcroForm %d 0 R " form.root_obj;
+      FPDFDocument.print doc "/AcroForm %d 0 R " form.root_obj;
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;
@@ -167,17 +167,17 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     ?(actions=[])
     ?parent form =
   let doc = form.doc in
-  let font_family = match font_family with Some x -> x | _ -> PDF.font_family doc in
-  let font_size = match font_size with Some x -> x | _ -> PDF.font_size doc in
-  let font_style = match font_style with Some x -> x | _ -> PDF.font_style doc in
-  let fgcolor = match fgcolor with Some c -> c | _ -> PDFUtil.hex_of_rgb (PDF.text_color doc) in
+  let font_family = match font_family with Some x -> x | _ -> FPDF.font_family doc in
+  let font_size = match font_size with Some x -> x | _ -> FPDF.font_size doc in
+  let font_style = match font_style with Some x -> x | _ -> FPDF.font_style doc in
+  let fgcolor = match fgcolor with Some c -> c | _ -> FPDFUtil.hex_of_rgb (FPDF.text_color doc) in
   let bgcolor_ap = match bgcolor_ap with None -> bgcolor | x -> x in
   let fgcolor_ap = match fgcolor_ap with None -> fgcolor | Some x -> x in
   let maxlength = match comb with None -> maxlength | comb -> comb in
   let value_ap = match value_ap with None -> value | Some x -> x in
   let id = form.length + 1 in
-  let page = PDFDocument.get_current_page doc in
-  let scale = PDF.scale doc in
+  let page = FPDFDocument.get_current_page doc in
+  let scale = FPDF.scale doc in
   let field = {
     x      = x *. scale;
     y      = y *. scale;
@@ -193,26 +193,26 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
   let font =
     let family = field.font_family in
     let style = field.font_style in
-    let f () = PDFDocument.find_font ?family ~style doc in
+    let f () = FPDFDocument.find_font ?family ~style doc in
     match f () with Some x -> x | _ ->
-      let old_family = PDF.font_family doc in
-      let old_style = PDF.font_style doc in
-      PDF.set_font ?family ~style doc;
+      let old_family = FPDF.font_family doc in
+      let old_style = FPDF.font_style doc in
+      FPDF.set_font ?family ~style doc;
       let x = f () in
-      PDF.set_font ?family:old_family ~style:old_style doc;
+      FPDF.set_font ?family:old_family ~style:old_style doc;
       (match x with Some a -> a | _ -> assert false)
   in
   (** Add Field + Annotation dictionary *)
-  PDFDocument.add_annot page begin fun page_obj ->
-    let page_height = PDF.page_height doc *. PDF.scale doc in
+  FPDFDocument.add_annot page begin fun page_obj ->
+    let page_height = FPDF.page_height doc *. FPDF.scale doc in
     let x = field.x in
     let y = page_height -.field.y in
     (*let font = Font.find ?family:field.font_family ~style:field.font_style doc.fonts in*)
     let width = field.width in
     let height = field.height in
-    let fg_color_ap = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor_ap) in
+    let fg_color_ap = sprintf "%s" (FPDFUtil.rg_of_hex field.fgcolor_ap) in
     let bg_color_ap = match field.bgcolor_ap with
-      | Some color -> sprintf "q %s rg 0 0 %f %f re f Q " (PDFUtil.rg_of_hex color) width height
+      | Some color -> sprintf "q %s rg 0 0 %f %f re f Q " (FPDFUtil.rg_of_hex color) width height
       | _ -> ""
     in
     let font_size = field.font_size in
@@ -220,8 +220,8 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     let x_offset =
       match field.justification with
         | `Left -> padding
-        | `Center -> (width -. PDFText.get_text_width font.font_metrics font_size field.value_ap) /. 2.
-        | `Right -> width -. PDFText.get_text_width font.font_metrics font_size field.value_ap -. padding
+        | `Center -> (width -. FPDFText.get_text_width font.font_metrics font_size field.value_ap) /. 2.
+        | `Right -> width -. FPDFText.get_text_width font.font_metrics font_size field.value_ap -. padding
     in
     (** Appearance object *)
     let stream = sprintf "%s/Tx BMC q BT /F%d %f Tf %s %f %f Td %s Tj ET Q EMC"
@@ -229,51 +229,51 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
       font.font_index font_size
       (sprintf "%s rg" fg_color_ap)
       x_offset ((height -. font_size) /. 2. +. font_size /. 8.5) (* Text position *)
-      (PDFUtil.pdf_string field.value_ap)
+      (FPDFUtil.pdf_string field.value_ap)
     in
-    PDFDocument.new_obj doc;
-    let appearance_obj = PDFDocument.current_object_number doc in
-    PDFDocument.print doc "<<";
-    PDFDocument.print doc "/Type/XObject";
-    PDFDocument.print doc "/Subtype/Form";
-    PDFDocument.print doc "/BBox[0 0 %f %f]" width height;
-    PDFDocument.print doc "/Length %d" (String.length stream);
-    PDFDocument.print doc "/Resources<</ProcSet[/PDF /Text /ImageB /ImageC /ImageI]";
-    PDFDocument.print doc "/Font<</F%d %d 0 R>>" font.font_index font.font_n;
-    PDFDocument.print doc ">>>>\n";
-    PDFDocument.print_stream stream doc;
-    PDFDocument.print doc ">>endobj\n";
-    PDFDocument.new_obj doc;
-    field.obj <- PDFDocument.current_object_number doc;
+    FPDFDocument.new_obj doc;
+    let appearance_obj = FPDFDocument.current_object_number doc in
+    FPDFDocument.print doc "<<";
+    FPDFDocument.print doc "/Type/XObject";
+    FPDFDocument.print doc "/Subtype/Form";
+    FPDFDocument.print doc "/BBox[0 0 %f %f]" width height;
+    FPDFDocument.print doc "/Length %d" (String.length stream);
+    FPDFDocument.print doc "/Resources<</ProcSet[/PDF /Text /ImageB /ImageC /ImageI]";
+    FPDFDocument.print doc "/Font<</F%d %d 0 R>>" font.font_index font.font_n;
+    FPDFDocument.print doc ">>>>\n";
+    FPDFDocument.print_stream stream doc;
+    FPDFDocument.print doc ">>endobj\n";
+    FPDFDocument.new_obj doc;
+    field.obj <- FPDFDocument.current_object_number doc;
     form.fields <- List.rev form.fields;
-    PDFDocument.print doc "<<";
-    PDFDocument.print doc "/AP<</N %d 0 R>>" appearance_obj;
-    PDFDocument.print doc "/Type/Annot/Subtype/Widget";
-    PDFDocument.print doc "/Rect [%f %f %f %f]" x y (x +. field.width) (y -. field.height);
-    PDFDocument.print doc "/FT/Tx";
-    PDFDocument.print doc "/P %d 0 R" page_obj;
-    (match field.alt_name with Some x -> PDFDocument.print doc "/TU(%s)" x | _ -> ());
+    FPDFDocument.print doc "<<";
+    FPDFDocument.print doc "/AP<</N %d 0 R>>" appearance_obj;
+    FPDFDocument.print doc "/Type/Annot/Subtype/Widget";
+    FPDFDocument.print doc "/Rect [%f %f %f %f]" x y (x +. field.width) (y -. field.height);
+    FPDFDocument.print doc "/FT/Tx";
+    FPDFDocument.print doc "/P %d 0 R" page_obj;
+    (match field.alt_name with Some x -> FPDFDocument.print doc "/TU(%s)" x | _ -> ());
     let flags = !! [
       0b00000000_00000000_00000000_00000010, field.hidden;
       0b00000000_00000000_00000000_01000000, field.readonly;
       0b00000000_00000000_00000000_00000100, true;
     ] in
-    PDFDocument.print doc "/F %d " flags;
+    FPDFDocument.print doc "/F %d " flags;
     let flags = !! [
       0b00000000_00000000_00000000_00000001, field.readonly;
       0b00000001_00000000_00000000_00000000, (field.comb <> None);
     ] in
-    PDFDocument.print doc "/Ff %d" flags;
-    let field_name_escaped = PDFUtil.escape field.name in
-    PDFDocument.print doc "/T(%s)" field_name_escaped;
-    PDFDocument.print doc "/TM(%s)" field_name_escaped;
-    PDFDocument.print doc "/DV(%s)" (PDFUtil.escape field.default_value);
-    PDFDocument.print doc "/V(%s)" (PDFUtil.escape field.value);
-    PDFDocument.print doc "/Q %d" (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
-    let fg_color = sprintf "%s" (PDFUtil.rg_of_hex field.fgcolor) in
-    PDFDocument.print doc "/DA(/F%d %f Tf %s rg)" font.font_index field.font_size fg_color;
-    (match field.parent with Some parent -> PDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
-    (match field.maxlength with Some maxlen -> PDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
+    FPDFDocument.print doc "/Ff %d" flags;
+    let field_name_escaped = FPDFUtil.escape field.name in
+    FPDFDocument.print doc "/T(%s)" field_name_escaped;
+    FPDFDocument.print doc "/TM(%s)" field_name_escaped;
+    FPDFDocument.print doc "/DV(%s)" (FPDFUtil.escape field.default_value);
+    FPDFDocument.print doc "/V(%s)" (FPDFUtil.escape field.value);
+    FPDFDocument.print doc "/Q %d" (match field.justification with `Left -> 0 | `Center -> 1 | `Right -> 2);
+    let fg_color = sprintf "%s" (FPDFUtil.rg_of_hex field.fgcolor) in
+    FPDFDocument.print doc "/DA(/F%d %f Tf %s rg)" font.font_index field.font_size fg_color;
+    (match field.parent with Some parent -> FPDFDocument.print doc "/Parent %d 0 R " parent.id | _ -> ());
+    (match field.maxlength with Some maxlen -> FPDFDocument.print doc "/MaxLen %d " maxlen | _ -> ());
     print_actions field.actions doc;
     (** Border *)
     let w, s, c =
@@ -284,15 +284,15 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
         | _ -> 0, "/S/S", None
     in
     let border_color = match c with
-      | Some color -> sprintf "/BC[%s]" (PDFUtil.rg_of_hex color)
+      | Some color -> sprintf "/BC[%s]" (FPDFUtil.rg_of_hex color)
       | _ -> ""
     in
     let bg_color = match field.bgcolor with
-      | Some color -> sprintf "/BG[%s]" (PDFUtil.rg_of_hex color)
+      | Some color -> sprintf "/BG[%s]" (FPDFUtil.rg_of_hex color)
       | _ -> ""
     in
-    PDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s>>" w s border_color bg_color;
-    PDFDocument.print doc ">>endobj\n";
+    FPDFDocument.print doc "/BS<</W %d%s>>/MK<<%s%s>>" w s border_color bg_color;
+    FPDFDocument.print doc ">>endobj\n";
     field.obj
   end;
   field;;

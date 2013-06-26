@@ -21,7 +21,7 @@
 *)
 
 open Printf
-open PDFTable
+open FPDFTable
 
 
 let (//) = Filename.concat
@@ -117,135 +117,135 @@ let main () = begin
   begin
     try
       let radius = 1.0 in
-      let doc = PDF.create ~outchan () in
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
-      PDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
+      let doc = FPDF.create ~outchan () in
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CenturySchoolbook ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSerif_BoldNonextended ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif ~style:[`Bold; `Italic] doc;
+      FPDFFont.embed_font ~family:`CMUSansSerif_DemiCondensed ~style:[] doc;
 
-      PDF.set_display_mode `Fullwidth doc;
-      (*PDF.set_compression false doc;*)
+      FPDF.set_display_mode `Fullwidth doc;
+      (*FPDF.set_compression false doc;*)
 
       let title = "ocamlfpdf test" in
       let margin = 20. in
-      PDF.set_margins ~left:margin ~top:margin doc;
-      PDF.set_title title doc;
-      PDF.set_creator "ocamlfpdf" doc;
-      PDF.set_subject "test" doc;
-      PDF.set_creation_date "(D:20121023)" doc;
+      FPDF.set_margins ~left:margin ~top:margin doc;
+      FPDF.set_title title doc;
+      FPDF.set_creator "ocamlfpdf" doc;
+      FPDF.set_subject "test" doc;
+      FPDF.set_creation_date "(D:20121023)" doc;
       let family = `Helvetica in
       let spacing = 1.0 in
       let padding = 1.0 in
       let height_header = 10. +. spacing in
-      let width_avail = PDF.page_width doc -. margin *. 2. in
-      let height_avail = PDF.page_height doc -. margin *. 2. -. height_header in
-      let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
+      let width_avail = FPDF.page_width doc -. margin *. 2. in
+      let height_avail = FPDF.page_height doc -. margin *. 2. -. height_header in
+      let line_height = (FPDF.font_size doc) /. FPDF.scale doc +. 0.5 in
 
       (** Header *)
-      PDF.set_header_func begin fun () ->
-        PDF.set_font ~family:`Helvetica ~size:20. doc;
+      FPDF.set_header_func begin fun () ->
+        FPDF.set_font ~family:`Helvetica ~size:20. doc;
         let width_page_num = 50. in
         let height = height_header -. spacing in
-        PDF.set_line_width 0.1 doc;
-        PDF.rect ~width:width_avail ~height doc;
-        PDF.set ~x:margin ~y:margin doc;
-        PDF.multi_cell ~width:(width_avail -. width_page_num) ~line_height:height ~text:title doc;
+        FPDF.set_line_width 0.1 doc;
+        FPDF.rect ~width:width_avail ~height doc;
+        FPDF.set ~x:margin ~y:margin doc;
+        FPDF.multi_cell ~width:(width_avail -. width_page_num) ~line_height:height ~text:title doc;
         (* Title and page number *)
-        PDF.set_font ~family:`Helvetica ~size:10. doc;
-        PDF.set ~x:(margin +. width_avail -. width_page_num) ~y:margin doc;
-        PDF.multi_cell ~width:width_page_num ~line_height:height ~align:`Right
-          ~text:(sprintf "%s - %d/{nb}" (Filename.basename filename) (PDF.page_count doc)) doc;
+        FPDF.set_font ~family:`Helvetica ~size:10. doc;
+        FPDF.set ~x:(margin +. width_avail -. width_page_num) ~y:margin doc;
+        FPDF.multi_cell ~width:width_page_num ~line_height:height ~align:`Right
+          ~text:(sprintf "%s - %d/{nb}" (Filename.basename filename) (FPDF.page_count doc)) doc;
       end doc;
 
       (** Markup *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Markup" doc);
-      PDF.set_font ~family:`Times ~size:12. doc;
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Markup" doc);
+      FPDF.set_font ~family:`Times ~size:12. doc;
       let x = margin in
       let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
       let height = height_avail in
-      PDF.set_line_width 1.0 doc;
-      PDF.rect ~x ~y ~width ~height ~style:`Outline doc;
+      FPDF.set_line_width 1.0 doc;
+      FPDF.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
-      let markup = PDFMarkup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
+      let markup = FPDFMarkup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
         ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
-      markup.PDFMarkup.print ~x ~y ~valign:(height_avail, 0.5) ();
+      markup.FPDFMarkup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
       (** Markup and wrap char *)
-      PDF.add_page doc;
+      FPDF.add_page doc;
       let width = width_avail in
-      ignore (PDFBookmark.add ~text:"Markup - Wrap (1)" doc);
+      ignore (FPDFBookmark.add ~text:"Markup - Wrap (1)" doc);
       let x = margin in
       let y = margin +. height_header *. 5. /. 3. in
       let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
-      PDF.set_font ~family:`Times ~size:12. doc;
-      let markup = PDFMarkup.prepare ~width:(width/.2.) (*~line_height*) (*~padding:(5.,5.,5.,5.)*) ~markup
+      FPDF.set_font ~family:`Times ~size:12. doc;
+      let markup = FPDFMarkup.prepare ~width:(width/.2.) (*~line_height*) (*~padding:(5.,5.,5.,5.)*) ~markup
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
-      markup.PDFMarkup.print ~x ~y ();
+      markup.FPDFMarkup.print ~x ~y ();
 
       (** Lorem Ipsum *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Markup" doc);
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Markup" doc);
       let x = margin /. 2. in
       let y = margin +. height_header *. 5. /. 3. in
-      PDF.set_font ~family:(*`Times*) `CMUSerif ~size:12. doc;
-      PDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
-      let width = (*width_avail*) PDF.page_width doc -. margin in
-      let markup = PDFMarkup.prepare ~width ~markup:lorem_ipsum ~padding:(10.,10.,10.,10.)
+      FPDF.set_font ~family:(*`Times*) `CMUSerif ~size:12. doc;
+      FPDF.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
+      let width = (*width_avail*) FPDF.page_width doc -. margin in
+      let markup = FPDFMarkup.prepare ~width ~markup:lorem_ipsum ~padding:(10.,10.,10.,10.)
         (*~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc
       in
-      markup.PDFMarkup.print ~x ~y ();
+      markup.FPDFMarkup.print ~x ~y ();
 
       (** Graphics *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Graphics" doc);
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Graphics" doc);
       let width = width_avail in
       let x = margin in
       let y = margin +. height_header +. 10. in
-      PDF.set_line_width 1. doc;
+      FPDF.set_line_width 1. doc;
 
-      PDF.push_graphics_state doc;
-      PDF.set_line_cap `Round doc;
-      PDF.set_line_width 0.1 doc;
-      PDF.set_line_dash [2; 2] ~phase:0 doc;
-      PDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
-      PDF.set_line_dash [3; 5] ~phase:6 doc;
-
-      let y = y +. 10. in
-      PDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
-      let y = y +. 10. in
-      PDF.rect ~x ~y ~width:(x +. width /. 2.) ~height:y doc;
-      PDF.pop_graphics_state doc;
+      FPDF.push_graphics_state doc;
+      FPDF.set_line_cap `Round doc;
+      FPDF.set_line_width 0.1 doc;
+      FPDF.set_line_dash [2; 2] ~phase:0 doc;
+      FPDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
+      FPDF.set_line_dash [3; 5] ~phase:6 doc;
 
       let y = y +. 10. in
-      PDF.set_line_join `Bevel doc;
-      PDF.rect ~x:(x +. 3.) ~y ~width:(x +. width /. 3.) ~height:y doc;
+      FPDF.line ~x1:x ~y1:y ~x2:(x +. width /. 2.) ~y2:y doc;
+      let y = y +. 10. in
+      FPDF.rect ~x ~y ~width:(x +. width /. 2.) ~height:y doc;
+      FPDF.pop_graphics_state doc;
+
+      let y = y +. 10. in
+      FPDF.set_line_join `Bevel doc;
+      FPDF.rect ~x:(x +. 3.) ~y ~width:(x +. width /. 3.) ~height:y doc;
 
       (** Vertical box *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Vertical box" doc);
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Vertical box" doc);
       let width = width_avail *. 0.5 in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
-      let vbox = new PDFPack.vbox ~x ~y ~width ~height:60. ~padding:0. ~spacing doc in
+      let vbox = new FPDFPack.vbox ~x ~y ~width ~height:60. ~padding:0. ~spacing doc in
       Array.iteri begin fun i child ->
         vbox#add begin fun ~x ~y ~width ~height ->
           let child_height = height *. child in
-          PDF.rect ~x ~y ~width ~height:child_height ~radius doc;
-          PDF.set ~x ~y doc;
-          PDF.multi_cell ~width ~line_height:child_height ~align:`Center
+          FPDF.rect ~x ~y ~width ~height:child_height ~radius doc;
+          FPDF.set ~x ~y doc;
+          FPDF.multi_cell ~width ~line_height:child_height ~align:`Center
             ~text:(sprintf "Vertical box, child n. %d" (i + 1)) doc;
           child_height
         end;
@@ -253,66 +253,66 @@ let main () = begin
       vbox#pack();
 
       (** Horizontal box *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Horizontal box" doc);
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Horizontal box" doc);
       let width = width_avail in
       let height = 60. in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
-      let hbox = new PDFPack.hbox ~x ~y ~width ~height ~padding:0. ~spacing doc in
+      let hbox = new FPDFPack.hbox ~x ~y ~width ~height ~padding:0. ~spacing doc in
       Array.iteri begin fun i child ->
         hbox#add begin fun ~x ~y ~width ~height ->
           let child_width = width *. child in
           let child_inner_width = child_width -. padding *. 2. in
-          PDF.rect ~x ~y ~width:child_width ~height ~radius doc;
+          FPDF.rect ~x ~y ~width:child_width ~height ~radius doc;
           let text = sprintf "Horizontal box, child n. %d" (i + 1) in
           let font =
-            match PDFDocument.find_font ~family ~style:[] doc with
+            match FPDFDocument.find_font ~family ~style:[] doc with
               | Some x -> x | _ -> assert false
           in
-          let size = PDFUtil.fixpoint begin fun size ->
-            let text_width = PDF.get_text_width font.PDFDocument.font_metrics size text in
-            let text_width = text_width /. (PDF.scale doc) in
+          let size = FPDFUtil.fixpoint begin fun size ->
+            let text_width = FPDF.get_text_width font.FPDFDocument.font_metrics size text in
+            let text_width = text_width /. (FPDF.scale doc) in
             if text_width < child_inner_width then size else (size -. 0.25)
           end 30. in
-          PDF.set_font ~family ~size doc;
-          PDF.set ~x ~y doc;
-          let line_height = size /. PDF.scale doc +. 0.5 in
-          PDF.multi_cell ~width:child_width ~padding ~line_height ~align:`Center ~text doc;
+          FPDF.set_font ~family ~size doc;
+          FPDF.set ~x ~y doc;
+          let line_height = size /. FPDF.scale doc +. 0.5 in
+          FPDF.multi_cell ~width:child_width ~padding ~line_height ~align:`Center ~text doc;
           child_width
         end;
       end [|0.15; 0.23; 0.62|];
       hbox#pack();
 
       (** Barcodes *)
-      PDF.add_page doc;
-      let parent = PDFBookmark.add ~text:"Barcodes" doc in
+      FPDF.add_page doc;
+      let parent = FPDFBookmark.add ~text:"Barcodes" doc in
       let barcode = "abc1234" in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
       let height = 10. in
-      ignore (PDFBookmark.add ~text:"Code39" (*~level:1*) ~y ~parent doc);
+      ignore (FPDFBookmark.add ~text:"Code39" (*~level:1*) ~y ~parent doc);
       Barcode.Code39.write ~x ~y ~barcode ~height ~baseline:1. ~text:10. doc;
       let y = y +. height +. 20. in
-      ignore (PDFBookmark.add ~text:"EAN13" (*~level:1*) ~y ~parent doc);
+      ignore (FPDFBookmark.add ~text:"EAN13" (*~level:1*) ~y ~parent doc);
       Barcode.EAN13.write ~x ~y ~barcode:"8711253001202" ~width:1.0 doc;
       let y = y +. height +. 20. in
       Barcode.EAN13.write ~x ~y ~barcode:"3800065711135" doc;
       let y = y +. height +. 20. in
       Barcode.EAN13.write ~x ~y ~barcode:"4556789034461" ~width:(0.33 *. 0.8) doc;
       let y = y +. height +. 20. in
-      ignore (PDFBookmark.add ~text:"Code128C" (*~level:1*) ~y ~parent doc);
+      ignore (FPDFBookmark.add ~text:"Code128C" (*~level:1*) ~y ~parent doc);
       Barcode.Code128C.write ~x ~y ~barcode:"123456" doc;
 
       (** Form fields *)
-      PDF.add_page doc;
-      let form = PDFForm.get doc in
+      FPDF.add_page doc;
+      let form = FPDFForm.get doc in
       let x = margin in
       let y = 2. *. margin +. height_header in
-      PDF.set ~x ~y doc;
-      ignore (PDFBookmark.add ~text:"Interactive Forms" doc);
+      FPDF.set ~x ~y doc;
+      ignore (FPDFBookmark.add ~text:"Interactive Forms" doc);
       let field =
-        PDFForm.add_text_field ~x ~y ~width:80. ~height:20.
+        FPDFForm.add_text_field ~x ~y ~width:80. ~height:20.
           ~maxlength:30 ~readonly:false ~justification:`Center
           ~name:"test_field" ~value:"" ~default_value:"3" ~value_ap:"Simple text field"
           ~fgcolor_ap:"#909090" ~font_style:[`Italic]
@@ -320,40 +320,40 @@ let main () = begin
       in
 
       (** Images *)
-      PDF.add_page doc;
-      ignore (PDFBookmark.add ~text:"Images" doc);
+      FPDF.add_page doc;
+      ignore (FPDFBookmark.add ~text:"Images" doc);
       let dirname = Filename.dirname Sys.executable_name in
       let name = "Lena.jpg" in
-      let data = Buffer.contents (PDFUtil.fread (dirname // name)) in
-      let image_width, image_height = PDFImages.Jpeg.get_dimensions data in
+      let data = Buffer.contents (FPDFUtil.fread (dirname // name)) in
+      let image_width, image_height = FPDFImages.Jpeg.get_dimensions data in
       let aspect = (float image_height) /. (float image_width) in
       let height_image = 50. in
       let width_image = height_image /. aspect in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
-      PDF.image ~x ~y ~name ~data ~height:height_image doc;
-      PDF.set ~x:(x +. width_image +. spacing) ~y doc;
+      FPDF.image ~x ~y ~name ~data ~height:height_image doc;
+      FPDF.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-          (Str.string_before (Buffer.contents (PDFUtil.fread (dirname // "test.ml"))) 1000) in
-      PDF.set_font ~family:`CMUSansSerif ~size:9. doc;
-      PDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
+          (Str.string_before (Buffer.contents (FPDFUtil.fread (dirname // "test.ml"))) 1000) in
+      FPDF.set_font ~family:`CMUSansSerif ~size:9. doc;
+      FPDF.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 
-      (** PDFTable *)
-      PDF.add_page doc;
+      (** FPDFTable *)
+      FPDF.add_page doc;
       let width = width_avail *. 0.7 in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header +. spacing +. 40. in
-      PDF.set_font ~family:`CenturySchoolbook ~size:9. doc;
-      ignore (PDFBookmark.add ~text:"PDFTable Example" ~y:(y -. 10.) doc);
+      FPDF.set_font ~family:`CenturySchoolbook ~size:9. doc;
+      ignore (FPDFBookmark.add ~text:"FPDFTable Example" ~y:(y -. 10.) doc);
       (**  *)
-      PDFTable.print ~x:10. ~y
+      FPDFTable.print ~x:10. ~y
         ~caption:""
         ~grid_lines:`Vertical
         ~width:25.
         ~page_height:height_avail
         ~columns:[
-          `A, {PDFTable.col_width = 38.; col_title = `Text "A"};
-          `B, {PDFTable.col_width = 62.; col_title = `Text "B"};
+          `A, {FPDFTable.col_width = 38.; col_title = `Text "A"};
+          `B, {FPDFTable.col_width = 62.; col_title = `Text "B"};
         ]
         ~rows:[
           [|Some "a"; Some "\128"|];
@@ -362,9 +362,9 @@ let main () = begin
         ]
         doc;
       (**  *)
-      let line_height = (PDF.font_size doc) /. PDF.scale doc +. 0.5 in
+      let line_height = (FPDF.font_size doc) /. FPDF.scale doc +. 0.5 in
       let cell_func ~index ~row ~col =
-        let prop = {PDFTable.
+        let prop = {FPDFTable.
           prop_text       = (match row col with None -> "" | Some x -> x);
           prop_align      = `Center;
           prop_font_style = (if is_fib index then [`Bold] else []);
@@ -379,41 +379,41 @@ let main () = begin
           let h1 = height *. 0.5 in
           let x1 = x +. w1 -. overlap in
           let y1 = y +. h1 -. overlap in
-          PDF.set_fill_color ~red:255 ~green:212 ~blue:0 doc;
-          PDF.rect ~x:x1 ~y:y1 ~width:overlap ~height:overlap ~style:`Fill doc;
-          PDF.rect ~x ~y ~width:w1 ~height:h1 ~style:`Outline doc;
+          FPDF.set_fill_color ~red:255 ~green:212 ~blue:0 doc;
+          FPDF.rect ~x:x1 ~y:y1 ~width:overlap ~height:overlap ~style:`Fill doc;
+          FPDF.rect ~x ~y ~width:w1 ~height:h1 ~style:`Outline doc;
           let w2 = width *. 0.6 +. overlap in
           let h2 = height *. 0.5 +. overlap in
-          PDF.rect ~x:x1 ~y:y1 ~width:w2 ~height:h2 ~style:`Outline doc;
+          FPDF.rect ~x:x1 ~y:y1 ~width:w2 ~height:h2 ~style:`Outline doc;
           let text = match row col with None -> "" | Some x -> x in
           let markup = sprintf "<SPAN color='#ff0000' align='0.5'>%s</SPAN>" text in
           let w3 = w2 -. overlap in
-          ignore (PDFMarkup.print ~x:(x1 +. overlap) ~y:(y1 +. overlap) ~width:w3 ~markup doc)
-        end) else if col = `B then Cell_properties {prop with PDFTable.
+          ignore (FPDFMarkup.print ~x:(x1 +. overlap) ~y:(y1 +. overlap) ~width:w3 ~markup doc)
+        end) else if col = `B then Cell_properties {prop with FPDFTable.
           prop_text       = (match row col with None -> "-" | Some x -> x);
           prop_align      = `Left;
-          prop_font_style = prop.PDFTable.prop_font_style @ [`Italic];
+          prop_font_style = prop.FPDFTable.prop_font_style @ [`Italic];
         } else Cell_properties prop
       in
       let rows = Array.create 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
       let rows = Array.to_list rows in
       let print_title text =
         `Func begin fun ~x ~y ~width ->
-          PDF.set_font ~style:[`Bold] doc;
-          PDFText.multi_cell ~width ~line_height ~text ~align:`Center doc;
-          PDF.set_font ~style:[] doc;
-          PDF.y doc -. y +. padding
+          FPDF.set_font ~style:[`Bold] doc;
+          FPDFText.multi_cell ~width ~line_height ~text ~align:`Center doc;
+          FPDF.set_font ~style:[] doc;
+          FPDF.y doc -. y +. padding
         end;
       in
       let columns = [
-        `A, {PDFTable.col_width = 12.5; col_title = print_title "Column A"};
-        `B, {PDFTable.col_width = 25.; col_title = print_title "Column B"};
-        `C, {PDFTable.col_width = 12.5; col_title = print_title "Column C"};
-        `D, {PDFTable.col_width = 6.25; col_title = print_title "Column D"};
-        `E, {PDFTable.col_width = 12.5; col_title = print_title "Column E"};
-        `F, {PDFTable.col_width = 12.5; col_title = print_title "Column F"};
-        `G, {PDFTable.col_width = 12.5; col_title = print_title "Column G"};
-        `H, {PDFTable.col_width = 6.25; col_title = print_title "Column H"};
+        `A, {FPDFTable.col_width = 12.5; col_title = print_title "Column A"};
+        `B, {FPDFTable.col_width = 25.; col_title = print_title "Column B"};
+        `C, {FPDFTable.col_width = 12.5; col_title = print_title "Column C"};
+        `D, {FPDFTable.col_width = 6.25; col_title = print_title "Column D"};
+        `E, {FPDFTable.col_width = 12.5; col_title = print_title "Column E"};
+        `F, {FPDFTable.col_width = 12.5; col_title = print_title "Column F"};
+        `G, {FPDFTable.col_width = 12.5; col_title = print_title "Column G"};
+        `H, {FPDFTable.col_width = 6.25; col_title = print_title "Column H"};
       ] in
       let header_layout = [
         `Node {
@@ -446,8 +446,8 @@ let main () = begin
           ]
         }
       ] in
-      PDFTable.print ~x ~y
-        ~caption:"PDFTable Example"
+      FPDFTable.print ~x ~y
+        ~caption:"FPDFTable Example"
         ~width
         ~page_height:height_avail
         ~page_header_height:height_header
@@ -460,25 +460,25 @@ let main () = begin
           [|Some "A"; None; Some "B"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
         ] @ rows)
         ~page_break_func:begin fun () ->
-          PDF.add_page doc;
-          PDF.set ~x ~y:(PDF.y doc +. 2.) doc;
+          FPDF.add_page doc;
+          FPDF.set ~x ~y:(FPDF.y doc +. 2.) doc;
         end
         ~cell_func
         doc;
       (**  *)
-      let test_parent = PDFBookmark.add ~text:"TEST" doc in
-      let parent = PDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in
-      ignore (PDFBookmark.add ~parent ~text:"Test: à \128" doc);
-      ignore (PDFBookmark.add ~parent ~text:(PDFUtil.utf8_to_utf16 "Test: à €") doc);
-      let parent = PDFBookmark.add ~text:"CHILD 2" ~parent doc in
-      let parent = PDFBookmark.add ~text:"CHILD 3" ~parent doc in
-      let _ = PDFBookmark.add ~text:"CHILD 4" ~parent doc in
+      let test_parent = FPDFBookmark.add ~text:"TEST" doc in
+      let parent = FPDFBookmark.add ~text:"CHILD" ~parent:test_parent doc in
+      ignore (FPDFBookmark.add ~parent ~text:"Test: à \128" doc);
+      ignore (FPDFBookmark.add ~parent ~text:(FPDFUtil.utf8_to_utf16 "Test: à €") doc);
+      let parent = FPDFBookmark.add ~text:"CHILD 2" ~parent doc in
+      let parent = FPDFBookmark.add ~text:"CHILD 3" ~parent doc in
+      let _ = FPDFBookmark.add ~text:"CHILD 4" ~parent doc in
 
       (* Include javascript *)
-      (*PDFJavascript.set_autoprint ~dialog:true doc;*)
+      (*FPDFJavascript.set_autoprint ~dialog:true doc;*)
 
       (** Close PDF document *)
-      PDF.close_document doc;
+      FPDF.close_document doc;
       close_file();
     with ex -> begin
       close_file();
@@ -497,4 +497,4 @@ let main () = begin
   else ignore (kprintf Sys.command "xpdf %s" filename)
 end
 
-let _ = PDFError.handle_error main ()
+let _ = FPDFError.handle_error main ()

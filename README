@@ -14,9 +14,10 @@ COPYRIGHT:
 DEPENDENCIES:
 
   * OCaml-4.00.0;
-  * Xml-light (installed with Findlib);
-  * CamlZIP-1.05;
   * Findlib-1.3.3;
+  * Xml-light (installed with Findlib);
+  * CamlZIP-1.05 (installed with Findlib);
+  * CamlPDF-0.5 (installed with Findlib);
   * LablGtk2 (optional, for the markup editor widget).
 
 
@@ -27,7 +28,7 @@ INSTALL:
     ocaml build.ml fpdf
     ocaml build.ml test && pushd src/tests && ./test.opt && popd
 
-  You can generate a simple LablGtk markup editor widget (for use with 
+  You can generate a simple LablGtk markup editor widget (for use with
   PDFMarkup) with:
 
     ocaml build.ml markup-editor

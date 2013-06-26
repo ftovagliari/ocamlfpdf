@@ -40,8 +40,8 @@
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml tabular.ml</files>
-      <package>str,unix,xml-light,zip</package>
+      <files>FPDFJavascript.ml FPDFPack.ml FPDFTable.ml barcode.ml FPDFMarkup.ml FPDFBookmark.ml FPDFForm.ml tabular.ml</files>
+      <package>cpdf,str,unix,xml-light,zip</package>
       <includes>font</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -240,13 +240,13 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="true" id="15">
+    <target name="test-tabular" default="false" id="15">
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_tabular.ml</files>
-      <package>str,unix,xml-light,zip</package>
+      <package>cpdf,str,unix,xml-light,zip</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -263,13 +263,13 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-metrics" default="false" id="16">
+    <target name="test-metrics" default="true" id="16">
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_metrics.ml</files>
-      <package>str,unix,xml-light,zip</package>
+      <package>cpdf,str,unix,xml-light,zip</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -375,12 +375,12 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-tabular" default="true" target_id="15" id="9">
+    <executable name="test-tabular" default="false" target_id="15" id="9">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-metrics" default="false" target_id="16" id="10">
+    <executable name="test-metrics" default="true" target_id="16" id="10">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
