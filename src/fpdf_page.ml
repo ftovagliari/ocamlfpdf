@@ -20,16 +20,16 @@
 
 *)
 
-open FPDFTypes
-open FPDFDocument
-open FPDFFont
-open FPDFUtil
-open FPDFImages
+open Fpdf_types
+open Fpdf_document
+open Fpdf_font
+open Fpdf_util
+open Fpdf_images
 open Printf
 
 let page_num doc = doc.page
 
-let page_count = FPDFDocument.n_pages
+let page_count = Fpdf_document.n_pages
 
 let get_page n doc =
   try
@@ -85,7 +85,7 @@ let add_page ?orientation doc =
   end;
   begin_page ?orientation doc;
   (* Set line cap style to square *)
-  FPDFGraphicsState.set_line_cap (FPDFGraphicsState.line_cap doc) doc;
+  Fpdf_graphics_state.set_line_cap (Fpdf_graphics_state.line_cap doc) doc;
   (*print_buffer doc "2 J\n";*)
   call_and_restore ~pre:save doc.header () ~post:restore;
-  FPDFGraphicsState.set_line_width old_lw doc;;
+  Fpdf_graphics_state.set_line_width old_lw doc;;

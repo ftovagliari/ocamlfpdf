@@ -20,7 +20,7 @@
 
 *)
 
-open FPDFTypes
+open Fpdf_types
 
 (** Layout for printing tabular material. *)
 
@@ -94,7 +94,7 @@ and thickness = [`Thin | `Medium | `Thick ]
          The [cell_func] returned is applied to the cell identified by [index] and [col],
          where [index] is the general row index starting from zero and
          [(row column_id)] returns the content of the cell at index [index] and column [column_id].
-  @param use_markup Whether the cell's content should be interpreted as markup (i.e. printed with [FPDFMarkup]).
+  @param use_markup Whether the cell's content should be interpreted as markup (i.e. printed with [Fpdf_markup]).
   @param caption Caption of the table.
   @param doc A [PDF] document.
 *)
@@ -118,4 +118,4 @@ val print :
               row:('a column_id -> string option) -> col:('a column_id) -> cell_func) ->
   ?use_markup:bool ->
   ?caption:string ->
-  FPDF.t -> unit
+  Fpdf.t -> unit

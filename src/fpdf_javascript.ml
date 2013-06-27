@@ -26,22 +26,22 @@ open Printf
 let include_javascript javascript doc =
   let js_object_number = ref 0 in
   if String.length javascript > 0 then begin
-    FPDFDocument.add_resource begin fun () ->
-      FPDFDocument.new_obj doc;
-      js_object_number := FPDFDocument.current_object_number doc;
-      FPDFDocument.print doc "<<\n";
-      FPDFDocument.print doc "/Names [(EmbeddedJS) %d 0 R ]\n" (FPDFDocument.current_object_number doc + 1);
-      FPDFDocument.print doc ">>\n";
-      FPDFDocument.print doc "endobj\n";
-      FPDFDocument.new_obj doc;
-      FPDFDocument.print doc "<<\n";
-      FPDFDocument.print doc "/S /JavaScript\n";
-      FPDFDocument.print doc "/JS %s\n" (FPDFUtil.pdf_string javascript);
-      FPDFDocument.print doc ">>\n";
-      FPDFDocument.print doc "endobj\n";
+    Fpdf_document.add_resource begin fun () ->
+      Fpdf_document.new_obj doc;
+      js_object_number := Fpdf_document.current_object_number doc;
+      Fpdf_document.print doc "<<\n";
+      Fpdf_document.print doc "/Names [(EmbeddedJS) %d 0 R ]\n" (Fpdf_document.current_object_number doc + 1);
+      Fpdf_document.print doc ">>\n";
+      Fpdf_document.print doc "endobj\n";
+      Fpdf_document.new_obj doc;
+      Fpdf_document.print doc "<<\n";
+      Fpdf_document.print doc "/S /JavaScript\n";
+      Fpdf_document.print doc "/JS %s\n" (Fpdf_util.pdf_string javascript);
+      Fpdf_document.print doc ">>\n";
+      Fpdf_document.print doc "endobj\n";
     end doc;
-    FPDFDocument.add_catalog begin fun () ->
-      FPDFDocument.print doc "/Names <</JavaScript %d 0 R>>\n" !js_object_number
+    Fpdf_document.add_catalog begin fun () ->
+      Fpdf_document.print doc "/Names <</JavaScript %d 0 R>>\n" !js_object_number
     end doc
   end
 

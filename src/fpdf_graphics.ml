@@ -20,8 +20,8 @@
 
 *)
 
-open FPDFTypes
-open FPDFDocument
+open Fpdf_types
+open Fpdf_document
 open Printf
 
 (** draw_color *)
@@ -51,14 +51,14 @@ let fill_color doc = doc.fill_color_rgb
 
 (** image *)
 let image ~name ~data ~x ~y ?(width=0.) ?(height=0.) ?link doc =
-  let open FPDFImages in
+  let open Fpdf_images in
   let info =
-    match FPDFImages.Table.find name doc.images with
+    match Fpdf_images.Table.find name doc.images with
       | Some x -> x
       | None -> begin
-          let info = FPDFImages.parse data in
+          let info = Fpdf_images.parse data in
           info.image_name <- name;
-           FPDFImages.Table.add name info doc.images;
+           Fpdf_images.Table.add name info doc.images;
           info
         end
   in

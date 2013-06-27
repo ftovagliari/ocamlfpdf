@@ -20,15 +20,15 @@
 
 *)
 
-open FPDFUtil
+open Fpdf_util
 open Font
-open FPDFImages
+open Fpdf_images
 open Printf
-open FPDFTypes
-open FPDFDocument
-open FPDFPage
+open Fpdf_types
+open Fpdf_document
+open Fpdf_page
 
-type t = FPDFDocument.t
+type t = Fpdf_document.t
 
 let set_author x doc = doc.author <- x
 let author doc = doc.author
@@ -67,7 +67,7 @@ let set_display_mode ?(layout=`Continuous) zoom doc =
 let set_open_actions actions doc = doc.open_actions <- actions
 
 let set_compression x doc =
-  if x then (invalid_arg "FPDF.set_compression: Compression not yet implemented");
+  if x then (invalid_arg "Fpdf.set_compression: Compression not yet implemented");
   doc.compress <- x
 
 let set ?x ?y doc =
@@ -132,7 +132,7 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     fonts                 = [];
     font_embed            = [];
     diffs                 = [];
-    images                = FPDFImages.Table.create();
+    images                = Fpdf_images.Table.create();
     links                 = [];
     font_family           = Some `Courier;
     font_style            = [];
@@ -180,55 +180,55 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
   (* Enable compression *)
   set_compression false doc;
   (* Set the default font *)
-  FPDFFont.set_font ~family:`Courier doc;
+  Fpdf_font.set_font ~family:`Courier doc;
   doc;;
 
-let add_page            = FPDFPage.add_page
-let page_num            = FPDFPage.page_num
-let page_count          = FPDFPage.page_count
-let page_width          = FPDFPage.page_width
-let page_height         = FPDFPage.page_height
-let set_header_func     = FPDFPage.set_header_func
-let set_footer_func     = FPDFPage.set_footer_func
-let set_margins         = FPDFPage.set_margins
-let margins             = FPDFPage.margins
+let add_page            = Fpdf_page.add_page
+let page_num            = Fpdf_page.page_num
+let page_count          = Fpdf_page.page_count
+let page_width          = Fpdf_page.page_width
+let page_height         = Fpdf_page.page_height
+let set_header_func     = Fpdf_page.set_header_func
+let set_footer_func     = Fpdf_page.set_footer_func
+let set_margins         = Fpdf_page.set_margins
+let margins             = Fpdf_page.margins
 
-let set_font            = FPDFFont.set_font
-let font_style          = FPDFFont.font_style
-let font_size           = FPDFFont.font_size
-let font_scale          = FPDFFont.font_scale
-let font_char_space     = FPDFFont.font_char_space
-let font_family         = FPDFFont.font_family
+let set_font            = Fpdf_font.set_font
+let font_style          = Fpdf_font.font_style
+let font_size           = Fpdf_font.font_size
+let font_scale          = Fpdf_font.font_scale
+let font_char_space     = Fpdf_font.font_char_space
+let font_family         = Fpdf_font.font_family
 
-let set_text_color      = FPDFText.set_text_color
-let text_color          = FPDFText.text_color
-let newline             = FPDFText.newline
-let text                = FPDFText.text
-let write               = FPDFText.write
-let cell                = FPDFText.cell
-let multi_cell          = FPDFText.multi_cell
-let multi_cell_lines    = FPDFText.multi_cell_lines
-let get_text_width      = FPDFText.get_text_width
+let set_text_color      = Fpdf_text.set_text_color
+let text_color          = Fpdf_text.text_color
+let newline             = Fpdf_text.newline
+let text                = Fpdf_text.text
+let write               = Fpdf_text.write
+let cell                = Fpdf_text.cell
+let multi_cell          = Fpdf_text.multi_cell
+let multi_cell_lines    = Fpdf_text.multi_cell_lines
+let get_text_width      = Fpdf_text.get_text_width
 
-let get_image_dimensions = FPDFImages.get_dimensions
+let get_image_dimensions = Fpdf_images.get_dimensions
 
-let image               = FPDFGraphics.image
-let line                = FPDFGraphics.line
-let rect                = FPDFGraphics.rect
-let set_draw_color      = FPDFGraphics.set_draw_color
-let draw_color          = FPDFGraphics.draw_color
-let set_fill_color      = FPDFGraphics.set_fill_color
-let fill_color          = FPDFGraphics.fill_color
-let set_line_width      = FPDFGraphicsState.set_line_width
-let line_width          = FPDFGraphicsState.line_width
-let set_line_dash       = FPDFGraphicsState.set_line_dash
-let line_dash           = FPDFGraphicsState.line_dash
-let set_line_join       = FPDFGraphicsState.set_line_join
-let line_join           = FPDFGraphicsState.line_join
-let set_line_cap        = FPDFGraphicsState.set_line_cap
-let line_cap            = FPDFGraphicsState.line_cap
-let push_graphics_state = FPDFGraphicsState.push
-let pop_graphics_state  = FPDFGraphicsState.pop
+let image               = Fpdf_graphics.image
+let line                = Fpdf_graphics.line
+let rect                = Fpdf_graphics.rect
+let set_draw_color      = Fpdf_graphics.set_draw_color
+let draw_color          = Fpdf_graphics.draw_color
+let set_fill_color      = Fpdf_graphics.set_fill_color
+let fill_color          = Fpdf_graphics.fill_color
+let set_line_width      = Fpdf_graphics_state.set_line_width
+let line_width          = Fpdf_graphics_state.line_width
+let set_line_dash       = Fpdf_graphics_state.set_line_dash
+let line_dash           = Fpdf_graphics_state.line_dash
+let set_line_join       = Fpdf_graphics_state.set_line_join
+let line_join           = Fpdf_graphics_state.line_join
+let set_line_cap        = Fpdf_graphics_state.set_line_cap
+let line_cap            = Fpdf_graphics_state.line_cap
+let push_graphics_state = Fpdf_graphics_state.push
+let pop_graphics_state  = Fpdf_graphics_state.pop
 
 let close_document doc = match doc.state with
   | End_document -> ()

@@ -20,9 +20,9 @@
 
 *)
 
-open FPDFTypes
-open FPDFDocument
-open FPDFUtil
+open Fpdf_types
+open Fpdf_document
+open Fpdf_util
 
 let int_of_linecap = function `Butt -> 0 | `Round -> 1 | `Square -> 2
 let linecap_of_int = function 0 -> `Butt | 1 -> `Round | 2 -> `Square | _ -> assert false

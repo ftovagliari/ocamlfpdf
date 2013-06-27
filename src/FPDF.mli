@@ -20,13 +20,13 @@
 
 *)
 
-open FPDFTypes
+open Fpdf_types
 
 (** PDF document creation and operators. *)
 
 
 (** The PDF document type. *)
-type t = FPDFDocument.t
+type t = Fpdf_document.t
 
 (** {6 PDF Document} *)
 

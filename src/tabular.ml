@@ -21,11 +21,11 @@
 *)
 
 
-open FPDFError
+open Fpdf_error
 open Printf
 
 type t = {
-  doc                      : FPDF.t;
+  doc                      : Fpdf.t;
   x0                       : float;
   y0                       : float;
   mutable rows             : int;
@@ -89,7 +89,7 @@ let set t row col ~width ~height ?(rowspan=1) ?(colspan=1) callback =
   t.cols <- max t.cols (col + 1)
 
 let set_markup =
-  let open FPDFMarkup in
+  let open Fpdf_markup in
   let align content xalign yalign ~x ~y ~col_width ~row_height =
     let x = x +. (col_width -. content.width) *. xalign in
     let y = y +. (row_height -. content.height) *. yalign in
@@ -101,11 +101,11 @@ let set_markup =
       let colwidth =
         try table.colwidths.(i)
         with Invalid_argument("index out of bounds") ->
-          FPDFError.error No_such_column "Tabular: number of column widths is less than number of columns in the table"
+          Fpdf_error.error No_such_column "Tabular: number of column widths is less than number of columns in the table"
       in
       width := !width +. colwidth
     done;
-    let content = FPDFMarkup.prepare ?padding ~width:!width (*~border_width:0.1 ~border_color:"#00ff00" *)~markup table.doc in
+    let content = Fpdf_markup.prepare ?padding ~width:!width (*~border_width:0.1 ~border_color:"#00ff00" *)~markup table.doc in
     set table row col ?rowspan ~colspan ~width:content.width ~height:content.height
       (align content xalign yalign)
 
@@ -188,20 +188,20 @@ let pack t =
   let print_table_border ~start ~stop () =
     match t.border_width with
       | Some border_width ->
-        FPDF.push_graphics_state t.doc;
-        FPDF.set_line_width (size_of_thickness border_width) t.doc;
+        Fpdf.push_graphics_state t.doc;
+        Fpdf.set_line_width (size_of_thickness border_width) t.doc;
         let height = table_height_rows start stop in
         let y = if !page_start_row = 0 then t.y0 else begin
-            let margin_top, _, _, _ = FPDF.margins t.doc in
+            let margin_top, _, _, _ = Fpdf.margins t.doc in
             margin_top
           end in
-        FPDF.rect ~x:t.x0 ~y ~width:table_width ~height(*:table_height*) t.doc;
-        FPDF.pop_graphics_state t.doc;
+        Fpdf.rect ~x:t.x0 ~y ~width:table_width ~height(*:table_height*) t.doc;
+        Fpdf.pop_graphics_state t.doc;
       | _ -> ()
   in
   (* Draw grid vertical lines *)
   let print_vertical_lines ~pstart ~pstop () =
-    FPDF.push_graphics_state t.doc;
+    Fpdf.push_graphics_state t.doc;
     List.iter begin fun (lw, rowstart, rowstop, col) ->
       try
         let rowstart =
@@ -229,7 +229,7 @@ let pack t =
                     | _ ->
                       let y_start =
                         if !page_start_row = 0 then t.y0 else begin
-                          let margin_top, _, _, _ = FPDF.margins t.doc in
+                          let margin_top, _, _, _ = Fpdf.margins t.doc in
                           margin_top
                         end
                       in
@@ -239,16 +239,16 @@ let pack t =
                 let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
                 if lw <> !current_lw then begin
                   current_lw := lw;
-                  FPDF.set_line_width lw t.doc;
+                  Fpdf.set_line_width lw t.doc;
                 end;
                 v_lines := ((pstart, pstop), x, y1, x, y2) :: !v_lines;
-                FPDF.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
+                Fpdf.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
               end;
             | _ -> ()
         end;
       with Exit -> ()
     end t.v_lines;
-    FPDF.pop_graphics_state t.doc;
+    Fpdf.pop_graphics_state t.doc;
   in
   (* Draw grid horizontal lines *)
   let print_horizontal_lines ~pstart ~pstop () =
@@ -256,7 +256,7 @@ let pack t =
       if pstart <= row && row <= pstop then
         match matrix.(row).(colstart) with
           | Some c1 ->
-            FPDF.push_graphics_state t.doc;
+            Fpdf.push_graphics_state t.doc;
             let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
             let stop =
               match matrix.(row).(colstop) with
@@ -280,15 +280,15 @@ let pack t =
             let segments = List.combine (x1 :: i_points) (List.concat [i_points; [x2]]) in
             if lw <> !current_lw then begin
               current_lw := lw;
-              FPDF.set_line_width lw t.doc;
+              Fpdf.set_line_width lw t.doc;
             end;
             List.iter begin fun (x1, x2) ->
               let x1 = x1 +. line_disjoin in
               let x2 = x2 -. line_disjoin in
-              FPDF.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
+              Fpdf.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
               (*Printf.printf "---------->H %d, %d -- %F -- %F (%F)\n%!" pstart pstop x1 x2 y;*)
             end segments;
-            FPDF.pop_graphics_state t.doc;
+            Fpdf.pop_graphics_state t.doc;
           | _ -> ();
     end t.h_lines;
   in
@@ -301,8 +301,8 @@ let pack t =
       print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
       print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
       v_lines := [];
-      FPDF.add_page t.doc;
-      let margin_top, _, _, _ = FPDF.margins t.doc in
+      Fpdf.add_page t.doc;
+      let margin_top, _, _, _ = Fpdf.margins t.doc in
       page_start_row := i;
       y := margin_top
     end;
@@ -331,18 +331,18 @@ let pack t =
             cell.x <- !x;
             cell.y <- !y;
             if t.debug then begin
-              FPDFGraphicsState.push t.doc;
-              FPDF.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
-              FPDF.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
-              FPDF.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
-              FPDF.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(3.0 *. line_disjoin) t.doc;
-              FPDF.line ~x1:!x ~y1:!y ~x2:(!x +. cell.cell_width) ~y2:(!y +. cell.cell_height) t.doc;
-              FPDF.line ~x1:(!x +. cell.cell_width) ~y1:!y ~x2:!x ~y2:(!y +. cell.cell_height) t.doc;
-              FPDF.set ~x:cell.x ~y:(cell.y +. 1.) t.doc;
-              FPDF.cell ~width:10. ~font_size:3. ~font_family:`Helvetica ~font_style:[`Italic]
+              Fpdf_graphics_state.push t.doc;
+              Fpdf.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
+              Fpdf.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
+              Fpdf.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
+              Fpdf.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(3.0 *. line_disjoin) t.doc;
+              Fpdf.line ~x1:!x ~y1:!y ~x2:(!x +. cell.cell_width) ~y2:(!y +. cell.cell_height) t.doc;
+              Fpdf.line ~x1:(!x +. cell.cell_width) ~y1:!y ~x2:!x ~y2:(!y +. cell.cell_height) t.doc;
+              Fpdf.set ~x:cell.x ~y:(cell.y +. 1.) t.doc;
+              Fpdf.cell ~width:10. ~font_size:3. ~font_family:`Helvetica ~font_style:[`Italic]
                 ~text:(sprintf "(%.1d, %.1d) h=%.1f y=%.1f"
                          i j row_heights.(i) cell.y) t.doc;
-              FPDFGraphicsState.pop t.doc;
+              Fpdf_graphics_state.pop t.doc;
             end
           | _ -> ()
       end;

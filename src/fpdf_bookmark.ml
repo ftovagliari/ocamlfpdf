@@ -21,11 +21,11 @@
 *)
 
 open Printf
-open FPDFTypes
-open FPDFDocument
+open Fpdf_types
+open Fpdf_document
 
 type t = {
-  doc                  : FPDFDocument.t;
+  doc                  : Fpdf_document.t;
   mutable root_obj     : int;
   mutable tree         : node list;
   mutable length       : int;
@@ -88,62 +88,62 @@ let create doc =
     tree         = [];
     length       = 0;
   } in
-  FPDFDocument.add_resource begin fun () ->
+  Fpdf_document.add_resource begin fun () ->
     if List.length bookmark.tree > 0 then begin
-      bookmark.root_obj <- 1 + bookmark.length + FPDFDocument.current_object_number doc;
+      bookmark.root_obj <- 1 + bookmark.length + Fpdf_document.current_object_number doc;
       (* Print Resources *)
       let prev_sibling = ref [] in
       tree_iter begin fun (i, last) level node ->
-        FPDFDocument.new_obj doc;
-        node.obj <- FPDFDocument.current_object_number doc;
-        FPDFDocument.print doc "<</Title %s " (FPDFUtil.pdf_string node.text);
+        Fpdf_document.new_obj doc;
+        node.obj <- Fpdf_document.current_object_number doc;
+        Fpdf_document.print doc "<</Title %s " (Fpdf_util.pdf_string node.text);
         let parent =
           try (List.assoc (level - 1) !prev_sibling).obj
           with Not_found -> bookmark.root_obj
         in
-        FPDFDocument.print doc "/Parent %d 0 R " parent;
+        Fpdf_document.print doc "/Parent %d 0 R " parent;
         if node.children <> [] then begin
-          FPDFDocument.print doc "/First %d 0 R " (FPDFDocument.current_object_number doc + 1);
-          FPDFDocument.print doc "/Last %d 0 R " (FPDFDocument.current_object_number doc + List.length node.children);
+          Fpdf_document.print doc "/First %d 0 R " (Fpdf_document.current_object_number doc + 1);
+          Fpdf_document.print doc "/Last %d 0 R " (Fpdf_document.current_object_number doc + List.length node.children);
         end;
         if i > 0 && i <= last && !prev_sibling <> [] then begin
           let prev_sibling_length =
             try tree_length (List.assoc level !prev_sibling).children
             with Not_found -> assert false
           in
-          FPDFDocument.print doc "/Prev %d 0 R " (FPDFDocument.current_object_number doc - prev_sibling_length - 1);
+          Fpdf_document.print doc "/Prev %d 0 R " (Fpdf_document.current_object_number doc - prev_sibling_length - 1);
         end;
         if i >= 0 && i < last then begin
-          FPDFDocument.print doc "/Next %d 0 R " (FPDFDocument.current_object_number doc + tree_length node.children + 1);
+          Fpdf_document.print doc "/Next %d 0 R " (Fpdf_document.current_object_number doc + tree_length node.children + 1);
         end;
-        FPDFDocument.print doc "/Dest [%d 0 R /XYZ 0 %f null] " (List.nth (List.rev doc.pages) node.page).pg_obj node.y;
-        FPDFDocument.print doc "/Count 0>>";
-        FPDFDocument.print doc "endobj\n";
+        Fpdf_document.print doc "/Dest [%d 0 R /XYZ 0 %f null] " (List.nth (List.rev doc.pages) node.page).pg_obj node.y;
+        Fpdf_document.print doc "/Count 0>>";
+        Fpdf_document.print doc "endobj\n";
         prev_sibling := (level, node) :: !prev_sibling;
       end 0 bookmark.tree;
       (* Outline root *)
-      FPDFDocument.new_obj doc;
+      Fpdf_document.new_obj doc;
       let first =
         match bookmark.tree with
           | [] -> assert false
           | items -> (List.hd (List.rev items)).obj
       in
       (* The first toplevel item *)
-      FPDFDocument.print doc "<</Type /Outlines /First %d 0 R " first;
+      Fpdf_document.print doc "<</Type /Outlines /First %d 0 R " first;
       let last =
         match bookmark.tree with
           | [] -> assert false
           | items -> (List.hd items).obj
       in
       (* The last toplevel item *)
-      FPDFDocument.print doc "/Last %d 0 R>>endobj\n" last;
+      Fpdf_document.print doc "/Last %d 0 R>>endobj\n" last;
     end
   end doc;
   (* Add catalog *)
-  FPDFDocument.add_catalog begin fun () ->
+  Fpdf_document.add_catalog begin fun () ->
     if List.length bookmark.tree > 0 then begin
-      FPDFDocument.print doc "/Outlines %d 0 R " bookmark.root_obj;
-      FPDFDocument.print doc "/PageMode /UseOutlines\n"
+      Fpdf_document.print doc "/Outlines %d 0 R " bookmark.root_obj;
+      Fpdf_document.print doc "/PageMode /UseOutlines\n"
     end;
     instances := List.filter (fun (k, _) -> doc != k) !instances
   end doc;
@@ -159,13 +159,13 @@ let add ?(text="") ?page ?(y=0.0) ?(parent=0) doc =
       instances := (doc, bm) :: !instances;
       bm
   in
-  let y = match y with -1. -> FPDF.y doc | y -> y in
+  let y = match y with -1. -> Fpdf.y doc | y -> y in
   let id = bookmark.length + 1 in
   let child = {
     id       = id;
     text     = text;
-    y        = (FPDF.page_height doc -. y) *. FPDF.scale doc;
-    page     = (match page with None -> FPDFDocument.n_pages doc - 1 | Some p -> p);
+    y        = (Fpdf.page_height doc -. y) *. Fpdf.scale doc;
+    page     = (match page with None -> Fpdf_document.n_pages doc - 1 | Some p -> p);
     obj      = 0;
     children = [];
   } in

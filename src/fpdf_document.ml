@@ -20,10 +20,10 @@
 
 *)
 
-open FPDFTypes
+open Fpdf_types
 open Printf
-open FPDFUtil
-open FPDFImages
+open Fpdf_util
+open Fpdf_images
 open Font
 
 type state = Begin_document | End_page | Begin_page | End_document
@@ -85,7 +85,7 @@ and annot = {
   mutable fonts                 : (Font.key * font_obj) list;   (* array of used fonts [(key, font) list] *)
   mutable font_embed            : font_embed list;           (* array of font files *)
   mutable diffs                 : string list;              (* array of encoding differences *)
-  mutable images                : FPDFImages.Table.t;         (* array of used images *)
+  mutable images                : Fpdf_images.Table.t;         (* array of used images *)
   mutable links                 : (int * float) list;       (* array of internal links *)
   mutable font_family           : Font.family option;       (* current font family *)
   mutable font_style            : Font.style list;          (* current font style *)
@@ -129,7 +129,7 @@ and annot = {
 }
 
 let open_document doc = match doc.state with
-  | End_document -> failwith "FPDF.open_document: document already closed."
+  | End_document -> failwith "Fpdf.open_document: document already closed."
   | _ -> doc.state <- End_page
 
 let n_pages doc = List.length doc.pages
@@ -363,7 +363,7 @@ let print_fonts doc =
 
 (** print_images *)
 let print_images doc =
-  let open FPDFImages in
+  let open Fpdf_images in
   (* reset($this->images);
   while(list($file,$info)=each($this->images)) *)
   let rec print_image image =
@@ -429,12 +429,12 @@ let print_images doc =
       print doc "endobj\n"
     end
   in
-  FPDFImages.Table.iter print_image doc.images;;
+  Fpdf_images.Table.iter print_image doc.images;;
 
 (** print_xobject_dict *)
 let print_xobject_dict doc =
   let i = ref 0 in
-  FPDFImages.Table.iter begin fun img ->
+  Fpdf_images.Table.iter begin fun img ->
     incr i;
     print doc "/I%d %d 0 R\n" !i img.image_obj;
   end doc.images

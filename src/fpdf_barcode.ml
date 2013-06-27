@@ -83,15 +83,15 @@ struct
     begin
       match text with None -> () | Some size ->
         let barcode_width = baseline *. (get_width ~barcode:input_barcode)  in
-        FPDF.set_font ~size doc;
+        Fpdf.set_font ~size doc;
         let font =
-          match doc.FPDFDocument.current_font with
-            | Some font -> font.FPDFDocument.font_metrics
+          match doc.Fpdf_document.current_font with
+            | Some font -> font.Fpdf_document.font_metrics
             | _ -> failwith "No current font"
         in
-        let text_width = FPDF.get_text_width font size barcode in
-        FPDF.text ~x:(x +.(* margin +. *)(barcode_width -. text_width) /. 2.)
-          ~y:(y +. height +. (size -. 1.) /. FPDF.scale doc) ~text:barcode doc;
+        let text_width = Fpdf.get_text_width font size barcode in
+        Fpdf.text ~x:(x +.(* margin +. *)(barcode_width -. text_width) /. 2.)
+          ~y:(y +. height +. (size -. 1.) /. Fpdf.scale doc) ~text:barcode doc;
     end;
     let x = ref (x +. margin) in
     String.iter begin fun ch ->
@@ -100,7 +100,7 @@ struct
         for i = 0 to 8 do
           let line_width = if seq.[i] = 'n' then narrow else wide in
           if i mod 2 = 0 then begin
-            FPDF.rect ~x:!x ~y ~width:line_width ~height ~style:`Fill doc
+            Fpdf.rect ~x:!x ~y ~width:line_width ~height ~style:`Fill doc
           end;
           x := !x +. line_width
         done;
@@ -200,36 +200,36 @@ struct
     done;
     code := !code ^ "101";
     (* Draw bars *)
-    let k = FPDF.scale doc in
-    let family = FPDF.font_family doc in
-    let size = FPDF.font_size doc in
-    let style = FPDF.font_style doc in
+    let k = Fpdf.scale doc in
+    let family = Fpdf.font_family doc in
+    let size = Fpdf.font_size doc in
+    let style = Fpdf.font_style doc in
     let len = String.length !code in
     let font =
       let family = `Helvetica in
       let style = [] in
-      let f () = FPDFDocument.find_font ~family ~style doc in
+      let f () = Fpdf_document.find_font ~family ~style doc in
       match f () with Some x -> x | _ ->
-        let old_family = FPDF.font_family doc in
-        let old_style = FPDF.font_style doc in
-        FPDF.set_font ~family ~style doc;
+        let old_family = Fpdf.font_family doc in
+        let old_style = Fpdf.font_style doc in
+        Fpdf.set_font ~family ~style doc;
         let x = f () in
-        FPDF.set_font ?family:old_family ~style:old_style doc;
+        Fpdf.set_font ?family:old_family ~style:old_style doc;
         match x with Some a -> a | _ -> assert false
     in
     let width' = 60. *. width in
-    let scale = FPDF.scale doc in
+    let scale = Fpdf.scale doc in
     let fsize = fixpoint begin fun size ->
-      let text_width = FPDFText.get_text_width font.FPDFDocument.font_metrics size barcode in
+      let text_width = Fpdf_text.get_text_width font.Fpdf_document.font_metrics size barcode in
       if text_width /. scale < width' then size else (size -. 0.25)
     end 30. in
-    FPDF.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
+    Fpdf.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
     let height_ext = height +. 5. *. width in
     let j = ref 0 in
     let x0 = x in
     let print_text i =
       let x = x0 +. (float (i + 1)) *. width in
-      FPDF.text ~x ~y:(y +. height +. fsize /. k) ~text:(String.make 1 barcode.[!j]) doc;
+      Fpdf.text ~x ~y:(y +. height +. fsize /. k) ~text:(String.make 1 barcode.[!j]) doc;
       incr j
     in
     let x = ref 0.0 in
@@ -238,7 +238,7 @@ struct
       if !code.[i] = '1' then begin
         x := x0 +. (float i) *. width;
         let height = if i <= 3 || (45 <= i && i <= 49) || i >= (len - 3) then height_ext else height in
-        FPDF.rect ~x:!x ~y ~width ~height ~style:`Fill doc;
+        Fpdf.rect ~x:!x ~y ~width ~height ~style:`Fill doc;
       end;
       match i with
         | 3 -> print_text i
@@ -255,7 +255,7 @@ struct
         | 85 -> print_text i
         | _ -> ()
     done;
-    FPDF.set_font ?family ~style ~size doc;
+    Fpdf.set_font ?family ~style ~size doc;
 end
 
 
@@ -384,11 +384,11 @@ module Code128C =
     let write ~x ~y ?(height=16.) ?(width=0.35) ?(set=(`C : [`A | `B | `C])) ?text ~barcode doc =
       match set with `A | `B -> invalid_arg "write"
         | `C when String.length barcode mod 2 <> 0 ->
-          invalid_arg (sprintf "Barcode.Code128-C: barcode length must be even (%s)." barcode)
+          invalid_arg (sprintf "Fpdf_barcode.Code128-C: barcode length must be even (%s)." barcode)
         | `C ->
           let value_of_c str =
             if String.length str <> 2 then invalid_arg "value_of_c" else
-              (try int_of_string str with Failure "int_of_string" -> invalid_arg "Barcode.Code128-C: accepts only numeric data.")
+              (try int_of_string str with Failure "int_of_string" -> invalid_arg "Fpdf_barcode.Code128-C: accepts only numeric data.")
           in
           let i = ref 0 in
           let len = String.length barcode in
@@ -405,21 +405,21 @@ module Code128C =
           let pos = ref (x +. margin) in
           for i = 0 to String.length code - 1 do
             let width = baseline *. (float_of_string (String.sub code i 1)) in
-            if i mod 2 = 0 then (FPDF.rect ~x:!pos ~y ~width ~height ~style:`Fill doc);
+            if i mod 2 = 0 then (Fpdf.rect ~x:!pos ~y ~width ~height ~style:`Fill doc);
             pos := !pos +. width
           done;
           match text with None -> () | Some size ->
-            FPDF.set_font ~size doc;
+            Fpdf.set_font ~size doc;
             let text = Printf.sprintf "%s" barcode (*(check_symbol !values)*) in
             let font =
-              match doc.FPDFDocument.current_font with
-                | Some font -> font.FPDFDocument.font_metrics
+              match doc.Fpdf_document.current_font with
+                | Some font -> font.Fpdf_document.font_metrics
                 | _ -> failwith "No current font"
             in
-            let text_width = FPDF.get_text_width font size text in
+            let text_width = Fpdf.get_text_width font size text in
             let barcode_width = float (get_width ~barcode) *. baseline in
             let x = x +. (barcode_width -. text_width) /. 2. in
-            FPDF.text ~x ~y:(y +. height +. (size -. 1.) /. FPDF.scale doc) ~text doc
+            Fpdf.text ~x ~y:(y +. height +. (size -. 1.) /. Fpdf.scale doc) ~text doc
   end
 
 
@@ -568,14 +568,14 @@ module Code128C =
 
 
 
-    let write ~x ~y ?(height=16.) ?(width=0.35) ?(set=(`C : [`A | `B | `C])) ?text ~barcode (doc : #FPDF.document) =
+    let write ~x ~y ?(height=16.) ?(width=0.35) ?(set=(`C : [`A | `B | `C])) ?text ~barcode (doc : #Fpdf.document) =
       match set with `A | `B -> invalid_arg "write"
         | `C when String.length barcode mod 2 <> 0 ->
-          invalid_arg (sprintf "Barcode.Code128-C: barcode length must be even (%s)." barcode)
+          invalid_arg (sprintf "Fpdf_barcode.Code128-C: barcode length must be even (%s)." barcode)
         | `C ->
           let value_of_c str =
             if String.length str <> 2 then invalid_arg "value_of_c" else
-              (try int_of_string str with Failure "int_of_string" -> invalid_arg "Barcode.Code128-C: barcode must be numeric.")
+              (try int_of_string str with Failure "int_of_string" -> invalid_arg "Fpdf_barcode.Code128-C: barcode must be numeric.")
           in
           let i = ref 0 in
           let len = String.length barcode in

@@ -41,7 +41,7 @@ class hbox :
   ?spacing:float ->
   ?padding:float ->
   ?border:bool ->
-  FPDF.t ->
+  Fpdf.t ->
   object
 
     method x : float
@@ -88,7 +88,7 @@ class vbox :
   ?spacing:float ->
   ?padding:float ->
   ?border:bool ->
-  FPDF.t ->
+  Fpdf.t ->
   object
 
     method x : float
@@ -138,7 +138,7 @@ class table :
   columns:int ->
   ?spacing:float ->
   ?padding:float ->
-  FPDF.t ->
+  Fpdf.t ->
   object
 
     method x : float

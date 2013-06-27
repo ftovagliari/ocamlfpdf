@@ -20,8 +20,31 @@
 
 *)
 
-(** Add support for JavaScript actions. *)
+(** Error reporting. *)
 
-val include_javascript : string -> FPDFDocument.t -> unit
-val set_autoprint :
-  ?printer_name:string -> dialog:bool -> FPDFDocument.t -> unit
+(** Error codes for this library. *)
+type t =
+    Bad_image_format of string
+  | Unsupported_image_format
+  | Unsupported_16_bit_depth_image
+  | Unknown_color_type
+  | Missing_palette
+  | Invalid_markup
+  | No_such_column
+  | Invalid_colwidths
+
+(** Exception raised by functions in this library to report error conditions. *)
+exception Error of t * string
+
+(** Get a full error message. *)
+val message : t -> string
+
+(** [error ex msg] is [raise (Error ex msg)] *)
+val error : t -> string -> 'a
+
+(** [handle_error f x] applies [f] to [x] and optionally returns the result. If the
+    evaluation of [f x] raises any {!Fpdf_error.Error}, the name and description of
+    the exception is printed on standard error output and the result returned is
+    [None].
+ *)
+val handle_error : ('a -> 'b) -> 'a -> 'b option

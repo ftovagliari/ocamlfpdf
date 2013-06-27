@@ -20,10 +20,10 @@
 
 *)
 
-open FPDFTypes
-open FPDFDocument
-open FPDFPage
-open FPDFUtil
+open Fpdf_types
+open Fpdf_document
+open Fpdf_page
+open Fpdf_util
 open Printf
 open Font
 
@@ -97,7 +97,7 @@ let cell
       font_family <> None && font_family <> doc.font_family ||
       font_size <> None && font_size_pt <> doc.font_size_pt ||
       font_style <> None && (match font_style with Some sty -> List.sort compare sty | _ -> []) <> doc.font_style
-    then Some (FPDFFont.find_font_index ?family:font_family ?style:font_style doc)
+    then Some (Fpdf_font.find_font_index ?family:font_family ?style:font_style doc)
     else None
   in
   let padding      = match padding with None -> 0.0 (*doc.c_margin*) | Some padding -> padding in
