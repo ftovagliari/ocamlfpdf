@@ -40,7 +40,7 @@
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
-      <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml tabular.ml</files>
+      <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml fpdf_tabular.ml</files>
       <package>cpdf,str,unix,xml-light,zip</package>
       <includes>font</includes>
       <thread>false</thread>
@@ -107,7 +107,7 @@
       <opt>false</opt>
       <libs></libs>
       <other_objects></other_objects>
-      <files>PDFJavascript.ml PDFPack.ml PDFTable.ml barcode.ml PDFMarkup.ml PDFBookmark.ml PDFForm.ml</files>
+      <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml fpdf_tabular.ml</files>
       <package>xml-light</package>
       <includes></includes>
       <thread>false</thread>

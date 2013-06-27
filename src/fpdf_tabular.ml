@@ -101,7 +101,7 @@ let set_markup =
       let colwidth =
         try table.colwidths.(i)
         with Invalid_argument("index out of bounds") ->
-          Fpdf_error.error No_such_column "Tabular: number of column widths is less than number of columns in the table"
+          Fpdf_error.error No_such_column "Fpdf_tabular: number of column widths is less than number of columns in the table"
       in
       width := !width +. colwidth
     done;

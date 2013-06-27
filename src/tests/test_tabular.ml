@@ -60,9 +60,9 @@ let main () = begin
       let x = margin_left in
       let y0 = margin_top +. 50. in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
-      let table = Tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
+      let table = Fpdf_tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
 
-      let set = Tabular.set_markup table in
+      let set = Fpdf_tabular.set_markup table in
       let markup ?(style="") ?(align=0.5) ?(family="CMUSerif") ?char_space ?font_scale ?font_size text =
         sprintf "<SPAN family='%s' align='%f' style='%s'%s%s%s>%s</SPAN>"
           family align style
@@ -145,37 +145,37 @@ let main () = begin
         set i 5 (markup "A");
         set i 6 (markup "A");
         set i 7 (markup "A");
-        let cur_height_in_page = Tabular.table_height table -. !last_h in
+        let cur_height_in_page = Fpdf_tabular.table_height table -. !last_h in
         let yy = (if !count_table_pages = 0 then y0 else margin_top) +. cur_height_in_page in
         if yy > margin_top +. height_avail then begin
           incr count_table_pages;
-          last_h := cur_height_in_page -. Tabular.row_height table i;
-          Tabular.add_page_break_before i table;
+          last_h := cur_height_in_page -. Fpdf_tabular.row_height table i;
+          Fpdf_tabular.add_page_break_before i table;
         end
       done;
 
-      (*Tabular.add_vertical_line ~rowstart:3 ~col:1 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:2 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:3 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:4 table;
-      Tabular.add_vertical_line ~rowstart:2 ~col:5 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:6 table;
-      Tabular.add_vertical_line ~rowstart:2 ~col:7 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:8 table;
-      Tabular.add_vertical_line ~rowstart:2 ~col:9 table;
-      Tabular.add_vertical_line ~rowstart:0 ~col:10 table;
-      Tabular.add_vertical_line ~rowstart:2 ~col:11 table;*)
+      (*Fpdf_tabular.add_vertical_line ~rowstart:3 ~col:1 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:2 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:3 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:4 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:5 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:6 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:7 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:8 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:9 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:10 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:11 table;*)
 
-      Tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
-      Tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;
-      Tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:5 table;
-      Tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;
+      Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
+      Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:5 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;
 
-      (*Tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
-      Tabular.add_horizontal_line ~colstart:4 ~colstop:11 ~row:2 table;
-      Tabular.add_horizontal_line ~colstart:0 ~row:3 table;*)
+      (*Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
+      Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:11 ~row:2 table;
+      Fpdf_tabular.add_horizontal_line ~colstart:0 ~row:3 table;*)
 
-      Tabular.pack table;
+      Fpdf_tabular.pack table;
 
       (*let line_spacing = None in
       Fpdf.set_font ~family:`Times ~style:[`Bold] doc;
