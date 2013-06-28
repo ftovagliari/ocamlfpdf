@@ -241,9 +241,6 @@ let main () = begin
       (**  *)
       Fpdf.close_document doc;
       close_file();
-      let cpdf = Pdfread.pdf_of_file None filename_tmp in
-      if Sys.file_exists filename_tmp then Sys.remove filename_tmp;
-      Pdfwrite.pdf_to_file_options true None false cpdf filename
     with ex -> begin
         close_file();
         raise ex

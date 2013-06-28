@@ -41,7 +41,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml fpdf_tabular.ml</files>
-      <package>cpdf,str,unix,xml-light</package>
+      <package>str,unix,xml-light,zip</package>
       <includes>font</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -131,7 +131,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test.ml</files>
-      <package>unix,str,xml-light,cpdf</package>
+      <package>unix,str,xml-light,zip</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -223,7 +223,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_png.ml</files>
-      <package>unix,str,xml-light,cpdf</package>
+      <package>unix,str,xml-light,zip</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -246,7 +246,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_tabular.ml</files>
-      <package>cpdf,str,unix,xml-light</package>
+      <package>zip,str,unix,xml-light</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -269,7 +269,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_metrics.ml</files>
-      <package>cpdf,str,unix,xml-light</package>
+      <package>zip,str,unix,xml-light</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
