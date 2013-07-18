@@ -345,7 +345,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test" default="false" target_id="6" id="3">
+    <executable name="Test" default="true" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -380,7 +380,7 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-metrics" default="true" target_id="16" id="10">
+    <executable name="test-metrics" default="false" target_id="16" id="10">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>

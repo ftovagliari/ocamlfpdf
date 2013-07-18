@@ -287,7 +287,7 @@ let main () = begin
       (** Barcodes *)
       Fpdf.add_page doc;
       let parent = Fpdf_bookmark.add ~text:"Barcodes" doc in
-      let barcode = "abc1234" in
+      let barcode = "abc123456789" in
       let x = margin +. (width_avail -. width) /. 2. in
       let y = margin +. height_header in
       let height = 10. in
@@ -302,7 +302,7 @@ let main () = begin
       Fpdf_barcode.EAN13.write ~x ~y ~barcode:"4556789034461" ~width:(0.33 *. 0.8) doc;
       let y = y +. height +. 20. in
       ignore (Fpdf_bookmark.add ~text:"Code128C" (*~level:1*) ~y ~parent doc);
-      Fpdf_barcode.Code128C.write ~x ~y ~barcode:"123456" doc;
+      Fpdf_barcode.Code128C.write ~x ~y ~barcode:"123456" ~text:10. doc;
 
       (** Form fields *)
       Fpdf.add_page doc;
