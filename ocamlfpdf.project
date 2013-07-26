@@ -13,6 +13,7 @@
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
     <target name="font" default="false" id="17">
+      <descr></descr>
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
@@ -36,6 +37,7 @@
       <dependencies></dependencies>
     </target>
     <target name="fpdf" default="false" id="0">
+      <descr>Library for generating PDF documents.</descr>
       <byt>true</byt>
       <opt>true</opt>
       <libs>font</libs>
@@ -80,6 +82,7 @@
       <dependencies>17</dependencies>
     </target>
     <target name="markup-editor" default="false" id="8">
+      <descr>Lablgtk widget for editing PDFMarkup.</descr>
       <byt>true</byt>
       <opt>true</opt>
       <libs></libs>
@@ -103,6 +106,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="fpdf-byt" default="false" id="9">
+      <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
       <libs></libs>
@@ -126,6 +130,7 @@
       <dependencies></dependencies>
     </target>
     <target name="test" default="false" id="6">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
@@ -149,6 +154,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="test-markup-editor" default="false" id="7">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>str</libs>
@@ -172,6 +178,7 @@
       <dependencies>0,8</dependencies>
     </target>
     <target name="test-form" default="false" id="10">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>str</libs>
@@ -195,6 +202,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="test-compress" default="false" id="12">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs></libs>
@@ -218,6 +226,7 @@
       <dependencies></dependencies>
     </target>
     <target name="test-png" default="false" id="14">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
@@ -241,6 +250,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="test-tabular" default="false" id="15">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
@@ -264,6 +274,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="test-metrics" default="true" id="16">
+      <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
@@ -287,6 +298,7 @@
       <dependencies>0</dependencies>
     </target>
     <target name="Tools" default="false" id="11">
+      <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
       <libs></libs>
