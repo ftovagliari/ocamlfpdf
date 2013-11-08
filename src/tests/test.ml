@@ -116,7 +116,7 @@ let main () = begin
   let close_file () = close_out outchan in
   begin
     try
-      let radius = 1.0 in
+      let radius = 1., 2., 3., 5. in
       let doc = Fpdf.create ~outchan () in
       Fpdf_font.embed_font ~family:`CenturySchoolbook ~style:[] doc;
       Fpdf_font.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
@@ -180,7 +180,7 @@ let main () = begin
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
       let markup = Fpdf_markup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
-        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:3. doc in
+        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:radius doc in
       markup.Fpdf_markup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
       (** Markup and wrap char *)

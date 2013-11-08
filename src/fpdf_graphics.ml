@@ -93,7 +93,7 @@ let rect ?x ?y ~width ~height ?radius ?(style=(`Outline : rect_style)) doc =
     | None -> print_buffer doc "%f %f %f %f re %c\n"
       (x *. doc.k) ((doc.h -. y) *. doc.k)
       (width *. doc.k) ((-.height) *. doc.k) op
-    | Some radius ->
+    | Some (r1, r2, r3, r4) ->
       let scale = doc.k in
       let arc x1 y1 x2 y2 x3 y3 = print_buffer doc "%f %f %f %f %f %f c \n"
         (x1 *. scale) ((doc.h -. y1) *. scale)
@@ -101,21 +101,21 @@ let rect ?x ?y ~width ~height ?radius ?(style=(`Outline : rect_style)) doc =
         (x3 *. scale) ((doc.h -. y3) *. scale) in
       let hp = doc.h in
       let my_arc = 4./.3. *. (sqrt 2. -. 1.) in
-      print_buffer doc "%f %f m\n" ((x +. radius) *. scale) ((hp -. y) *. scale);
-      let xc = x +. width -. radius in
-      let yc = y +. radius in
+      print_buffer doc "%f %f m\n" ((x +. r4) *. scale) ((hp -. y) *. scale);
+      let xc = x +. width -. r1 in
+      let yc = y +. r1 in
       print_buffer doc "%f %f l\n" (xc *. scale) ((hp -. y) *. scale);
-      arc (xc +. radius *. my_arc) (yc -. radius) (xc +. radius) (yc -. radius *. my_arc) (xc +. radius) yc;
-      let xc = x +. width -. radius in
-      let yc = y +. height -. radius in
+      arc (xc +. r1 *. my_arc) (yc -. r1) (xc +. r1) (yc -. r1 *. my_arc) (xc +. r1) yc;
+      let xc = x +. width -. r2 in
+      let yc = y +. height -. r2 in
       print_buffer doc "%f %f l\n" ((x +. width) *. scale) ((hp -. yc) *. scale);
-      arc (xc +. radius) (yc +. radius *. my_arc) (xc +. radius *. my_arc) (yc +. radius) xc (yc +. radius);
-      let xc = x +. radius in
-      let yc = y +. height -. radius in
+      arc (xc +. r2) (yc +. r2 *. my_arc) (xc +. r2 *. my_arc) (yc +. r2) xc (yc +. r2);
+      let xc = x +. r3 in
+      let yc = y +. height -. r3 in
       print_buffer doc "%f %f l\n" (xc *. scale) ((hp -. (y +. height)) *. scale);
-      arc (xc -. radius *. my_arc) (yc +. radius) (xc -. radius) (yc +. radius *. my_arc) (xc -. radius) yc;
-      let xc = x +. radius in
-      let yc = y +. radius in
+      arc (xc -. r3 *. my_arc) (yc +. r3) (xc -. r3) (yc +. r3 *. my_arc) (xc -. r3) yc;
+      let xc = x +. r4 in
+      let yc = y +. r4 in
       print_buffer doc "%f %f l\n" (x *. scale) ((hp -. yc) *. scale);
-      arc (xc -. radius) (yc -. radius *. my_arc) (xc -. radius *. my_arc) (yc -. radius) xc  (yc -. radius);
+      arc (xc -. r4) (yc -. r4 *. my_arc) (xc -. r4 *. my_arc) (yc -. r4) xc  (yc -. r4);
       print_buffer doc "%c\n" op;;

@@ -223,7 +223,7 @@ val rect :
   ?x:float ->
   ?y:float ->
   width:float ->
-  height:float -> ?radius:float -> ?style:rect_style -> t -> unit
+  height:float -> ?radius:(float * float * float * float) -> ?style:rect_style -> t -> unit
 
 (** {7 Images} *)
 

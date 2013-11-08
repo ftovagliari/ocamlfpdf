@@ -335,7 +335,8 @@ let pack t =
               Fpdf.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
-              Fpdf.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(3.0 *. line_disjoin) t.doc;
+              let radius = 3.0 *. line_disjoin in
+              Fpdf.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(radius, radius, radius, radius) t.doc;
               Fpdf.line ~x1:!x ~y1:!y ~x2:(!x +. cell.cell_width) ~y2:(!y +. cell.cell_height) t.doc;
               Fpdf.line ~x1:(!x +. cell.cell_width) ~y1:!y ~x2:!x ~y2:(!y +. cell.cell_height) t.doc;
               Fpdf.set ~x:cell.x ~y:(cell.y +. 1.) t.doc;

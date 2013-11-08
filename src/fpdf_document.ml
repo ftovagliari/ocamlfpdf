@@ -443,6 +443,7 @@ let print_xobject_dict doc =
 let print_resource_dict doc =
   print doc "\n/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n";
   print doc "/Font <<";
+  (** sss *)
   List.iter begin fun (_, f) ->
     print doc "/F%d %d 0 R " f.font_index f.font_n
   end doc.fonts;

@@ -1,6 +1,7 @@
 bak
 tmp
 .tmp
+.svn
 .cache
 *.annot
 *.exe

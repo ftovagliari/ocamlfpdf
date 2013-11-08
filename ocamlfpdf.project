@@ -12,7 +12,7 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="font" default="false" id="17">
+    <target name="font" default="false" id="17" sub_targets="">
       <descr></descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -36,7 +36,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="fpdf" default="false" id="0">
+    <target name="fpdf" default="false" id="0" sub_targets="">
       <descr>Library for generating PDF documents.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -81,7 +81,7 @@
       <restrictions></restrictions>
       <dependencies>17</dependencies>
     </target>
-    <target name="markup-editor" default="false" id="8">
+    <target name="markup-editor" default="false" id="8" sub_targets="">
       <descr>Lablgtk widget for editing PDFMarkup.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -105,15 +105,15 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="fpdf-byt" default="false" id="9">
+    <target name="fpdf-byt" default="false" id="9" sub_targets="">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
-      <libs></libs>
+      <libs>font</libs>
       <other_objects></other_objects>
       <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml fpdf_tabular.ml</files>
-      <package>xml-light</package>
-      <includes></includes>
+      <package>xml-light,zip</package>
+      <includes>font</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
@@ -129,7 +129,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6">
+    <target name="test" default="false" id="6" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -153,7 +153,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-markup-editor" default="false" id="7">
+    <target name="test-markup-editor" default="false" id="7" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -177,7 +177,7 @@
       <restrictions></restrictions>
       <dependencies>0,8</dependencies>
     </target>
-    <target name="test-form" default="false" id="10">
+    <target name="test-form" default="false" id="10" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -201,7 +201,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-compress" default="false" id="12">
+    <target name="test-compress" default="false" id="12" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -225,7 +225,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test-png" default="false" id="14">
+    <target name="test-png" default="false" id="14" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -249,7 +249,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="false" id="15">
+    <target name="test-tabular" default="false" id="15" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -273,7 +273,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-metrics" default="true" id="16">
+    <target name="test-metrics" default="true" id="16" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -297,7 +297,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="Tools" default="false" id="11">
+    <target name="Tools" default="false" id="11" sub_targets="">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>

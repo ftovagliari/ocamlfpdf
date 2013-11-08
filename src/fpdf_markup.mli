@@ -87,7 +87,7 @@ val prepare :
   ?bgcolor:string ->
   ?border_width:float ->
   ?border_color:string ->
-  ?border_radius:float ->
+  ?border_radius:(float * float * float * float) ->
   ?padding:(float * float * float * float) ->
   ?line_spacing:float ->
   Fpdf.t -> analysis
