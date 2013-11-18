@@ -403,38 +403,40 @@ let draw_underline ~x ~y ~cell doc =
 
 (** analyze *)
 let analyze ~width ~markup ?(padding=(0., 0., 0., 0.)) ?(border_width=0.) ~line_spacing doc =
-  let pad_top, pad_right, pad_bottom, pad_left = padding in
-  let avail_width = width -. pad_left -. pad_right -. 2. *. border_width in
-  let blocks = markup_to_blocks ~markup ~line_spacing doc in
-  let paragraphs = group_by (fun x y -> x.par = y.par) blocks in
-  let paragraphs = split_blocks_at_line_break ~paragraphs ~avail_width doc in
-  set_line_numbers ~paragraphs ~avail_width;
-  let paragraphs = List.map (group_by (fun x y -> x.line = y.line)) paragraphs in
-  let paragraphs = struct_by_lines paragraphs in
-  let paragraphs = struct_by_paragraphs paragraphs in
-  set_paragraph_align paragraphs;
-  let overall_height = set_paragraph_line_spacing paragraphs in
-  (* Print debug info *)
-  (*List.iter begin fun {paragraph_lines; _} ->
-    List.iter begin function {line_width; line_cells; line_height; _} ->
-      List.iter begin fun cell ->
-        Printf.printf "%5.2f {w=%6.2f; ch=%5.2f; lh=%f; color=% 7s; l=%2d; p=%2d; text=%S; style=%S}\n%!"
-          line_width
-          cell.cell_width cell.cell_height line_height
-          cell.attr.color cell.line cell.par cell.text
-          (String.concat "," (List.map Font.string_of_style cell.attr.style))
-      end line_cells;
-      (*Printf.printf "\n%!" ;*)
-    end paragraph_lines;
-    Printf.printf "======== %5.2f ========\n%!" width;
-    end paragraphs;*)
-  (* Return analysis *)
-  {
-    width      = width;
-    height     = (overall_height +. pad_top +. pad_bottom +. 2. *. border_width);
-    paragraphs = paragraphs;
-    print      = fun ~x ~y ?valign () -> ();
-  }
+  try
+    let pad_top, pad_right, pad_bottom, pad_left = padding in
+    let avail_width = width -. pad_left -. pad_right -. 2. *. border_width in
+    let blocks = markup_to_blocks ~markup ~line_spacing doc in
+    let paragraphs = group_by (fun x y -> x.par = y.par) blocks in
+    let paragraphs = split_blocks_at_line_break ~paragraphs ~avail_width doc in
+    set_line_numbers ~paragraphs ~avail_width;
+    let paragraphs = List.map (group_by (fun x y -> x.line = y.line)) paragraphs in
+    let paragraphs = struct_by_lines paragraphs in
+    let paragraphs = struct_by_paragraphs paragraphs in
+    set_paragraph_align paragraphs;
+    let overall_height = set_paragraph_line_spacing paragraphs in
+    (* Print debug info *)
+    (*List.iter begin fun {paragraph_lines; _} ->
+      List.iter begin function {line_width; line_cells; line_height; _} ->
+        List.iter begin fun cell ->
+          Printf.printf "%5.2f {w=%6.2f; ch=%5.2f; lh=%f; color=% 7s; l=%2d; p=%2d; text=%S; style=%S}\n%!"
+            line_width
+            cell.cell_width cell.cell_height line_height
+            cell.attr.color cell.line cell.par cell.text
+            (String.concat "," (List.map Font.string_of_style cell.attr.style))
+        end line_cells;
+        (*Printf.printf "\n%!" ;*)
+      end paragraph_lines;
+      Printf.printf "======== %5.2f ========\n%!" width;
+      end paragraphs;*)
+    (* Return analysis *)
+    {
+      width      = width;
+      height     = (overall_height +. pad_top +. pad_bottom +. 2. *. border_width);
+      paragraphs = paragraphs;
+      print      = fun ~x ~y ?valign () -> ();
+    }
+  with Xml.Error err -> raise (Error (Invalid_markup, sprintf "%S\n\n%s" markup (Xml.error err)))
 ;;
 
 (** print_text *)
@@ -465,6 +467,19 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
               !y +. line_height -. cell.cell_height +.
                 ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
           in
+          (* Background *)
+          let yy_rise = match cell.attr.rise with Some rise -> yy -. rise /. scale | _ -> yy in
+          begin
+            match cell.attr.bgcolor with
+              | Some bgcolor ->
+                Fpdf_graphics_state.push doc;
+                let red, green, blue = Fpdf_util.rgb_of_hex bgcolor in
+                Fpdf.set_fill_color ~red ~green ~blue doc;
+                Fpdf.rect ~x:!x ~y:yy_rise ~width:cell.cell_width ~height:cell.cell_height ~style:`Fill doc;
+                Fpdf_graphics_state.pop doc;
+              | _ -> ()
+          end;
+          (*  *)
           let text = Fpdf_util.rtrim_newline cell.text in
           let red, green, blue = Fpdf_util.rgb_of_hex cell.attr.color in
           Fpdf.set_text_color ~red ~green ~blue doc;
@@ -482,10 +497,10 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
           (*Fpdf_graphics_state.push doc;
             Fpdf.set_text_color ~red:0 ~green:255 ~blue:0 doc;
             Fpdf.set_line_width 0.1 doc;
-            Fpdf.rect ~x:!x ~y:yy ~width:cell.cell_width ~height:cell.cell_height doc;
+            Fpdf.rect ~x:!x ~y:yy_rise ~width:cell.cell_width ~height:cell.cell_height doc;
             Fpdf_graphics_state.pop doc;*)
 
-          if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy ~cell doc);
+          if cell.attr.underline <> `NONE then (draw_underline ~x:!x ~y:yy_rise ~cell doc);
           x := !x +. cell.cell_width;
         end;
       end line_cells;

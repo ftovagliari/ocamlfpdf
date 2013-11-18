@@ -173,7 +173,7 @@ let cell
       | `Left | `Justified -> padding
       | `Center -> (width -. text_width doc) /. 2.
       | `Right -> width -. padding -. text_width doc in
-    let must_push = doc.colorFlag || char_space <> None || font_scale <> None  in
+    let must_push = doc.colorFlag || char_space <> None || font_scale <> None || rise <> None  in
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
     code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)

@@ -24,6 +24,17 @@ exception Continue
 
 (** Legge un file e ne mette il contenuto in un [Buffer]. *)
 let fread filename =
+ (* let ic = open_in filename in
+  try
+    let n = in_channel_length ic in
+    let s = String.create n in
+    really_input ic s 0 n;
+    close_in ic;
+    s
+  with ex ->
+    close_in ic;
+    raise ex*)
+
   let inchan = open_in_bin filename in
   let length = in_channel_length inchan in
   let buf = Buffer.create length in
@@ -35,7 +46,7 @@ let fread filename =
     with End_of_file -> ();
   end;
   close_in inchan;
-  buf
+  Buffer.contents buf
 
 let re_cr = Str.regexp "\r"
 

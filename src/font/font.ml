@@ -75,6 +75,19 @@ let family_of_string = function
   | "CMUSerif_BoldNonextended" -> `CMUSerif_BoldNonextended
   | name -> Printf.kprintf failwith "family_of_string (%s)" name
 
+(** string_of_family *)
+let string_of_family = function
+  | `Times -> "Times"
+  | `Helvetica -> "Helvetica"
+  | `Courier -> "Courier"
+  | `ZapfDingbats -> "ZapfDingbats"
+  | `Symbol -> "Symbol"
+  | `CenturySchoolbook -> "CenturySchoolbook"
+  | `CMUSerif -> "CMUSerif"
+  | `CMUSansSerif -> "CMUSansSerif"
+  | `CMUSansSerif_DemiCondensed -> "CMUSansSerif_DemiCondensed"
+  | `CMUSerif_BoldNonextended -> "CMUSerif_BoldNonextended"
+
 (** style_of_string *)
 let style_of_string name =
   match String.lowercase name with

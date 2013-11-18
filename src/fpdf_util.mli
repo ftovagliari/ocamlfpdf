@@ -1,5 +1,5 @@
 exception Continue
-val fread : string -> Buffer.t
+val fread : string -> string
 val re_cr : Str.regexp
 val fixpoint : ('a -> 'a) -> 'a -> 'a
 val rtrim_newline : string -> string

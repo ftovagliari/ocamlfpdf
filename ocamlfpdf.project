@@ -129,7 +129,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6" sub_targets="">
+    <target name="test" default="true" id="6" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -273,7 +273,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-metrics" default="true" id="16" sub_targets="">
+    <target name="test-metrics" default="false" id="16" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>

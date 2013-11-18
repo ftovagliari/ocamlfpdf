@@ -194,6 +194,13 @@ let main () = begin
       let markup = Fpdf_markup.prepare ~width:(width/.2.) (*~line_height*) (*~padding:(5.,5.,5.,5.)*) ~markup
         ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
       markup.Fpdf_markup.print ~x ~y ();
+      (*  *)
+      let y = y +. markup.Fpdf_markup.height +. 30. in
+      let markup = "<SPAN align='0.5'>\128</SPAN><SPAN style='bold' size='55' bgcolor='#ffff00'>123</SPAN><SPAN style='bold' rise='15' bgcolor='#ffff00'>,</SPAN><SPAN style='bold' rise='15' underline='single' bgcolor='#ffff00'>99</SPAN><SPAN>Prova</SPAN>" in
+      Fpdf.set_font ~family:`Helvetica ~size:34. doc;
+      let markup = Fpdf_markup.prepare ~width ~markup
+        ~bgcolor:"#fff0f0" ~border_width:1. ~border_color:"#f00000" (*~border_radius:3.*) doc in
+      markup.Fpdf_markup.print ~x ~y ();
 
       (** Lorem Ipsum *)
       Fpdf.add_page doc;
@@ -324,7 +331,7 @@ let main () = begin
       ignore (Fpdf_bookmark.add ~text:"Images" doc);
       let dirname = Filename.dirname Sys.executable_name in
       let name = "Lena.jpg" in
-      let data = Buffer.contents (Fpdf_util.fread (dirname // name)) in
+      let data = Fpdf_util.fread (dirname // name) in
       let image_width, image_height = Fpdf_images.Jpeg.get_dimensions data in
       let aspect = (float image_height) /. (float image_width) in
       let height_image = 50. in
@@ -334,7 +341,7 @@ let main () = begin
       Fpdf.image ~x ~y ~name ~data ~height:height_image doc;
       Fpdf.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-          (Str.string_before (Buffer.contents (Fpdf_util.fread (dirname // "test.ml"))) 1000) in
+          (Str.string_before (Fpdf_util.fread (dirname // "test.ml"))) 1000 in
       Fpdf.set_font ~family:`CMUSansSerif ~size:9. doc;
       Fpdf.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 

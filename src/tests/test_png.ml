@@ -44,10 +44,10 @@ let main () = begin
       Fpdf.text ~x ~y:height ~text:"AB" doc;
 
       let name = "Lena.png" in
-      let data = Buffer.contents (Fpdf_util.fread (dirname // name)) in
+      let data = Fpdf_util.fread (dirname // name) in
       Fpdf.image ~x ~y ~name ~data ~height:height_image doc;
       let name = "Lena.jpg" in
-      let data = Buffer.contents (Fpdf_util.fread (dirname // name)) in
+      let data = Fpdf_util.fread (dirname // name) in
       Fpdf.image ~x:(x +. height_image) ~y ~name ~data ~height:height_image doc;
 
       Fpdf.close_document doc;
