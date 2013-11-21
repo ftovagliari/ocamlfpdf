@@ -58,7 +58,7 @@ and thickness = [`Thin | `Medium | `Thick ]
 
 let line_disjoin = 0.65
 
-let size_of_thickness = function `Thin -> 0.1 | `Medium -> 0.25 | `Thick -> 0.5
+let size_of_thickness = function `Thin -> 0.01 | `Medium -> 0.25 | `Thick -> 0.5
 
 let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debug=false) doc =
   let (!!) x = width *. x /. 100. in
