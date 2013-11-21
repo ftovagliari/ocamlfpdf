@@ -28,6 +28,8 @@ type t = {
   doc                      : Fpdf.t;
   x0                       : float;
   y0                       : float;
+  mutable x               : float;
+  mutable y               : float;
   mutable rows             : int;
   mutable cols             : int;
   mutable cells            : ((int * int) * cell) list; (* row x column *)
@@ -41,8 +43,8 @@ type t = {
 }
 
 and cell = {
-  mutable x           : float;
-  mutable y           : float;
+  mutable cell_x      : float;
+  mutable cell_y      : float;
   mutable width       : float;
   mutable height      : float;
   mutable cell_width  : float;
@@ -69,6 +71,8 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
     doc;
     x0               = x;
     y0               = y;
+    x               = x;
+    y               = y;
     rows             = 0;
     cols             = 0;
     cells            = [];
@@ -82,7 +86,7 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
   }
 
 let set t row col ~width ~height ?(rowspan=1) ?(colspan=1) callback =
-  let cell = { x=0.; y=0.; width; height; rowspan; colspan; callback; cell_width=0.; cell_height=0. } in
+  let cell = { cell_x=0.; cell_y=0.; width; height; rowspan; colspan; callback; cell_width=0.; cell_height=0. } in
   let coords = row, col in
   t.cells <- (coords, cell) :: (List.remove_assoc coords t.cells);
   t.rows <- max t.rows (row + 1);
@@ -219,12 +223,12 @@ let pack t =
                   else if rowstop <= pstop then rowstop
                   else pstop
                 in
-                let x = c1.x -. t.padding in
-                let y1 = c1.y -. t.padding +. line_disjoin in
+                let x = c1.cell_x -. t.padding in
+                let y1 = c1.cell_y -. t.padding +. line_disjoin in
                 let x, y1, y2 =
                   match matrix.(rowstop).(col) with
                     | Some c2 ->
-                      let y2 = c2.y +. c2.cell_height +. t.padding -. line_disjoin in
+                      let y2 = c2.cell_y +. c2.cell_height +. t.padding -. line_disjoin in
                       x, y1, y2;
                     | _ ->
                       let y_start =
@@ -260,11 +264,11 @@ let pack t =
             let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
             let stop =
               match matrix.(row).(colstop) with
-                | Some c2 -> c2.x +. c2.cell_width +. t.padding
+                | Some c2 -> c2.cell_x +. c2.cell_width +. t.padding
                 | _ -> t.x0 +. table_width
             in
-            let y = c1.y -. t.padding in
-            let x1 = c1.x -. t.padding  in
+            let y = c1.cell_y -. t.padding in
+            let x1 = c1.cell_x -. t.padding  in
             let x2 = stop in
             let lw = match lw with Some x -> size_of_thickness x | _ -> if colstart = 0 then medium else thin in
             let i_points =
@@ -272,7 +276,7 @@ let pack t =
                   if p1 = pstart && p2 = pstop then begin
                     (*Printf.printf "===> %F -- %F (%F)\n%!" yv1 yv2 xv;*)
                     match line_intersection x1 x2 y xv yv1 yv2 with
-                      | Some x' -> x' :: acc
+                      | Some x -> x :: acc
                       | _ -> acc
                   end else acc
                 end [] (List.sort (fun (_, x1, _, _, _) (_, x2, _, _, _) -> compare x1 x2) !v_lines));
@@ -293,7 +297,7 @@ let pack t =
     end t.h_lines;
   in
   (* Print cell contents *)
-  let y = ref t.y0 in
+  t.y <- t.y0;
   Array.iteri begin fun i row ->
     (* Page Break *)
     if List.mem i t.page_breaks then begin
@@ -304,15 +308,15 @@ let pack t =
       Fpdf.add_page t.doc;
       let margin_top, _, _, _ = Fpdf.margins t.doc in
       page_start_row := i;
-      y := margin_top
+      t.y <- margin_top
     end;
     (* Print row *)
-    let x = ref t.x0 in
+    t.x <- t.x0;
     let rh = row_heights.(i) in
-    y := !y +. t.padding;
+    t.y <- t.y +. t.padding;
     Array.iteri begin fun j cell ->
       let cw = col_widths.(j) in
-      x := !x +. t.padding;
+      t.x <- t.x +. t.padding;
       begin
         match cell with
           | Some cell ->
@@ -325,32 +329,32 @@ let pack t =
                 !h +. 2. *. t.padding *. (float cell.rowspan -. 1.);
               end
             in
-            cell.callback ~x:!x ~y:!y ~col_width ~row_height;
+            cell.callback ~x:t.x ~y:t.y ~col_width ~row_height;
             cell.cell_width <- col_width;
             cell.cell_height <- row_height;
-            cell.x <- !x;
-            cell.y <- !y;
+            cell.cell_x <- t.x;
+            cell.cell_y <- t.y;
             if t.debug then begin
               Fpdf_graphics_state.push t.doc;
               Fpdf.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
               let radius = 3.0 *. line_disjoin in
-              Fpdf.rect ~x:!x ~y:!y ~width:cell.cell_width ~height:cell.cell_height ~radius:(radius, radius, radius, radius) t.doc;
-              Fpdf.line ~x1:!x ~y1:!y ~x2:(!x +. cell.cell_width) ~y2:(!y +. cell.cell_height) t.doc;
-              Fpdf.line ~x1:(!x +. cell.cell_width) ~y1:!y ~x2:!x ~y2:(!y +. cell.cell_height) t.doc;
-              Fpdf.set ~x:cell.x ~y:(cell.y +. 1.) t.doc;
+              Fpdf.rect ~x:t.x ~y:t.y ~width:cell.cell_width ~height:cell.cell_height ~radius:(radius, radius, radius, radius) t.doc;
+              Fpdf.line ~x1:t.x ~y1:t.y ~x2:(t.x +. cell.cell_width) ~y2:(t.y +. cell.cell_height) t.doc;
+              Fpdf.line ~x1:(t.x +. cell.cell_width) ~y1:t.y ~x2:t.x ~y2:(t.y +. cell.cell_height) t.doc;
+              Fpdf.set ~x:cell.cell_x ~y:(cell.cell_y +. 1.) t.doc;
               Fpdf.cell ~width:10. ~font_size:3. ~font_family:`Helvetica ~font_style:[`Italic]
                 ~text:(sprintf "(%.1d, %.1d) h=%.1f y=%.1f"
-                         i j row_heights.(i) cell.y) t.doc;
+                         i j row_heights.(i) cell.cell_y) t.doc;
               Fpdf_graphics_state.pop t.doc;
             end
           | _ -> ()
       end;
-      x := !x +. cw +. t.padding;
+      t.x <- t.x +. cw +. t.padding;
     end row;
     (* Increment Y *)
-    y := !y +. rh +. t.padding;
+    t.y <- t.y +. rh +. t.padding;
   end matrix;
   print_table_border ~start:!page_start_row ~stop:(t.rows - 1) ();
   print_vertical_lines ~pstart:!page_start_row ~pstop:(t.rows - 1) ();

@@ -2,6 +2,8 @@ type t = {
   doc : Fpdf.t;
   x0 : float;
   y0 : float;
+  mutable x : float;
+  mutable y : float;
   mutable rows : int;
   mutable cols : int;
   mutable cells : ((int * int) * cell) list;
@@ -14,8 +16,8 @@ type t = {
   debug : bool;
 }
 and cell = {
-  mutable x : float;
-  mutable y : float;
+  mutable cell_x : float;
+  mutable cell_y : float;
   mutable width : float;
   mutable height : float;
   mutable cell_width : float;

@@ -341,7 +341,7 @@ let main () = begin
       Fpdf.image ~x ~y ~name ~data ~height:height_image doc;
       Fpdf.set ~x:(x +. width_image +. spacing) ~y doc;
       let text = Str.global_replace (Str.regexp "\\(  \\)\\|[\n]") ""
-          (Str.string_before (Fpdf_util.fread (dirname // "test.ml"))) 1000 in
+          ((Str.string_before (Fpdf_util.fread (dirname // "test.ml"))) 1000) in
       Fpdf.set_font ~family:`CMUSansSerif ~size:9. doc;
       Fpdf.multi_cell ~width:(width_avail -. width_image -. spacing) ~padding ~line_height ~align:`Left ~border:[] ~text doc;
 

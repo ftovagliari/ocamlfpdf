@@ -7,7 +7,7 @@
   <name>ocamlfpdf</name>
   <author>Francesco Tovagliari</author>
   <description>
-    <line>OCaml translation of the FPDF library (www.fpdf.org), with additions.</line>
+    <line>Lablgtk widget for editing PDFMarkup.</line>
   </description>
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
