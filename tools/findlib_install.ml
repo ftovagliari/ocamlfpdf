@@ -44,7 +44,12 @@ let _ =
   in
   let cmas = List.map (fun x -> [x ^ ".cma"; x ^ ".cmxa"]) cmas in
   let cmas = String.concat " " (List.flatten cmas) in
+  pushd "src";
   ignore (kprintf Sys.command "ocamlfind install %s META %s %s %s %s %s %s"
             libname cmas ar (find ".cmi") (find ".mli")
             (find ~dir:"font" ".cmi") (find ~dir:"font" ".mli"));
+  popd();
 ;;
+
+
+

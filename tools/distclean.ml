@@ -36,11 +36,11 @@ let rmr dir =
   ignore (kprintf Sys.command "%s %s" rmr dir)
 
 let _ =
-  let tests = filter ".pdf" (readdir "tests") in
+  let tests = filter ".pdf" (readdir ("src" // "tests")) in
   List.iter remove tests;
-  List.iter remove (filter ".html" (readdir (".." // "doc")));
-  (*List.iter remove (filter ".css" (readdir (".." // "doc")));*)
-  rmr (".." // ".tmp");
-  rmr (".." // ".cache");
-  rmr (".." // "bak");
+  List.iter remove (filter ".html" (readdir "doc"));
+  (*List.iter remove (filter ".css" (readdir ("doc")));*)
+  rmr ".tmp";
+  rmr ".cache";
+  rmr "bak";
 ;;

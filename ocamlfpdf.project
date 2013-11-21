@@ -333,10 +333,10 @@
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
           <env replace="false"/>
-          <dir></dir>
+          <dir>..</dir>
           <cmd>ocaml</cmd>
           <args>
-            <arg enabled="true">../tools/findlib_install.ml</arg>
+            <arg enabled="true">tools/findlib_install.ml</arg>
           </args>
           <phase>After_compile</phase>
         </task>
@@ -344,12 +344,23 @@
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
           <env replace="false"/>
-          <dir></dir>
+          <dir>..</dir>
           <cmd>ocaml</cmd>
           <args>
-            <arg enabled="true">../tools/distclean.ml</arg>
+            <arg enabled="true">tools/distclean.ml</arg>
           </args>
           <phase>After_compile</phase>
+        </task>
+        <task name="reinstall">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <env replace="false"/>
+          <dir>..</dir>
+          <cmd>ocaml</cmd>
+          <args>
+            <arg enabled="true">tools/reinstall.ml</arg>
+          </args>
+          <phase></phase>
         </task>
       </external_tasks>
       <restrictions></restrictions>
@@ -416,7 +427,7 @@
     <args/>
     <commands>
       <command name="Distclean" descr="distclean" target_id="11" task_name="distclean"/>
-      <command name="Install" descr="findlib-install" target_id="11" task_name="findlib-install"/>
+      <command name="Install" descr="reinstall" target_id="11" task_name="reinstall"/>
       <command name="Uninstall" descr="findlib-uninstall" target_id="11" task_name="findlib-uninstall"/>
     </commands>
   </build_script>
