@@ -27,9 +27,9 @@ and cell = {
   callback :
     x:float -> y:float -> col_width:float -> row_height:float -> unit;
 }
-and thickness = [ `Medium | `Thick | `Thin ]
+and thickness = [ `Medium | `Thick | `Thin | `Size of float ]
 val line_disjoin : float
-val size_of_thickness : [< `Medium | `Thick | `Thin ] -> float
+val size_of_thickness : [< `Medium | `Thick | `Thin | `Size of float ] -> float
 val create :
   x:float ->
   y:float ->
@@ -52,7 +52,8 @@ val set_markup :
   ?rowspan:int ->
   ?colspan:int ->
   ?xalign:float ->
-  ?yalign:float -> ?padding:float * float * float * float -> string -> unit
+  ?yalign:float -> ?padding:float * float * float * float ->
+  ?line_spacing:float -> string -> unit
 val find_cell : t -> int -> int -> cell option
 val col_width : t -> int -> float
 val row_height : t -> int -> float

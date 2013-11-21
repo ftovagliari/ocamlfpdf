@@ -99,7 +99,7 @@ let set_markup =
     let y = y +. (row_height -. content.height) *. yalign in
     content.print ~x ~y ()
   in
-  fun table row col ?rowspan ?(colspan=1) ?(xalign=0.5) ?(yalign=0.5) ?padding markup ->
+  fun table row col ?rowspan ?(colspan=1) ?(xalign=0.5) ?(yalign=0.5) ?padding ?line_spacing markup ->
     let width = ref 0.0 in
     for i = col to col + colspan - 1 do
       let colwidth =
@@ -109,7 +109,7 @@ let set_markup =
       in
       width := !width +. colwidth
     done;
-    let content = Fpdf_markup.prepare ?padding ~width:!width (*~border_width:0.1 ~border_color:"#00ff00" *)~markup table.doc in
+    let content = Fpdf_markup.prepare ?padding ~width:!width ?line_spacing (*~border_width:0.1 ~border_color:"#00ff00" *)~markup table.doc in
     set table row col ?rowspan ~colspan ~width:content.width ~height:content.height
       (align content xalign yalign)
 
