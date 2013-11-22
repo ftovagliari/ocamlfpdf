@@ -69,10 +69,18 @@ end
 (** Jpeg *)
 module Jpeg = struct
 
-  exception Found of (int * int)
+  type t = {
+    jpeg_width : int;
+    jpeg_height : int;
+    jpeg_P : int; (* Sample precision in bits (usually 8, for baseline JPEG) *)
+    jpeg_Nf : int; (* Number of components in the image: 3 for color baseline JPEG images; 1 for grayscale baseline JPEG images *)
+  }
 
-  (** get_dimensions *)
-  let get_dimensions =
+  exception Found of (int * int)
+  exception Found_info of t
+
+  (** get_info *)
+  let get_info =
     let ff = Char.chr 0xFF in
     let soi_prefix = ['\xFF'; '\xD8'; '\xFF'] in
     fun data ->
@@ -99,9 +107,11 @@ module Jpeg = struct
                         (* 0xFFC0 is the "Start of frame" marker which contains the file size *)
                         | 0xC0 | 0xC1 | 0xC2 | 0xC3 | 0xC5 | 0xC6 | 0xC7 | 0xC9 | 0xCA | 0xCB | 0xCD | 0xCE | 0xCF ->
                           (* The structure of the 0xFFC0 block is quite simple [0xFFC0][ushort length][uchar precision][ushort x][ushort y] *)
-                          let height = (int_of_char data.[!i + 5]) * 256 + (int_of_char data.[!i + 6]) in
-                          let width = (int_of_char data.[!i + 7]) * 256 + (int_of_char data.[!i + 8]) in
-                          raise (Found (width, height));
+                          let jpeg_height = (int_of_char data.[!i + 5]) * 256 + (int_of_char data.[!i + 6]) in
+                          let jpeg_width = (int_of_char data.[!i + 7]) * 256 + (int_of_char data.[!i + 8]) in
+                          let jpeg_P = (int_of_char data.[!i + 4]) in
+                          let jpeg_Nf = (int_of_char data.[!i + 9]) in
+                          raise (Found_info {jpeg_width; jpeg_height; jpeg_P; jpeg_Nf});
                         | _ ->
                           i := !i + 2; (* Skip the block marker *)
                           block_length := (int_of_char data.[!i]) * 256 + (int_of_char data.[!i+1]);
@@ -109,23 +119,34 @@ module Jpeg = struct
                   end
                 done;
                 raise (Error ((Bad_image_format "JPEG"), ""))
-              with Found dim -> dim
+              with Found_info info -> info
             end else raise (Error ((Bad_image_format "JPEG"), "Not a valid JFIF string"))
           | _ -> raise (Error ((Bad_image_format "JPEG"), "Invalid JPEG header"))
       end else raise (Error ((Bad_image_format "JPEG"), "Not a valid SOI header"))
 
+  (** get_dimensions *)
+  let get_dimensions data =
+    let info = get_info data in
+    info.jpeg_width, info.jpeg_height
+
   (** parse *)
   let parse data =
-    let width, height = get_dimensions data in
-    let colsp, bits = "DeviceRGB", 8 in
+    let info = get_info data in
+    let colsp =
+      match info.jpeg_Nf with
+        | 3 -> "DeviceRGB"
+        | 1 -> "DeviceGray"
+        | 4 -> "DeviceCMYK"
+        | _ ->  raise (Error ((Bad_image_format "JPEG"), "Not a valid Start of frame marker (FFC0)"))
+    in
     let result       = {
       image_name       = "";
       image_index      = -1;
       image_obj        = -1;
-      image_width      = width;
-      image_height     = height;
+      image_width      = info.jpeg_width;
+      image_height     = info.jpeg_height;
       image_colorspace = colsp;
-      image_bits       = bits;
+      image_bits       = info.jpeg_P;
       image_f          = Some "DCTDecode";
       image_palette    = "";
       image_params     = None;

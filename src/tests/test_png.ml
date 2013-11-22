@@ -34,7 +34,7 @@ let main () = begin
       let x = 0. in
       let y = 0. in
       let height_image = 50. in
-      let dirname = Filename.dirname Sys.executable_name in
+      let dirname = (Filename.dirname Sys.executable_name) in
 
       let size = 200. in
       Fpdf.set_font ~family:`Times ~size doc;
@@ -49,6 +49,11 @@ let main () = begin
       let name = "Lena.jpg" in
       let data = Fpdf_util.fread (dirname // name) in
       Fpdf.image ~x:(x +. height_image) ~y ~name ~data ~height:height_image doc;
+
+      let name = "as.jpg" in
+      let data = Fpdf_util.fread (dirname // name) in
+      Fpdf.image ~x ~y:(y +. height_image) ~name ~data ~height:height_image doc;
+
 
       Fpdf.close_document doc;
       close_file();
