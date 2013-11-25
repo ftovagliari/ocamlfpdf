@@ -267,6 +267,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
   let text_lines = ref [] in
   let width = if width = 0. then doc.w -. doc.r_margin -. doc.pos_x else width in
   let wmax = (width -. 2. *. padding) *. 1000. /. doc.font_size in
+  let font_scale = doc.font_scale in
   let text = Str.global_replace re_cr "" text in
   let nb = String.length text in
   let nb = if nb > 0 && text.[nb - 1] = '\n' then nb - 1 else nb in
@@ -293,7 +294,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
         if printing then (print_buffer doc "0 Tw\n");
       end;
       let text = String.sub text !j (!i - !j) in
-      if printing then (cell ~width ~height ~text ~border:(!b) ~padding ~ln:`Bottom ~align ~fill doc);
+      if printing then (cell ~width ~height ~text ~border:(!b) ~padding ~ln:`Bottom ~align ~fill ?font_scale doc);
       text_lines := text :: !text_lines;
       incr i;
       sep := -1;
@@ -318,7 +319,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
           if printing then (print_buffer doc "0 Tw\n");
         end;
         let text_line = String.sub text !j (!i - !j) in
-        if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill doc);
+        if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill ?font_scale doc);
         text_lines := text_line :: !text_lines;
       end else begin
         if align = `Justified then begin
@@ -327,7 +328,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
           if printing then (print_buffer doc "%.3f Tw\n" (doc.ws *. doc.k))
         end;
         let text_line = String.sub text !j (!sep - !j) in
-        if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill doc);
+        if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill ?font_scale doc);
         text_lines := text_line :: !text_lines;
         i := !sep + 1;
       end;
@@ -346,7 +347,7 @@ let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : alig
   end;
   if (border <> []) && (List.mem `B border) then b := `B :: !b;
   let text_line = String.sub text !j (!i - !j) in
-  if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill doc);
+  if printing then (cell ~width ~height ~text:text_line ~border:(!b) ~padding ~ln:`Bottom ~align ~fill ?font_scale doc);
   text_lines := text_line :: !text_lines;
   if printing then (doc.pos_x <- doc.l_margin) else begin
     doc.ws <- !old_ws;

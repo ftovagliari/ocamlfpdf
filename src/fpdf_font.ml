@@ -33,7 +33,7 @@ let set_font ?family ?(style=[]) ?size ?scale ?char_space doc =
   doc.underline <- List.mem `Underline style;
   let size = match size with None -> doc.font_size_pt | Some x -> x in (*if size = 0. then font_size_pt else size in*)
   (* Test if font is already selected *)
-  if doc.font_family <> family || doc.font_style <> style || doc.font_size_pt <> size then begin
+  if doc.font_family <> family || doc.font_style <> style || doc.font_size_pt <> size || doc.font_scale <> scale then begin
     (* Test if font is used for the first time *)
     let fkey = Font.key_of_font style (match family with None -> assert false | Some f -> f) in
     if not (Fpdf_document.font_exists fkey doc) then begin

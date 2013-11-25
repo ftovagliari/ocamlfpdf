@@ -76,7 +76,6 @@ module Jpeg = struct
     jpeg_Nf : int; (* Number of components in the image: 3 for color baseline JPEG images; 1 for grayscale baseline JPEG images *)
   }
 
-  exception Found of (int * int)
   exception Found_info of t
 
   (** get_info *)

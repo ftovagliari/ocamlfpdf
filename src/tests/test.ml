@@ -41,27 +41,27 @@ let is_fib n =
 let markup = "<SPAN align='0.5' style='bold' size='16'>Purgatorio, CANTO I</SPAN><BR/><BR/><BR/>\
 <SPAN>Per correr </SPAN><SPAN underline='single'>miglior</SPAN><SPAN> </SPAN><SPAN underline='low'>acque</SPAN><SPAN> alza le vele
 omai la navicella del mio ingegno,
-che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='7'>3</SPAN>
+che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='7' rise='5'>3</SPAN>
 
 <SPAN style='italic,bold'>e canter\xF2 di quel </SPAN><SPAN scale='30'>secondo regno</SPAN><SPAN style='italic,bold'>
 dove l\xB4umano spirito si purga
-e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7'>6</SPAN>
+e di salire al ciel diventa degno.</SPAN> <SPAN color='#0000FF' size='7' rise='5'>6</SPAN>
 
 <SPAN family='Courier' size='10' scale='70'>Ma qui la morta poes\xEC resurga,
 o sante Muse, poi che vostro sono;
-e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7'>9</SPAN>
+e qui Cal\xEFop\xE8 alquanto surga,</SPAN> <SPAN color='#0000FF' size='7' rise='5'>9</SPAN>
 
 <SPAN style='bold'>seguitando il mio canto con quel suono
 di cui le Piche misere sentiro
-lo colpo tal, che disperar perdono.</SPAN> <SPAN color='#0000FF' size='7'>12</SPAN>
+lo colpo tal, che disperar perdono.</SPAN> <SPAN color='#0000FF' size='7' rise='5'>12</SPAN>
 
 <SPAN bgcolor='#f0f0ff' color='#ff1010'>Dolce color d\xB4or\xEFental zaffiro,
 che s\xB4accoglieva nel sereno aspetto
-del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7'>15</SPAN>
+del mezzo, puro infino al primo giro,</SPAN> <SPAN color='#0000FF' size='7' rise='5'>15</SPAN>
 
 <SPAN family='Helvetica' >a li occhi miei ricominci\xF2 diletto,
 tosto ch\xB4io usci\xB4 fuor de l\xB4aura morta
-che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7'>18</SPAN>";;
+che m\xB4avea contristati li occhi e \xB4l petto.</SPAN> <SPAN color='#0000FF' size='7' rise='5'>18</SPAN>";;
 
 let lorem_ipsum = "\
 <SPAN size='30' align='0.5' style='bold'>Lorem ipsum</SPAN>
@@ -159,6 +159,7 @@ let main () = begin
         Fpdf.set_line_width 0.1 doc;
         Fpdf.rect ~width:width_avail ~height doc;
         Fpdf.set ~x:margin ~y:margin doc;
+        Fpdf.set_font ~scale:82 doc;
         Fpdf.multi_cell ~width:(width_avail -. width_page_num) ~line_height:height ~text:title doc;
         (* Title and page number *)
         Fpdf.set_font ~family:`Helvetica ~size:10. doc;
@@ -196,7 +197,7 @@ let main () = begin
       markup.Fpdf_markup.print ~x ~y ();
       (*  *)
       let y = y +. markup.Fpdf_markup.height +. 30. in
-      let markup = "<SPAN align='0.5'>\128</SPAN><SPAN style='bold' size='55' bgcolor='#ffff00'>123</SPAN><SPAN style='bold' rise='15' bgcolor='#ffff00'>,</SPAN><SPAN style='bold' rise='15' underline='single' bgcolor='#ffff00'>99</SPAN><SPAN>Prova</SPAN>" in
+      let markup = "<SPAN align='0.5'>\128</SPAN><SPAN style='bold' size='55' bgcolor='#ffff00'>123</SPAN><SPAN style='bold' rise='15' bgcolor='#ffff00'>,</SPAN><SPAN style='bold' rise='15' underline='single' bgcolor='#ffff00'>99</SPAN><SPAN>Test</SPAN>" in
       Fpdf.set_font ~family:`Helvetica ~size:34. doc;
       let markup = Fpdf_markup.prepare ~width ~markup
         ~bgcolor:"#fff0f0" ~border_width:1. ~border_color:"#f00000" (*~border_radius:3.*) doc in

@@ -129,7 +129,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6" sub_targets="">
+    <target name="test" default="true" id="6" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -249,7 +249,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-jpeg" default="true" id="18" sub_targets="">
+    <target name="test-jpeg" default="false" id="18" sub_targets="">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -392,7 +392,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test" default="false" target_id="6" id="3">
+    <executable name="Test" default="true" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -432,7 +432,7 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-jpeg" default="true" target_id="18" id="11">
+    <executable name="test-jpeg" default="false" target_id="18" id="11">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
