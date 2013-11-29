@@ -510,7 +510,7 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
 ;;
 
 (** prepare *)
-let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?(padding=(0., 0., 0., 0.)) ?(line_spacing=1.) (*?pre*) doc =
+let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?border_dash ?(padding=(0., 0., 0., 0.)) ?(line_spacing=1.) (*?pre*) doc =
   let analysis = analyze ~width ~markup ~padding ?border_width ~line_spacing doc in
   analysis.print <- begin fun ~x ~y ?valign () ->
     let width = analysis.width in
@@ -538,7 +538,7 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
       in
       (match style with None -> () | Some style ->
         let bw = match border_width with None -> 0. | Some x -> x in
-        (*let height = match height with Some h -> h | _ -> analysis.height in*)
+        Fpdf_util.may ~f:(fun (pattern, phase) -> Fpdf.set_line_dash pattern ~phase doc) border_dash;
         Fpdf.rect ~x:(x +. bw /. 2.) ~y:(y +. bw /. 2.) ?radius:border_radius
           ~width:(width -. bw)
           ~height:(analysis.height -. bw) ~style doc);

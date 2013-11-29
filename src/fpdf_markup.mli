@@ -75,6 +75,7 @@ and attributes = {
     @param border_width Border width.
     @param border_color Border color.
     @param border_radius Radius for boxes with rounded corners.
+    @param border_dash Border dash pattern.
     @param padding Top, right, bottom and left internal padding.
     @return A {!Fpdf_markup.analysis} record.
     @raise Error(Invalid_markup) If an error occurs.
@@ -88,6 +89,7 @@ val prepare :
   ?border_width:float ->
   ?border_color:string ->
   ?border_radius:(float * float * float * float) ->
+  ?border_dash:(int list * int) ->
   ?padding:(float * float * float * float) ->
   ?line_spacing:float ->
   Fpdf.t -> analysis
