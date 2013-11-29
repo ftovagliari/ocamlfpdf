@@ -181,7 +181,7 @@ let main () = begin
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
       let markup = Fpdf_markup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
-        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_radius:radius doc in
+        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_dash:([2; 3], 0) ~border_radius:radius doc in
       markup.Fpdf_markup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
       (** Markup and wrap char *)

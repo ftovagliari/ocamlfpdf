@@ -523,6 +523,7 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
     let old_font_scale = Fpdf.font_scale doc in
     let old_line_width = Fpdf.line_width doc in
     let y = match valign with Some (h, valign) when h >= analysis.height -> y +. (h -. analysis.height) *. valign | _ -> y in
+    Fpdf_graphics_state.push doc;
     begin
       (match bgcolor with None -> () | Some bgcolor -> let red, green, blue = Fpdf_util.rgb_of_hex bgcolor in Fpdf.set_fill_color ~red ~green ~blue doc);
       (match border_color with None -> () | Some color -> let red, green, blue = Fpdf_util.rgb_of_hex color in Fpdf.set_draw_color ~red ~green ~blue doc);
@@ -543,6 +544,7 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
           ~width:(width -. bw)
           ~height:(analysis.height -. bw) ~style doc);
     end;
+    Fpdf_graphics_state.pop doc;
     (*(match pre with Some f -> f analysis | _ -> ());*)
     print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
     if Fpdf.text_color doc <> old_text_color then (let red, green, blue = old_text_color in Fpdf.set_text_color ~red ~green ~blue doc);
