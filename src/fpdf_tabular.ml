@@ -85,6 +85,8 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
     debug;
   }
 
+let add_page_break_before row table = table.page_breaks <- row :: table.page_breaks
+
 let set t row col ~width ~height ?(rowspan=1) ?(colspan=1) callback =
   let cell = { cell_x=0.; cell_y=0.; width; height; rowspan; colspan; callback; cell_width=0.; cell_height=0. } in
   let coords = row, col in
@@ -93,11 +95,10 @@ let set t row col ~width ~height ?(rowspan=1) ?(colspan=1) callback =
   t.cols <- max t.cols (col + 1)
 
 let set_markup =
-  let open Fpdf_markup in
   let align content xalign yalign ~x ~y ~col_width ~row_height =
-    let x = x +. (col_width -. content.width) *. xalign in
-    let y = y +. (row_height -. content.height) *. yalign in
-    content.print ~x ~y ()
+    let x = x +. (col_width -. content.Fpdf_markup.width) *. xalign in
+    let y = y +. (row_height -. content.Fpdf_markup.height) *. yalign in
+    content.Fpdf_markup.print ~x ~y ()
   in
   fun table row col ?rowspan ?(colspan=1) ?(xalign=0.5) ?(yalign=0.5) ?padding ?line_spacing markup ->
     let width = ref 0.0 in
@@ -109,9 +110,13 @@ let set_markup =
       in
       width := !width +. colwidth
     done;
-    let content = Fpdf_markup.prepare ?padding ~width:!width ?line_spacing (*~border_width:0.1 ~border_color:"#00ff00" *)~markup table.doc in
-    set table row col ?rowspan ~colspan ~width:content.width ~height:content.height
-      (align content xalign yalign)
+    if String.length (String.trim markup) > 0 then begin
+      let content = Fpdf_markup.prepare ?padding ~width:!width ?line_spacing
+          (*~border_width:0.1 ~border_color:"#00ff00"*)
+          ~markup table.doc in
+      set table row col ?rowspan ~colspan ~width:content.Fpdf_markup.width ~height:content.Fpdf_markup.height
+        (align content xalign yalign)
+    end
 
 let find_cell t row col =
   try Some (List.assoc (row, col) t.cells)
@@ -123,30 +128,48 @@ let col_width t n =
 
 let row_height t n =
   let cells = List.filter (fun ((r, _), _) -> r = n) t.cells in
-  List.fold_left (fun acc (_, cell) -> max acc cell.height) 0.0 cells
+  List.fold_left (fun acc (_, cell) -> if cell.rowspan = 1 then max acc cell.height else acc) 0.0 cells
 
 let table_width t =
   let res = ref 0.0 in
-  for j = 0 to t.cols - 1 do res := !res +. col_width t j +. 2. *. t.padding done;
+  for j = 0 to t.cols - 1 do res := !res +. col_width t j (*+. 2. *. t.padding*) done;
   !res
 
 let table_height t =
   let res = ref 0.0 in
-  for i = 0 to t.rows - 1 do res := !res +. row_height t i +. 2. *. t.padding done;
+  for i = 0 to t.rows - 1 do res := !res +. row_height t i (*+. 2. *. t.padding*) done;
   !res
 
 let add_vertical_line ?line_width ~rowstart ?rowstop ~col table =  table.v_lines <- (line_width, rowstart, rowstop, col) :: table.v_lines
 let add_horizontal_line ?line_width ~colstart ?colstop ~row table =  table.h_lines <- (line_width, colstart, colstop, row) :: table.h_lines
 
-let add_page_break_before row table = table.page_breaks <- row :: table.page_breaks
-
 let line_intersection xh1 xh2 yh    xv yv1 yv2 =
   if xh1 < xv && xv < xh2 && yv1 < yh && yh < yv2 then Some xv else None
 
-let pack t =
-  (* Structure cells as matrix for not having to search them *)
+let build_matrix t =
   let matrix = Array.make_matrix t.rows t.cols None in
   List.iter (fun ((row, col), cell) -> matrix.(row).(col) <- Some cell) t.cells;
+  matrix
+
+let iter_rows matrix f = Array.iteri f matrix
+
+(** crono *)
+let crono ?(label="Time") f x =
+  let finally time =
+    Printf.fprintf stdout "%s: %f sec." label (Unix.gettimeofday() -. time);
+    print_newline();
+  in
+  let time = Unix.gettimeofday() in
+  let result = try f x with e -> begin
+    finally time;
+    raise e
+  end in
+  finally time;
+  result
+
+let pack ?matrix t =
+  (* Structure cells as matrix for not having to search them *)
+  let matrix = match matrix with Some x -> x | _ -> build_matrix t in
   (* Calculate table dimensions *)
   let col_widths = Array.create t.cols 0.0 in
   Array.iteri begin fun c _ ->
@@ -191,7 +214,7 @@ let pack t =
   (* Print table border *)
   let print_table_border ~start ~stop () =
     match t.border_width with
-      | Some border_width ->
+      | Some border_width when border_width <> `Size 0.0 ->
         Fpdf.push_graphics_state t.doc;
         Fpdf.set_line_width (size_of_thickness border_width) t.doc;
         let height = table_height_rows start stop in
@@ -335,7 +358,9 @@ let pack t =
             cell.cell_x <- t.x;
             cell.cell_y <- t.y;
             if t.debug then begin
+              let old_line_width = Fpdf.line_width t.doc in
               Fpdf_graphics_state.push t.doc;
+              Fpdf.set_line_width 0.1 t.doc;
               Fpdf.set_text_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
@@ -346,8 +371,9 @@ let pack t =
               Fpdf.set ~x:cell.cell_x ~y:(cell.cell_y +. 1.) t.doc;
               Fpdf.cell ~width:10. ~font_size:3. ~font_family:`Helvetica ~font_style:[`Italic]
                 ~text:(sprintf "(%.1d, %.1d) h=%.1f y=%.1f"
-                         i j row_heights.(i) cell.cell_y) t.doc;
+                         i j row_heights.(i) cell.cell_y) t.doc ;
               Fpdf_graphics_state.pop t.doc;
+              Fpdf.set_line_width old_line_width t.doc;
             end
           | _ -> ()
       end;

@@ -81,6 +81,30 @@
       <restrictions></restrictions>
       <dependencies>17</dependencies>
     </target>
+    <target name="ocamlfpdf" default="true" id="19" sub_targets="">
+      <descr></descr>
+      <byt>false</byt>
+      <opt>true</opt>
+      <libs>font</libs>
+      <other_objects></other_objects>
+      <files>ocamlfpdf.ml</files>
+      <package>str,unix,xml-light,zip</package>
+      <includes>font tests</includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <cflags>-w y -g</cflags>
+      <lflags>-g</lflags>
+      <target_type>Executable</target_type>
+      <outname>ocamlfpdf</outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks/>
+      <restrictions></restrictions>
+      <dependencies>0</dependencies>
+    </target>
     <target name="markup-editor" default="false" id="8" sub_targets="">
       <descr>Lablgtk widget for editing PDFMarkup.</descr>
       <byt>true</byt>
@@ -129,7 +153,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="true" id="6" sub_targets="">
+    <target name="test" default="false" id="6" sub_targets="">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -319,7 +343,7 @@
       <lib_install_path></lib_install_path>
       <external_tasks/>
       <restrictions></restrictions>
-      <dependencies>0</dependencies>
+      <dependencies>17,0</dependencies>
     </target>
     <target name="Tools" default="false" id="11" sub_targets="">
       <descr></descr>
@@ -392,7 +416,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test" default="true" target_id="6" id="3">
+    <executable name="Test" default="false" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -422,7 +446,7 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-tabular" default="false" target_id="15" id="9">
+    <executable name="test-tabular" default="true" target_id="15" id="9">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
@@ -437,11 +461,21 @@
       <env replace="false"/>
       <args/>
     </executable>
+    <executable name="ocamlfpdf" default="false" target_id="19" id="12">
+      <build_task>&lt;COMPILE&gt;</build_task>
+      <env replace="false"/>
+      <args>
+        <arg enabled="false">C:\devel\ocamlfpdf\src\tests\test.xml</arg>
+        <arg enabled="true">C:\Users\f.tovagliari.ALIAS\AppData\Local\Temp\8670b2e2-3d0b-44b1-bb50-f7284d9757e4.markdown</arg>
+        <arg enabled="true">-a</arg>
+      </args>
+    </executable>
   </executables>
   <build_script filename="build.ml">
     <targets>
       <target target_id="17" show="true"/>
       <target target_id="0" show="true"/>
+      <target target_id="19" show="true"/>
       <target target_id="8" show="true"/>
       <target target_id="9" show="true"/>
       <target target_id="6" show="true"/>

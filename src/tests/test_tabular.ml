@@ -30,6 +30,7 @@ let main () = begin
   begin
     try
       let doc = Fpdf.create ~orientation:`Landscape ~outchan () in
+      Fpdf.set_auto_page_break false doc;
       Fpdf_font.embed_font ~family:`CenturySchoolbook ~style:[] doc;
       Fpdf_font.embed_font ~family:`CenturySchoolbook ~style:[`Italic] doc;
       Fpdf_font.embed_font ~family:`CenturySchoolbook ~style:[`Bold] doc;
@@ -45,10 +46,11 @@ let main () = begin
       let font_size     = 9.0 in
       let small_font    = font_size -. 2.0 in
       let line_spacing  = 1.5 in
-      let margin_top    = 10.0 in
-      let margin_right  = 10.0 in
-      let margin_bottom = 10.0 in
-      let margin_left   = 10.0 in
+      let margin        = 2. in
+      let margin_top    = margin in
+      let margin_right  = margin in
+      let margin_bottom = margin in
+      let margin_left   = margin in
       let width_avail   = Fpdf_page.page_width doc -. margin_left -. margin_right in
       let height_avail  = Fpdf_page.page_height doc -. margin_top -. margin_bottom in
       Fpdf.set_margins ~top:margin_top ~right:margin_right ~bottom:margin_bottom ~left:margin_left doc;
@@ -58,9 +60,10 @@ let main () = begin
       Fpdf.add_page doc;
       Fpdf.set_font ~family:`CMUSerif ~size:font_size doc;
       let x = margin_left in
+
       let y0 = margin_top +. 50. in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
-      let table = Fpdf_tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
+      let table = Fpdf_tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:true doc in
 
       let set = Fpdf_tabular.set_markup table in
       let markup ?(style="") ?(align=0.5) ?(family="CMUSerif") ?char_space ?font_scale ?font_size text =
@@ -72,9 +75,11 @@ let main () = begin
           text
       in
 
+      (*  *)
+
       set 0 0 ~rowspan:3 ~colspan:2 (markup ~char_space:2. ~font_scale:105 "GRANDEZZE");
       set 0 2 ~rowspan:3 (markup "Simbolo\ne\nlegame dimensionale");
-      set 0 3 ~rowspan:3 ("<SPAN align='0.5' scale='90'>Dimensioni (1)</SPAN>");
+      set 0 3 ~rowspan:3 (markup ~font_scale:90 "Dimensioni (1)");
 
       set 0 4 ~colspan:2 ~padding:(1.5,0.,1.5,0.) (markup "SISTEMA GIORGI (M. K. S.)");
       set 1 4 ~colspan:2 ~padding:(1.5,0.,1.5,0.) (sprintf "<SPAN align='0.5'>UNIT\192 FONDAMENTALI</SPAN><BR/><SPAN align='0.5' size='%f'>metro, chilogrammo (massa), secondo</SPAN>" small_font);
@@ -97,6 +102,8 @@ let main () = begin
            small_font small_font small_font small_font);
       set 2 10 (markup ~font_size:small_font "Sist. Giorgi");
       set 2 11 (markup ~font_size:small_font "Sist. C.G.S.");
+
+      (*  *)
 
       set 3 0 ~rowspan:4 (markup "G");
       set 3 1 (markup ~style:"italic" ~align:0.0 "Lunghezza");
@@ -134,9 +141,34 @@ let main () = begin
       set 5 7 (markup ~align:0.0 "");
       set 6 7 (markup ~align:0.0 "");
 
+      set 3 8 (markup ~align:0.0 "");
+      set 4 8 (markup ~align:0.0 "");
+      set 5 8 (markup ~align:0.0 "");
+      set 6 8 (markup ~align:0.0 "");
+
+      set 3 9 (markup ~align:0.0 "");
+      set 4 9 (markup ~align:0.0 "");
+      set 5 9 (markup ~align:0.0 "");
+      set 6 9 (markup ~align:0.0 "");
+
+      set 3 10 (markup ~align:0.0 "");
+      set 4 10 (markup ~align:0.0 "");
+      set 5 10 (markup ~align:0.0 "");
+      set 6 10 (markup ~align:0.0 "");
+
+      set 3 11 (markup ~align:0.0 "");
+      set 4 11 (markup ~align:0.0 "");
+      set 5 11 (markup ~align:0.0 "");
+      set 6 11 (markup ~align:0.0 "");
+
+
       let last_h = ref 0. in
       let count_table_pages = ref 0 in
-      for i = 7 to 170 do
+      let y_max = margin_top +. height_avail in
+      let current_table_height = ref (Fpdf_tabular.table_height table) in
+
+      for i = 7 to 500 do
+        let origin = if !count_table_pages = 0 then y0 else margin_top in
         set i 0 (kprintf markup "%d" i);
         set i 1 (markup "A");
         set i 2 (markup "A");
@@ -145,11 +177,20 @@ let main () = begin
         set i 5 (markup "A");
         set i 6 (markup "A");
         set i 7 (markup "A");
-        let cur_height_in_page = Fpdf_tabular.table_height table -. !last_h in
-        let yy = (if !count_table_pages = 0 then y0 else margin_top) +. cur_height_in_page in
-        if yy > margin_top +. height_avail then begin
+        set i 8 (markup "A");
+        set i 9 (markup "A");
+        set i 10 (markup "A");
+        set i 11 (markup "A");
+        let current_row_height = Fpdf_tabular.row_height table i in
+        current_table_height := !current_table_height +. current_row_height;
+        let cur_height_in_page = !current_table_height (*Fpdf_tabular.table_height table*) -. !last_h in
+        let yy = origin +. cur_height_in_page in
+        (*Printf.printf "i=%d; cur_height_in_page=%f; yy=%f; count_table_pages=%d; origin:=%f; Y-MAX=%f; last_h=%f\n%!"
+          i cur_height_in_page yy !count_table_pages origin y_max !last_h;*)
+        if yy > y_max then begin
+          (*Printf.printf "------------------------------------------\n%!" ;*)
           incr count_table_pages;
-          last_h := cur_height_in_page -. Fpdf_tabular.row_height table i;
+          last_h := !last_h +. cur_height_in_page -. current_row_height;
           Fpdf_tabular.add_page_break_before i table;
         end
       done;
@@ -166,10 +207,10 @@ let main () = begin
       Fpdf_tabular.add_vertical_line ~rowstart:0 ~col:10 table;
       Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:11 table;*)
 
-      Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
+      (*Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
       Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;
       Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:5 table;
-      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;
+      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;*)
 
       (*Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
       Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:11 ~row:2 table;

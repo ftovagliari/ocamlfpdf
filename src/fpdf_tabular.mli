@@ -67,4 +67,6 @@ val add_horizontal_line :
   colstart:int -> ?colstop:int -> row:int -> t -> unit
 val add_page_break_before : int -> t -> unit
 val line_intersection : 'a -> 'a -> 'b -> 'a -> 'b -> 'b -> 'a option
-val pack : t -> unit
+val build_matrix : t -> cell option array array
+val iter_rows : cell option array array -> (int -> cell option array -> unit) -> unit
+val pack : ?matrix:(cell option array array) -> t -> unit

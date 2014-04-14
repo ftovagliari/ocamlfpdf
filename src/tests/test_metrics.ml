@@ -44,7 +44,11 @@ let main () = begin
   let filename_tmp = Sys.argv.(0) ^ ".tmp" in
   let filename = Sys.argv.(0) ^ ".pdf" in
   let outchan = open_out_bin filename_tmp in
-  let close_file () = close_out outchan in
+  let close_file () =
+    close_out_noerr outchan;
+    if Sys.file_exists filename then Sys.remove filename;
+    Sys.rename filename_tmp filename
+  in
   begin
     try
       let doc               = Fpdf.create ~orientation:`Landscape ~outchan () in
@@ -246,7 +250,7 @@ let main () = begin
         raise ex
       end
   end;
-  Printf.printf "
+  Printf.eprintf "
   +-----------------------------------------------------------------------------
   |
   | Please see output file %s

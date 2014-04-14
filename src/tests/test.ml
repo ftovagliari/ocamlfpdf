@@ -175,7 +175,7 @@ let main () = begin
       let x = margin in
       let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
-      let height = height_avail in
+      let height = height_avail in 
       Fpdf.set_line_width 1.0 doc;
       Fpdf.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
