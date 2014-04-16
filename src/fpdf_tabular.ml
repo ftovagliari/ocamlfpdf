@@ -28,8 +28,8 @@ type t = {
   doc                      : Fpdf.t;
   x0                       : float;
   y0                       : float;
-  mutable x               : float;
-  mutable y               : float;
+  mutable x                : float;
+  mutable y                : float;
   mutable rows             : int;
   mutable cols             : int;
   mutable cells            : ((int * int) * cell) list; (* row x column *)
@@ -38,7 +38,7 @@ type t = {
   padding                  : float;
   mutable v_lines          : (thickness option * int * int option * int) list; (* line_width, rowstart, rowstop, col *)
   mutable h_lines          : (thickness option * int * int option * int) list; (* line_width, colstart, colstop, row *)
-  mutable page_breaks      : int list; (* Row indexes before whose a page break is inserted *)
+  mutable page_breaks      : (int * (unit -> unit)) list; (* Row indexes before whose a page break is inserted *)
   debug                    : bool;
 }
 
@@ -61,7 +61,7 @@ let line_disjoin = 0.65
 let size_of_thickness = function `Thin -> 0.1 | `Medium -> 0.25 | `Thick -> 0.5 | `Size x -> x
 
 let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debug=false) doc =
-  let (!!) x = width *. x /. 100. in
+  let (!!) x = width *. x /. 100. -. 2. *. padding in
   let sum = Array.fold_left (+.) 0.0 colwidths in
   if sum > 100. then
     (error Invalid_colwidths
@@ -85,7 +85,8 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
     debug;
   }
 
-let add_page_break_before row table = table.page_breaks <- row :: table.page_breaks
+let add_page_break_before row table callback =
+  table.page_breaks <- (row, callback) :: table.page_breaks
 
 let set t row col ~width ~height ?(rowspan=1) ?(colspan=1) callback =
   let cell = { cell_x=0.; cell_y=0.; width; height; rowspan; colspan; callback; cell_width=0.; cell_height=0. } in
@@ -323,17 +324,21 @@ let pack ?matrix t =
   t.y <- t.y0;
   Array.iteri begin fun i row ->
     (* Page Break *)
-    if List.mem i t.page_breaks then begin
-      print_table_border ~start:!page_start_row ~stop:(i - 1) ();
-      print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
-      print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
-      v_lines := [];
-      Fpdf.add_page t.doc;
-      let margin_top, _, _, _ = Fpdf.margins t.doc in
-      page_start_row := i;
-      t.y <- margin_top
+    begin
+      try
+        let callback = List.assoc i t.page_breaks in
+        print_table_border ~start:!page_start_row ~stop:(i - 1) ();
+        print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
+        print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
+        v_lines := [];
+        Fpdf.add_page t.doc;
+        let margin_top, _, _, _ = Fpdf.margins t.doc in
+        page_start_row := i;
+        t.y <- margin_top;
+        callback ()
+      with Not_found -> ()
     end;
-    (* Print row *)
+    (* Print rows *)
     t.x <- t.x0;
     let rh = row_heights.(i) in
     t.y <- t.y +. t.padding;
@@ -365,7 +370,10 @@ let pack ?matrix t =
               Fpdf.set_fill_color ~red:150 ~green:150 ~blue:150 t.doc;
               Fpdf.set_draw_color ~red:250 ~green:150 ~blue:150 t.doc;
               let radius = 3.0 *. line_disjoin in
-              Fpdf.rect ~x:t.x ~y:t.y ~width:cell.cell_width ~height:cell.cell_height ~radius:(radius, radius, radius, radius) t.doc;
+              Fpdf.rect ~x:(t.x +. t.padding) ~y:(t.y +. t.padding)
+                ~width:(cell.cell_width -. 2. *. t.padding)
+                ~height:(cell.cell_height -. 2. *. t.padding)
+                ~radius:(radius, radius, radius, radius) t.doc;
               Fpdf.line ~x1:t.x ~y1:t.y ~x2:(t.x +. cell.cell_width) ~y2:(t.y +. cell.cell_height) t.doc;
               Fpdf.line ~x1:(t.x +. cell.cell_width) ~y1:t.y ~x2:t.x ~y2:(t.y +. cell.cell_height) t.doc;
               Fpdf.set ~x:cell.cell_x ~y:(cell.cell_y +. 1.) t.doc;

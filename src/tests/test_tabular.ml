@@ -63,7 +63,7 @@ let main () = begin
 
       let y0 = margin_top +. 50. in
       let colwidths = [| 2.0; 15.; 7.5; 5.5; 11.0; 7.0; 11.0; 7.0; 11.0; 7.0; 7.; 9. |] in
-      let table = Fpdf_tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:true doc in
+      let table = Fpdf_tabular.create ~x ~y:y0 ~border_width:`Thick ~padding:0.0 ~width:width_avail ~colwidths ~debug:false doc in
 
       let set = Fpdf_tabular.set_markup table in
       let markup ?(style="") ?(align=0.5) ?(family="CMUSerif") ?char_space ?font_scale ?font_size text =
@@ -167,7 +167,7 @@ let main () = begin
       let y_max = margin_top +. height_avail in
       let current_table_height = ref (Fpdf_tabular.table_height table) in
 
-      for i = 7 to 500 do
+      for i = 7 to 300 do
         let origin = if !count_table_pages = 0 then y0 else margin_top in
         set i 0 (kprintf markup "%d" i);
         set i 1 (markup "A");
@@ -191,7 +191,7 @@ let main () = begin
           (*Printf.printf "------------------------------------------\n%!" ;*)
           incr count_table_pages;
           last_h := !last_h +. cur_height_in_page -. current_row_height;
-          Fpdf_tabular.add_page_break_before i table;
+          Fpdf_tabular.add_page_break_before i table (fun () -> ());
         end
       done;
 
@@ -208,9 +208,9 @@ let main () = begin
       Fpdf_tabular.add_vertical_line ~rowstart:2 ~col:11 table;*)
 
       (*Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:7 ~row:25 table;
-      Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;
-      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:5 table;
-      Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;*)
+      Fpdf_tabular.add_horizontal_line ~colstart:1 ~colstop:8 ~row:35 table;*)
+      Fpdf_tabular.add_vertical_line ~line_width:`Medium ~rowstart:3 ~rowstop:100 ~col:2 table;
+      (*Fpdf_tabular.add_vertical_line ~rowstart:20 ~rowstop:40 ~col:2 table;*)
 
       (*Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:8 ~row:1 table;
       Fpdf_tabular.add_horizontal_line ~colstart:4 ~colstop:11 ~row:2 table;

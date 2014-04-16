@@ -161,38 +161,9 @@ let targets = [
   };
   
   (* 3 *)
-  "ocamlfpdf", {
-    descr                = "";
-    num                  = 3;
-    id                   = 19;
-    output_name          = "ocamlfpdf";
-    target_type          = Executable;
-    compilation_bytecode = false;
-    compilation_native   = true;
-    toplevel_modules     = "ocamlfpdf.ml";
-    package              = "str,unix,xml-light,zip";
-    search_path          = "font tests"; (* -I *)
-    required_libraries   = "font";
-    compiler_flags       = "-w y -g";
-    linker_flags         = "-g";
-    thread               = false;
-    vmthread             = false;
-    pp                   = "";
-    inline               = None;
-    nodep                = false;
-    dontlinkdep          = false;
-    library_install_dir  = ""; (* Relative to the Standard Library Directory *)
-    other_objects        = "";
-    external_tasks       = [];
-    restrictions         = [];
-    dependencies         = [0];
-    show                 = true;
-  };
-  
-  (* 4 *)
   "markup-editor", {
     descr                = "Lablgtk widget for editing PDFMarkup.";
-    num                  = 4;
+    num                  = 3;
     id                   = 8;
     output_name          = "gtk_pdfmarkup_editor";
     target_type          = Library;
@@ -218,10 +189,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 5 *)
+  (* 4 *)
   "fpdf-byt", {
     descr                = "";
-    num                  = 5;
+    num                  = 4;
     id                   = 9;
     output_name          = "fpdf";
     target_type          = Library;
@@ -247,10 +218,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 6 *)
+  (* 5 *)
   "test", {
     descr                = "";
-    num                  = 6;
+    num                  = 5;
     id                   = 6;
     output_name          = "tests/test";
     target_type          = Executable;
@@ -276,10 +247,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 7 *)
+  (* 6 *)
   "test-markup-editor", {
     descr                = "";
-    num                  = 7;
+    num                  = 6;
     id                   = 7;
     output_name          = "tests/test_pdfmarkup_editor";
     target_type          = Executable;
@@ -305,10 +276,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 8 *)
+  (* 7 *)
   "test-form", {
     descr                = "";
-    num                  = 8;
+    num                  = 7;
     id                   = 10;
     output_name          = "tests/testForm";
     target_type          = Executable;
@@ -334,10 +305,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 9 *)
+  (* 8 *)
   "test-compress", {
     descr                = "";
-    num                  = 9;
+    num                  = 8;
     id                   = 12;
     output_name          = "test_compress";
     target_type          = Executable;
@@ -363,10 +334,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 10 *)
+  (* 9 *)
   "test-png", {
     descr                = "";
-    num                  = 10;
+    num                  = 9;
     id                   = 14;
     output_name          = "tests/test-png";
     target_type          = Executable;
@@ -392,10 +363,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 11 *)
+  (* 10 *)
   "test-jpeg", {
     descr                = "";
-    num                  = 11;
+    num                  = 10;
     id                   = 18;
     output_name          = "tests/test_jpeg";
     target_type          = Executable;
@@ -421,10 +392,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 12 *)
+  (* 11 *)
   "test-tabular", {
     descr                = "";
-    num                  = 12;
+    num                  = 11;
     id                   = 15;
     output_name          = "tests/test-tabular";
     target_type          = Executable;
@@ -450,10 +421,10 @@ let targets = [
     show                 = true;
   };
   
-  (* 13 *)
+  (* 12 *)
   "test-metrics", {
     descr                = "";
-    num                  = 13;
+    num                  = 12;
     id                   = 16;
     output_name          = "tests/test-metrics";
     target_type          = Executable;
@@ -479,7 +450,7 @@ let targets = [
     show                 = true;
   };
   
-  (* 13 *)
+  (* 12 *)
   "Tools", {
     descr                = "";
     num                  = 0;
