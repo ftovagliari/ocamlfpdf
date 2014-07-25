@@ -60,6 +60,7 @@ val fields : t -> field list
   @param font_family Font family.
   @param font_size Font size. A zero value means that the font size is to be {i autosized} according to [height].
   @param font_style Font size.
+  @param font_scale Font scale.
   @param maxlength The maximum length of the field's text, in characters.
   @param comb See {i PDF Reference version 1.7, table 8.77}
   @param readonly Whether the user may change the value of the field.
@@ -87,6 +88,7 @@ val add_text_field :
   ?font_family:Font.family option ->
   ?font_size:float ->
   ?font_style:Font.style list ->
+  ?font_scale:int ->
   ?maxlength:int ->
   ?comb:int ->
   ?readonly:bool ->

@@ -175,7 +175,7 @@ let main () = begin
       let x = margin in
       let y = margin +. height_header (* *. 5. /. 3.*) in
       let width = (*50.*) width_avail (*/. 2.3*) in
-      let height = height_avail in 
+      let height = height_avail in
       Fpdf.set_line_width 1.0 doc;
       Fpdf.rect ~x ~y ~width ~height ~style:`Outline doc;
       let width = width_avail *. 0.85 in
@@ -260,6 +260,23 @@ let main () = begin
       end [|0.15; 0.23; 0.62|];
       vbox#pack();
 
+      (* Test line break in multi_cell with scaled font. *)
+      let mktext s = String.concat "" (Array.to_list (Array.create 4 s)) in
+      let align = `Center (*`Justified*) in
+      let y = margin +. height_header +. 100. in
+      Fpdf.rect ~x ~y ~width ~height:30. doc;
+      Fpdf.set ~x ~y doc;
+      Fpdf.set_font ~scale:50 doc;
+      let text = "Test line break in multi_cell with scaled font. " in
+      Fpdf.multi_cell ~width ~line_height:5. ~align ~text:(mktext text) doc;
+
+      let y = margin +. height_header +. 140. in
+      Fpdf.rect ~x ~y ~width ~height:30. doc;
+      Fpdf.set ~x ~y doc;
+      Fpdf.set_font doc;
+      let text = "Test line break in multi_cell with normal font. " in
+      Fpdf.multi_cell ~width ~line_height:5. ~align ~text:(mktext text) doc;
+
       (** Horizontal box *)
       Fpdf.add_page doc;
       ignore (Fpdf_bookmark.add ~text:"Horizontal box" doc);
@@ -279,7 +296,7 @@ let main () = begin
               | Some x -> x | _ -> assert false
           in
           let size = Fpdf_util.fixpoint begin fun size ->
-            let text_width = Fpdf.get_text_width font.Fpdf_document.font_metrics size text in
+            let text_width = Fpdf.get_text_width font.Fpdf_document.font_metrics size None text in
             let text_width = text_width /. (Fpdf.scale doc) in
             if text_width < child_inner_width then size else (size -. 0.25)
           end 30. in

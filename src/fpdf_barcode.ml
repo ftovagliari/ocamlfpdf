@@ -89,7 +89,7 @@ struct
             | Some font -> font.Fpdf_document.font_metrics
             | _ -> failwith "No current font"
         in
-        let text_width = Fpdf.get_text_width font size barcode /. Fpdf.scale doc in
+        let text_width = Fpdf.get_text_width font size None barcode /. Fpdf.scale doc in
         let x = x +. margin +. (barcode_width -. text_width) /. 2. in
         let y = y +. height +. (size -. 1.) /. Fpdf.scale doc in
         Fpdf.text ~x ~y ~text:barcode doc;
@@ -221,7 +221,7 @@ struct
     let width' = 60. *. width in
     let scale = Fpdf.scale doc in
     let fsize = fixpoint begin fun size ->
-      let text_width = Fpdf_text.get_text_width font.Fpdf_document.font_metrics size barcode in
+      let text_width = Fpdf_text.get_text_width font.Fpdf_document.font_metrics size None barcode in
       if text_width /. scale < width' then size else (size -. 0.25)
     end 30. in
     Fpdf.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
@@ -417,7 +417,7 @@ module Code128C =
                 | Some font -> font.Fpdf_document.font_metrics
                 | _ -> failwith "No current font"
             in
-            let text_width = Fpdf.get_text_width font size text /. Fpdf.scale doc in
+            let text_width = Fpdf.get_text_width font size None text /. Fpdf.scale doc in
             let barcode_width = float (get_width ~barcode) *. baseline in
             let x = x +. (barcode_width -. text_width) /. 2. in
             Fpdf.text ~x ~y:(y +. height +. (size -. 1.) /. Fpdf.scale doc) ~text doc

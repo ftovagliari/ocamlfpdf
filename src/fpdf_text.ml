@@ -28,12 +28,19 @@ open Printf
 open Font
 
 (** get_text_width *)
-let get_text_width font font_size =
+let get_text_width font font_size font_scale =
   let cw = font.charMetrics in
-  fun str ->
-    let width = ref 0 in
-    String.iter (fun c -> width := !width + (cw c)) str;
-    (float !width) *. font_size /. 1000.;;
+  match font_scale with
+    | None ->
+      fun str ->
+        let width = ref 0 in
+        String.iter (fun c -> width := !width + (cw c)) str;
+        (float !width) *. font_size /. 1000.
+    | Some fs ->
+      fun str ->
+        let width = ref 0 in
+        String.iter (fun c -> width := !width + (fs * cw c / 100)) str;
+        (float !width) *. font_size /. 1000.;;
 
 (** get_text_width_current_font *)
 let get_text_width_current_font str doc =
@@ -42,7 +49,7 @@ let get_text_width_current_font str doc =
     | Some f -> f
     | _ -> failwith "get_text_width_current_font: no current font."
   in
-  get_text_width font.font_metrics doc.font_size str;;
+  get_text_width font.font_metrics doc.font_size doc.font_scale str;;
 
 (** TODO *)
 let do_underline x y txt = ""
@@ -262,12 +269,18 @@ let write ~height ?padding ~text ?link doc =
 let multi_cell' ~width ~line_height ~text ?border ?padding ?(align=(`Left : align)) ?(fill = false) ?(printing=true) doc =
   let height = line_height in
   let padding = match padding with None -> doc.c_margin | Some x -> x in
-  let cw = match doc.current_font with None -> failwith "multi_cell: no current font."
-    | Some f -> f.font_metrics.charMetrics in
   let text_lines = ref [] in
   let width = if width = 0. then doc.w -. doc.r_margin -. doc.pos_x else width in
   let wmax = (width -. 2. *. padding) *. 1000. /. doc.font_size in
   let font_scale = doc.font_scale in
+  let cw = match doc.current_font with None -> failwith "multi_cell: no current font."
+    | Some f ->
+      begin
+        match font_scale with
+          | Some s -> fun x -> f.font_metrics.charMetrics x * s / 100
+          |  _ -> f.font_metrics.charMetrics
+      end
+  in
   let text = Str.global_replace re_cr "" text in
   let nb = String.length text in
   let nb = if nb > 0 && text.[nb - 1] = '\n' then nb - 1 else nb in

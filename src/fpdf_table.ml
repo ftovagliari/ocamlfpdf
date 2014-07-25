@@ -314,7 +314,7 @@ let print
                         | Some font -> font.Fpdf_document.font_metrics
                         | _ -> failwith "No current font"
                     in
-                    let text_width = Fpdf.get_text_width font (Fpdf.font_size doc) properties.prop_text in (* Works only with regular font *)
+                    let text_width = Fpdf.get_text_width font (Fpdf.font_size doc) (Fpdf.font_scale doc) properties.prop_text in (* Works only with regular font *)
                     let line_height = match properties.prop_font_size with None -> line_height | Some x -> Fpdf.font_size doc /. Fpdf.scale doc *. line_spacing in
                     if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
                   | Some image ->

@@ -40,6 +40,7 @@ type t = {
   parent                    : field option;
   font_family               : Font.family option;
   font_size                 : float;
+  font_scale                : int option;
   font_style                : Font.style list;
   name                      : string;
   alt_name                  : string option;
@@ -158,7 +159,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     ?border
     ?bgcolor ?fgcolor
     ?bgcolor_ap ?fgcolor_ap
-    ?font_family ?(font_size(*=0.0*)) ?font_style
+    ?font_family ?(font_size(*=0.0*)) ?font_style ?font_scale
     ?maxlength ?comb ?(readonly=false) ?(hidden=false)
     ?(justification=`Left)
     ?(value="")
@@ -184,7 +185,7 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     width  = width *. scale;
     height = height *. scale;
     obj    = 0;
-    border; bgcolor; fgcolor; bgcolor_ap; fgcolor_ap; id; parent; font_family; font_size; font_style;
+    border; bgcolor; fgcolor; bgcolor_ap; fgcolor_ap; id; parent; font_family; font_size; font_style; font_scale;
     name; alt_name; value; value_ap; default_value; maxlength; comb; readonly; hidden; actions;
     justification; page;
   } in
@@ -220,8 +221,8 @@ let add_text_field ~x ~y ~width ~height ~name ?alt_name
     let x_offset =
       match field.justification with
         | `Left -> padding
-        | `Center -> (width -. Fpdf_text.get_text_width font.font_metrics font_size field.value_ap) /. 2.
-        | `Right -> width -. Fpdf_text.get_text_width font.font_metrics font_size field.value_ap -. padding
+        | `Center -> (width -. Fpdf_text.get_text_width font.font_metrics font_size field.font_scale field.value_ap) /. 2.
+        | `Right -> width -. Fpdf_text.get_text_width font.font_metrics font_size field.font_scale field.value_ap -. padding
     in
     (** Appearance object *)
     let stream = sprintf "%s/Tx BMC q BT /F%d %f Tf %s %f %f Td %s Tj ET Q EMC"

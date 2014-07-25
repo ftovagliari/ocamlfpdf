@@ -43,8 +43,12 @@ let main () = begin
       let height = size /. scale in
       Fpdf.text ~x ~y:height ~text:"AB" doc;
 
-      let name = "Lena.png" in
+      let name = "gruppo_sapio.png" in
       let data = Fpdf_util.fread (dirname // name) in
+      let info = Fpdf_images.Png.parse data in
+      let image_width, image_height = info.Fpdf_images.image_width, info.Fpdf_images.image_height in
+      Printf.printf "%dx%d\n%!" image_width image_height;
+
       Fpdf.image ~x ~y ~name ~data ~height:height_image doc;
       let name = "Lena.jpg" in
       let data = Fpdf_util.fread (dirname // name) in

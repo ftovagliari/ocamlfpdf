@@ -12,7 +12,7 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="font" default="false" id="17" sub_targets="">
+    <target name="font" default="false" id="17" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -36,7 +36,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="fpdf" default="false" id="0" sub_targets="">
+    <target name="fpdf" default="false" id="0" sub_targets="8" is_fl_package="false">
       <descr>Library for generating PDF documents.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -81,7 +81,7 @@
       <restrictions></restrictions>
       <dependencies>17</dependencies>
     </target>
-    <target name="markup-editor" default="false" id="8" sub_targets="">
+    <target name="markup-editor" default="false" id="8" sub_targets="" is_fl_package="false">
       <descr>Lablgtk widget for editing PDFMarkup.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -105,7 +105,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="fpdf-byt" default="false" id="9" sub_targets="">
+    <target name="fpdf-byt" default="false" id="9" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -129,9 +129,9 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6" sub_targets="">
+    <target name="test" default="false" id="6" sub_targets="" is_fl_package="false">
       <descr></descr>
-      <byt>false</byt>
+      <byt>true</byt>
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
@@ -153,7 +153,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-markup-editor" default="false" id="7" sub_targets="">
+    <target name="test-markup-editor" default="false" id="7" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -177,7 +177,7 @@
       <restrictions></restrictions>
       <dependencies>0,8</dependencies>
     </target>
-    <target name="test-form" default="false" id="10" sub_targets="">
+    <target name="test-form" default="false" id="10" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -201,7 +201,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-compress" default="false" id="12" sub_targets="">
+    <target name="test-compress" default="false" id="12" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -225,7 +225,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test-png" default="false" id="14" sub_targets="">
+    <target name="test-png" default="false" id="14" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -249,7 +249,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-jpeg" default="false" id="18" sub_targets="">
+    <target name="test-jpeg" default="false" id="18" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -273,7 +273,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="true" id="15" sub_targets="">
+    <target name="test-tabular" default="true" id="15" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -297,7 +297,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-metrics" default="false" id="16" sub_targets="">
+    <target name="test-metrics" default="false" id="16" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -321,7 +321,7 @@
       <restrictions></restrictions>
       <dependencies>17,0</dependencies>
     </target>
-    <target name="Tools" default="false" id="11" sub_targets="">
+    <target name="Tools" default="false" id="11" sub_targets="" is_fl_package="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -384,7 +384,7 @@
           <args>
             <arg enabled="true">tools/reinstall.ml</arg>
           </args>
-          <phase></phase>
+          <phase>Before_clean</phase>
         </task>
       </external_tasks>
       <restrictions></restrictions>
@@ -392,7 +392,7 @@
     </target>
   </targets>
   <executables>
-    <executable name="Test" default="false" target_id="6" id="3">
+    <executable name="Test" default="true" target_id="6" id="3">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false">
         <var enabled="true">TEST=1</var>
@@ -422,7 +422,7 @@
       <env replace="false"/>
       <args/>
     </executable>
-    <executable name="test-tabular" default="true" target_id="15" id="9">
+    <executable name="test-tabular" default="false" target_id="15" id="9">
       <build_task>&lt;COMPILE&gt;</build_task>
       <env replace="false"/>
       <args/>
