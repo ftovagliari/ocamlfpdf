@@ -101,7 +101,7 @@ let main () = begin
             begin
               match label with
                 | Some text ->
-                  let tw = Fpdf.get_text_width label_font label_font_size text /. scale in
+                  let tw = Fpdf.get_text_width label_font label_font_size None text /. scale in
                   let x = x0 +. x -. tw /. 2. in
                   let y = y -. 3. /. 2. *. gap in
                   Fpdf.set ~x ~y doc;
@@ -208,7 +208,7 @@ let main () = begin
         (* Print font name *)
         let font_size = 20. in
         let text = font.fontName in
-        let tw = Fpdf.get_text_width font font_size text /. scale in
+        let tw = Fpdf.get_text_width font font_size None text /. scale in
         Fpdf.set ~x:(x0 +. width_avail -. tw -. padding) ~y:(y0 +. baseline +. descent) doc;
         Fpdf.cell
           ~font_family:font.fontFamily

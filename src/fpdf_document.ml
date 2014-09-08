@@ -377,7 +377,7 @@ let print_images doc =
     else begin
       print doc "/ColorSpace /%s " image.image_colorspace;
       if image.image_colorspace = "DeviceCMYK" then print doc "/Decode [1 0 1 0 1 0 1 0] "
-    end; 
+    end;
     print doc "/BitsPerComponent %d " image.image_bits;
     (match image.image_f with Some f -> print doc "/Filter /%s " f | _ -> ());
     (match image.image_params with Some params -> print doc "/DecodeParms <<%s>> " params | _ -> ());

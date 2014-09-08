@@ -40,6 +40,9 @@ val create :
   ?orientation:orientation ->
   ?m_unit:m_unit -> ?format:format -> outchan:out_channel -> unit -> t
 
+(** Embed a font program in a PDF document. *)
+val embed_font : family:Font.family -> style:Font.style list -> Fpdf_document.t -> unit
+
 (** Append a new page to the document.
     @param orientation Default value is the document orientation passed to [create].
   *)

@@ -183,6 +183,8 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
   Fpdf_font.set_font ~family:`Courier doc;
   doc;;
 
+let embed_font          = Fpdf_font.embed_font
+
 let add_page            = Fpdf_page.add_page
 let page_num            = Fpdf_page.page_num
 let page_count          = Fpdf_page.page_count

@@ -12,7 +12,7 @@
   <version>1.0.0</version>
   <autocomp enabled="true" delay="1." cflags=""/>
   <targets>
-    <target name="font" default="false" id="17" sub_targets="" is_fl_package="false">
+    <target name="font" default="false" id="17" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -27,6 +27,7 @@
       <inline>50</inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags></cflags>
       <lflags></lflags>
       <target_type>Library</target_type>
@@ -36,7 +37,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="fpdf" default="false" id="0" sub_targets="8" is_fl_package="false">
+    <target name="fpdf" default="true" id="0" sub_targets="8" is_fl_package="true" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr>Library for generating PDF documents.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -51,6 +52,7 @@
       <inline>50</inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -60,6 +62,8 @@
         <task name="ocamldoc">
           <always_run_in_project>true</always_run_in_project>
           <always_run_in_script>true</always_run_in_script>
+          <readonly>false</readonly>
+          <visible>true</visible>
           <env replace="false"/>
           <dir></dir>
           <cmd>ocamldoc</cmd>
@@ -71,7 +75,7 @@
             <arg enabled="true">&quot;ocamlfpdf&quot;</arg>
             <arg enabled="true">-html</arg>
             <arg enabled="true">-I</arg>
-            <arg enabled="true">+lablgtk2</arg>
+            <arg enabled="true">+site-lib/lablgtk2</arg>
             <arg enabled="true">-I</arg>
             <arg enabled="true">font</arg>
           </args>
@@ -81,7 +85,7 @@
       <restrictions></restrictions>
       <dependencies>17</dependencies>
     </target>
-    <target name="markup-editor" default="false" id="8" sub_targets="" is_fl_package="false">
+    <target name="markup-editor" default="false" id="8" sub_targets="" is_fl_package="true" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr>Lablgtk widget for editing PDFMarkup.</descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -96,6 +100,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -105,7 +110,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="fpdf-byt" default="false" id="9" sub_targets="" is_fl_package="false">
+    <target name="fpdf-byt" default="false" id="9" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -120,6 +125,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
@@ -129,7 +135,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test" default="false" id="6" sub_targets="" is_fl_package="false">
+    <target name="test" default="false" id="6" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>true</opt>
@@ -144,6 +150,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -153,7 +160,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-markup-editor" default="false" id="7" sub_targets="" is_fl_package="false">
+    <target name="test-markup-editor" default="false" id="7" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -168,6 +175,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w sy -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -177,7 +185,7 @@
       <restrictions></restrictions>
       <dependencies>0,8</dependencies>
     </target>
-    <target name="test-form" default="false" id="10" sub_targets="" is_fl_package="false">
+    <target name="test-form" default="false" id="10" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -192,6 +200,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Executable</target_type>
@@ -201,7 +210,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-compress" default="false" id="12" sub_targets="" is_fl_package="false">
+    <target name="test-compress" default="false" id="12" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -216,6 +225,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags></cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -225,7 +235,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="test-png" default="false" id="14" sub_targets="" is_fl_package="false">
+    <target name="test-png" default="false" id="14" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -240,6 +250,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -249,7 +260,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-jpeg" default="false" id="18" sub_targets="" is_fl_package="false">
+    <target name="test-jpeg" default="false" id="18" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -264,6 +275,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags></cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -273,7 +285,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-tabular" default="true" id="15" sub_targets="" is_fl_package="false">
+    <target name="test-tabular" default="false" id="15" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -288,6 +300,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -297,7 +310,7 @@
       <restrictions></restrictions>
       <dependencies>0</dependencies>
     </target>
-    <target name="test-metrics" default="false" id="16" sub_targets="" is_fl_package="false">
+    <target name="test-metrics" default="false" id="16" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
@@ -312,6 +325,7 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags>-w y -g</cflags>
       <lflags></lflags>
       <target_type>Executable</target_type>
@@ -321,7 +335,7 @@
       <restrictions></restrictions>
       <dependencies>17,0</dependencies>
     </target>
-    <target name="Tools" default="false" id="11" sub_targets="" is_fl_package="false">
+    <target name="Tools" default="false" id="11" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
@@ -336,37 +350,18 @@
       <inline></inline>
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
       <cflags></cflags>
       <lflags></lflags>
       <target_type>External</target_type>
       <outname></outname>
       <lib_install_path></lib_install_path>
       <external_tasks>
-        <task name="findlib-uninstall">
-          <always_run_in_project>false</always_run_in_project>
-          <always_run_in_script>false</always_run_in_script>
-          <env replace="false"/>
-          <dir></dir>
-          <cmd>ocamlfind</cmd>
-          <args>
-            <arg enabled="true">remove fpdf</arg>
-          </args>
-          <phase>After_compile</phase>
-        </task>
-        <task name="findlib-install">
-          <always_run_in_project>false</always_run_in_project>
-          <always_run_in_script>false</always_run_in_script>
-          <env replace="false"/>
-          <dir>..</dir>
-          <cmd>ocaml</cmd>
-          <args>
-            <arg enabled="true">tools/findlib_install.ml</arg>
-          </args>
-          <phase>After_compile</phase>
-        </task>
         <task name="distclean">
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
+          <readonly>false</readonly>
+          <visible>true</visible>
           <env replace="false"/>
           <dir>..</dir>
           <cmd>ocaml</cmd>
@@ -375,16 +370,87 @@
           </args>
           <phase>After_compile</phase>
         </task>
-        <task name="reinstall">
+      </external_tasks>
+      <restrictions></restrictions>
+      <dependencies></dependencies>
+    </target>
+    <target name="FINDLIB-TOOLS" default="false" id="19" sub_targets="" is_fl_package="false" subsystem="" readonly="true" visible="true" node_collapsed="true">
+      <descr></descr>
+      <byt>true</byt>
+      <opt>false</opt>
+      <libs></libs>
+      <other_objects></other_objects>
+      <files></files>
+      <package></package>
+      <includes></includes>
+      <thread>false</thread>
+      <vmthread>false</vmthread>
+      <pp></pp>
+      <inline></inline>
+      <nodep>false</nodep>
+      <dontlinkdep>false</dontlinkdep>
+      <dontaddopt>false</dontaddopt>
+      <cflags></cflags>
+      <lflags></lflags>
+      <target_type>External</target_type>
+      <outname></outname>
+      <lib_install_path></lib_install_path>
+      <external_tasks>
+        <task name="install">
           <always_run_in_project>false</always_run_in_project>
           <always_run_in_script>false</always_run_in_script>
+          <readonly>true</readonly>
+          <visible>true</visible>
           <env replace="false"/>
           <dir>..</dir>
           <cmd>ocaml</cmd>
           <args>
-            <arg enabled="true">tools/reinstall.ml</arg>
+            <arg enabled="true">tools/findlib.ml</arg>
+            <arg enabled="true">install</arg>
           </args>
-          <phase>Before_clean</phase>
+          <phase></phase>
+        </task>
+        <task name="uninstall">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <readonly>true</readonly>
+          <visible>true</visible>
+          <env replace="false"/>
+          <dir>..</dir>
+          <cmd>ocaml</cmd>
+          <args>
+            <arg enabled="true">tools/findlib.ml</arg>
+            <arg enabled="true">uninstall</arg>
+          </args>
+          <phase></phase>
+        </task>
+        <task name="reinstall">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <readonly>true</readonly>
+          <visible>true</visible>
+          <env replace="false"/>
+          <dir>..</dir>
+          <cmd>ocaml</cmd>
+          <args>
+            <arg enabled="true">tools/findlib.ml</arg>
+            <arg enabled="true">reinstall</arg>
+          </args>
+          <phase></phase>
+        </task>
+        <task name="print">
+          <always_run_in_project>false</always_run_in_project>
+          <always_run_in_script>false</always_run_in_script>
+          <readonly>true</readonly>
+          <visible>true</visible>
+          <env replace="false"/>
+          <dir>..</dir>
+          <cmd>ocaml</cmd>
+          <args>
+            <arg enabled="true">tools/findlib.ml</arg>
+            <arg enabled="true">print</arg>
+          </args>
+          <phase></phase>
         </task>
       </external_tasks>
       <restrictions></restrictions>
@@ -457,8 +523,6 @@
     <args/>
     <commands>
       <command name="Distclean" descr="distclean" target_id="11" task_name="distclean"/>
-      <command name="Install" descr="reinstall" target_id="11" task_name="reinstall"/>
-      <command name="Uninstall" descr="findlib-uninstall" target_id="11" task_name="findlib-uninstall"/>
     </commands>
   </build_script>
 </project>

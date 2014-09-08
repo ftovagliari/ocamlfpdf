@@ -21,6 +21,8 @@
 *)
 
 
+open Fpdf_types
+
 type key =
     | Courier | Courier_Oblique | Courier_Bold | Courier_BoldOblique
     | Helvetica | Helvetica_Oblique | Helvetica_Bold | Helvetica_BoldOblique
@@ -62,7 +64,7 @@ type t = {
 }
 
 (** family_of_string *)
-let family_of_string = function
+let family_of_string : string -> family = function
   | "Times" -> `Times
   | "Helvetica" -> `Helvetica
   | "Courier" -> `Courier
@@ -76,7 +78,7 @@ let family_of_string = function
   | name -> Printf.kprintf failwith "family_of_string (%s)" name
 
 (** string_of_family *)
-let string_of_family = function
+let string_of_family : family -> string = function
   | `Times -> "Times"
   | `Helvetica -> "Helvetica"
   | `Courier -> "Courier"
@@ -89,7 +91,7 @@ let string_of_family = function
   | `CMUSerif_BoldNonextended -> "CMUSerif_BoldNonextended"
 
 (** style_of_string *)
-let style_of_string name =
+let style_of_string : string -> style = function name ->
   match String.lowercase name with
   | "underline" -> `Underline
   | "italic" -> `Italic
@@ -97,45 +99,45 @@ let style_of_string name =
   | _ -> Printf.kprintf failwith "style_of_string (%s)" name
 
 (** string_of_style *)
-let string_of_style = function
+let string_of_style : style -> string = function
   | `Italic -> "italic"
   | `Bold -> "bold"
   | `Underline -> "underline"
 
 (** key_of_font *)
-let key_of_font style =
-  let bold = List.mem `Bold style in
-  let italic = List.mem `Italic style in
-  function
-    | `Times when bold && italic -> Times_BoldItalic
-    | `Times when bold -> Times_Bold
-    | `Times when italic -> Times_Italic
-    | `Times -> Times_Roman
-    | `Helvetica when bold && italic -> Helvetica_BoldOblique
-    | `Helvetica when bold -> Helvetica_Bold
-    | `Helvetica when italic -> Helvetica_Oblique
-    | `Helvetica -> Helvetica
-    | `Courier when bold && italic -> Courier_BoldOblique
-    | `Courier when bold -> Courier_Bold
-    | `Courier when italic -> Courier_Oblique
-    | `Courier -> Courier
-    | `Symbol -> Symbol
-    | `ZapfDingbats -> ZapfDingbats
-    | `CenturySchoolbook when bold && italic -> CenturySchoolbook_BoldItalic
-    | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
-    | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
-    | `CenturySchoolbook -> CenturySchoolbook
-    | `CMUSerif when bold && italic -> CMUSerif_BoldItalic
-    | `CMUSerif when bold -> CMUSerif_Bold
-    | `CMUSerif when italic -> CMUSerif_Italic
-    | `CMUSerif -> CMUSerif
-    | `CMUSansSerif when bold && italic -> CMUSansSerif_BoldOblique
-    | `CMUSansSerif when italic -> CMUSansSerif_Oblique
-    | `CMUSansSerif when bold -> CMUSansSerif_Bold
-    | `CMUSansSerif -> CMUSansSerif
-    | `CMUSansSerif_DemiCondensed -> CMUSansSerif_DemiCondensed
-    | `CMUSerif_BoldNonextended -> CMUSerif_BoldNonextended
-    | _ -> raise Not_found
+let key_of_font : style list -> family -> key =
+  fun style ->
+    let bold = List.mem `Bold style in
+    let italic = List.mem `Italic style in
+    function
+      | `Times when bold && italic -> Times_BoldItalic
+      | `Times when bold -> Times_Bold
+      | `Times when italic -> Times_Italic
+      | `Times -> Times_Roman
+      | `Helvetica when bold && italic -> Helvetica_BoldOblique
+      | `Helvetica when bold -> Helvetica_Bold
+      | `Helvetica when italic -> Helvetica_Oblique
+      | `Helvetica -> Helvetica
+      | `Courier when bold && italic -> Courier_BoldOblique
+      | `Courier when bold -> Courier_Bold
+      | `Courier when italic -> Courier_Oblique
+      | `Courier -> Courier
+      | `Symbol -> Symbol
+      | `ZapfDingbats -> ZapfDingbats
+      | `CenturySchoolbook when bold && italic -> CenturySchoolbook_BoldItalic
+      | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
+      | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
+      | `CenturySchoolbook -> CenturySchoolbook
+      | `CMUSerif when bold && italic -> CMUSerif_BoldItalic
+      | `CMUSerif when bold -> CMUSerif_Bold
+      | `CMUSerif when italic -> CMUSerif_Italic
+      | `CMUSerif -> CMUSerif
+      | `CMUSansSerif when bold && italic -> CMUSansSerif_BoldOblique
+      | `CMUSansSerif when italic -> CMUSansSerif_Oblique
+      | `CMUSansSerif when bold -> CMUSansSerif_Bold
+      | `CMUSansSerif -> CMUSansSerif
+      | `CMUSansSerif_DemiCondensed -> CMUSansSerif_DemiCondensed
+      | `CMUSerif_BoldNonextended -> CMUSerif_BoldNonextended
 
 (** ascent *)
 let ascent font =
@@ -169,7 +171,7 @@ let height font =
   max ruy 1000 - lby
 
 (** style *)
-let style font =
+let style : t -> style list = fun font ->
   (if font.fontWeight > 400 then [`Bold] else []) @ (if font.italicAngle <> 0. then [`Italic] else [])
 
 (** find *)

@@ -43,6 +43,13 @@ type border_part = [ `All | `L | `B | `R | `T ]
 
 type align = [ `Left | `Justified | `Center | `Right ]
 
+(*type font_family = [
+    | `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook
+    | `CMUSerif | `CMUSansSerif | `CMUSansSerif_DemiCondensed | `CMUSerif_BoldNonextended
+]
+
+type font_style = [ `Underline | `Italic | `Bold ]
+*)
 type destination = {
   dest_page    : int; (** Destination page number. *)
   dest_display : [
