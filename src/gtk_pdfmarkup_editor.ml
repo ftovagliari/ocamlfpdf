@@ -410,7 +410,7 @@ object (self)
             | _ -> ()
         end;
         Buffer.add_string buf ">";
-        Buffer.add_string buf text;
+        Buffer.add_string buf (Glib.Markup.escape_text text);
         Buffer.add_string buf "</SPAN>";
         iter := stop
       done;

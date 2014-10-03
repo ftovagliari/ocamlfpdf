@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- OCamlEditor XML Project -->
+<!-- OCamlEditor-1.13.1 XML Project -->
 <project>
   <ocaml_home></ocaml_home>
   <ocamllib></ocamllib>
@@ -374,7 +374,7 @@
       <restrictions></restrictions>
       <dependencies></dependencies>
     </target>
-    <target name="FINDLIB-TOOLS" default="false" id="19" sub_targets="" is_fl_package="false" subsystem="" readonly="true" visible="true" node_collapsed="true">
+    <target name="FINDLIB-TOOLS" default="false" id="19" sub_targets="" is_fl_package="false" subsystem="" readonly="true" visible="true" node_collapsed="false">
       <descr></descr>
       <byt>true</byt>
       <opt>false</opt>
