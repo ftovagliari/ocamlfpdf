@@ -123,6 +123,8 @@ let external_tasks = [
 
 let general_commands = [
   `Distclean, (1, "distclean");
+  `Install, (4, "reinstall");
+  `Uninstall, (3, "uninstall");
 ]
 
 
@@ -139,7 +141,7 @@ let targets = [
     target_type          = Library;
     compilation_bytecode = true;
     compilation_native   = true;
-    toplevel_modules     = "font/font_loader.ml";
+    toplevel_modules     = "font/font_loader.ml font/font.ml";
     package              = "";
     search_path          = "font"; (* -I *)
     required_libraries   = "";

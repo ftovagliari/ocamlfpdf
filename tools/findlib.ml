@@ -24,78 +24,50 @@ package \"markup-editor\" (
 )",
   [
     "font/font.cma";
-    "fpdf.cma";
     "font/font.cmxa";
+    "fpdf.cma";
     "fpdf.cmxa";
     "gtk_pdfmarkup_editor.cma";
     "gtk_pdfmarkup_editor.cmxa"
   ], [
-    "fpdf_util.cmi";
-    "fpdf_types.cmi";
-    "gtk_pdfmarkup_editor.cmi";
-    "fpdf_error.cmi";
-    "fpdf_images.cmi";
-    "fpdf_document.cmi";
-    "fpdf_javascript.cmi";
+    "font/font.cmi";
+    "font/font_loader.cmi";
     "fpdf.cmi";
     "fpdf_barcode.cmi";
     "fpdf_bookmark.cmi";
-    "fpdf_pack.cmi";
-    "fpdf_tabular.cmi";
-    "fpdf_markup.cmi";
+    "fpdf_document.cmi";
+    "fpdf_error.cmi";
     "fpdf_font.cmi";
     "fpdf_form.cmi";
-    "fpdf_table.cmi";
-    "fpdf_graphics_state.cmi";
     "fpdf_graphics.cmi";
+    "fpdf_graphics_state.cmi";
+    "fpdf_images.cmi";
+    "fpdf_javascript.cmi";
+    "fpdf_markup.cmi";
+    "fpdf_pack.cmi";
     "fpdf_page.cmi";
+    "fpdf_table.cmi";
+    "fpdf_tabular.cmi";
     "fpdf_text.cmi";
-    "font/font.cmi";
-    "font/centurySchoolbook.cmi";
-    "font/courier_Oblique.cmi";
-    "font/helvetica.cmi";
-    "font/times_Bold.cmi";
-    "font/times_Roman.cmi";
-    "font/CMUSerif_BoldNonextended.cmi";
-    "font/courier.cmi";
-    "font/times_BoldItalic.cmi";
-    "font/centurySchoolbook_Bold.cmi";
-    "font/helvetica_Bold.cmi";
-    "font/cMUSerif.cmi";
-    "font/cMUSerif_Bold.cmi";
-    "font/cMUSerif_Italic.cmi";
-    "font/cMUSansSerif_DemiCondensed.cmi";
-    "font/cMUSansSerif_Oblique.cmi";
-    "font/centurySchoolbook_Italic.cmi";
-    "font/cMUSansSerif.cmi";
-    "font/cMUSansSerif_BoldOblique.cmi";
-    "font/courier_BoldOblique.cmi";
-    "font/helvetica_Oblique.cmi";
-    "font/symbol.cmi";
-    "font/cMUSansSerif_Bold.cmi";
-    "font/courier_Bold.cmi";
-    "font/centurySchoolbook_BoldItalic.cmi";
-    "font/zapfDingbats.cmi";
-    "font/cMUSerif_BoldItalic.cmi";
-    "font/helvetica_BoldOblique.cmi";
-    "font/times_Italic.cmi";
-    "font/font_loader.cmi"
+    "fpdf_types.cmi";
+    "fpdf_util.cmi";
+    "gtk_pdfmarkup_editor.cmi"
   ], [
-    "fpdf_util.mli";
-    "fpdf_types.mli";
-    "gtk_pdfmarkup_editor.mli";
-    "fpdf_error.mli";
-    "fpdf_document.mli";
-    "fpdf_javascript.mli";
+    "font/font.mli";
     "fpdf.mli";
     "fpdf_barcode.mli";
     "fpdf_bookmark.mli";
-    "fpdf_pack.mli";
-    "fpdf_tabular.mli";
-    "fpdf_markup.mli";
+    "fpdf_document.mli";
+    "fpdf_error.mli";
     "fpdf_form.mli";
+    "fpdf_javascript.mli";
+    "fpdf_markup.mli";
+    "fpdf_pack.mli";
     "fpdf_table.mli";
-    "font/font.mli"
+    "fpdf_tabular.mli";
+    "fpdf_types.mli";
+    "fpdf_util.mli";
+    "gtk_pdfmarkup_editor.mli"
   ];
 ]
 

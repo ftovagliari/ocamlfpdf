@@ -18,7 +18,7 @@
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
-      <files>font/font_loader.ml</files>
+      <files>font/font_loader.ml font/font.ml</files>
       <package></package>
       <includes>font</includes>
       <thread>false</thread>
@@ -524,6 +524,8 @@
     <args/>
     <commands>
       <command name="Distclean" descr="distclean" target_id="11" task_name="distclean"/>
+      <command name="Install" descr="reinstall" target_id="19" task_name="reinstall"/>
+      <command name="Uninstall" descr="uninstall" target_id="19" task_name="uninstall"/>
     </commands>
   </build_script>
 </project>
