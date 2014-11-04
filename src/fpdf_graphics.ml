@@ -26,8 +26,8 @@ open Printf
 
 (** draw_color *)
 let set_draw_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
-  if (red = 0 && green = 0 && blue = 0) || green = -1 then
-    (doc.drawColor <- sprintf "%.3f G" ((float red) /. 255.))
+  if red = green && green = blue || green = -1 then
+    doc.drawColor <- if red = 0 then "0 G" else sprintf "%.3f G" ((float red) /. 255.)
   else begin doc.drawColor <- sprintf "%.3f %.3f %.3f RG"
     ((float red) /. 255.) ((float green) /. 255.) ((float blue) /. 255.)
   end;
@@ -38,12 +38,11 @@ let draw_color doc = doc.draw_color_rgb
 
 (** fill_color *)
 let set_fill_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
-  if (red = 0 && green = 0 && blue = 0) || green = -1 then
-    (doc.fillColor <- sprintf "%.3f g" ((float red) /. 255.))
+  if red = green && green = blue || green = -1 then
+    doc.fillColor <- if red = 0 then "0 g" else sprintf "%.3f g" ((float red) /. 255.)
   else begin doc.fillColor <- sprintf "%.3f %.3f %.3f rg"
     ((float red) /. 255.) ((float green) /. 255.) ((float blue) /. 255.)
   end;
-  doc.colorFlag <- doc.fillColor <> doc.textColor;
   if doc.page >= 0 then print_buffer doc "%s\n" doc.fillColor;
   doc.fill_color_rgb <- (red, green, blue)
 

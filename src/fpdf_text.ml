@@ -56,12 +56,11 @@ let do_underline x y txt = ""
 
 (** Color *)
 let set_text_color ~red ?(green=(-1)) ?(blue=(-1)) doc =
-  if (red = 0 && green = 0 && blue = 0) || green = -1 then
-    (doc.textColor <- sprintf "%.3f g" ((float red) /. 255.))
+  if red = green && green = blue || green = -1 then
+    doc.textColor <- if red = 0 then "0 g" else sprintf "%.3f g" ((float red) /. 255.)
   else begin doc.textColor <- sprintf "%.3f %.3f %.3f rg"
     ((float red) /. 255.) ((float green) /. 255.) ((float blue) /. 255.)
   end;
-  doc.colorFlag <- doc.fillColor <> doc.textColor;
   doc.text_color_rgb <- (red, green, blue)
 
 let text_color doc = doc.text_color_rgb
@@ -71,7 +70,7 @@ let text ~x ~y ~text doc =
   let s = ref (sprintf "BT %f %f Td (%s) Tj ET"
     (x *. doc.k) ((doc.h -. y) *. doc.k) (escape text)) in
   if doc.underline  && text <> "" then s := !s ^ " " ^ (do_underline x y text);
-  if doc.colorFlag then s:= "q " ^ doc.textColor ^ " " ^ !s ^ " Q";
+  s:= "q " ^ doc.textColor ^ " " ^ !s ^ " Q";
   print_buffer doc "%s\n" !s;;
 
 let newline ?height doc =
@@ -180,7 +179,7 @@ let cell
       | `Left | `Justified -> padding
       | `Center -> (width -. text_width doc) /. 2.
       | `Right -> width -. padding -. text_width doc in
-    let must_push = doc.colorFlag || char_space <> None || font_scale <> None || rise <> None  in
+    let must_push = true || char_space <> None || font_scale <> None || rise <> None  in
     if must_push then code := !code ^ "q " ^ doc.textColor ^ " ";
     code := !code ^ (sprintf "BT %f %f Td%s%s%s%s (%s) Tj ET"
                        ((doc.pos_x +. dx) *. scale)

@@ -58,8 +58,8 @@ let add_page ?orientation doc =
   let style = if doc.underline then `Underline :: doc.font_style else doc.font_style in
 (*  let style = (string_of_style font_style) ^ (if underline then "U" else "") in*)
   let size = doc.font_size_pt in
-  let save () = doc.line_width, doc.drawColor, doc.fillColor, doc.textColor, doc.colorFlag in
-  let restore (lw, dc, fc, tc, cf) =
+  let save () = doc.line_width, doc.drawColor, doc.fillColor, doc.textColor(*, doc.colorFlag*) in
+  let restore (lw, dc, fc, tc(*, cf*)) =
     if doc.line_width <> lw then begin
       doc.line_width <- lw;
       print_buffer doc "%f w\n" (lw *. doc.k);
@@ -74,7 +74,6 @@ let add_page ?orientation doc =
       print_buffer doc "%s\n" fc
     end;
     doc.textColor <- tc;
-    doc.colorFlag <- cf
   in
   let old_lw = doc.line_width in
   if n_pages doc > 0 then begin

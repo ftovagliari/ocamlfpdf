@@ -20,11 +20,6 @@
 
 *)
 
-open Fpdf_util
-open Font
-open Fpdf_images
-open Printf
-open Fpdf_types
 open Fpdf_document
 open Fpdf_page
 
@@ -145,7 +140,6 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     drawColor             = "0 G";
     fillColor             = "0 g";
     textColor             = "0 g";
-    colorFlag             = false;
     ws                    = 0.0;
     auto_page_break       = true;
     pageBreakTrigger      = 0.;
@@ -234,7 +228,7 @@ let pop_graphics_state  = Fpdf_graphics_state.pop
 
 let close_document doc = match doc.state with
   | End_document -> ()
-  | _ ->
+  | Begin_document | Begin_page | End_page ->
     if n_pages doc = 0 then add_page doc;
     doc.inFooter <- true;
     doc.footer ();

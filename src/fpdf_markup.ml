@@ -185,11 +185,10 @@ let markup_to_blocks ~markup ~line_spacing doc =
                 cells := cell :: !cells;
               | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
                 newline ()
-              | _ -> raise (Error (Invalid_markup, ""))
+              | Xml.Element _ -> raise (Error (Invalid_markup, "Nested"))
             end children
       end;
-    | Xml.Element (tag, _, []) -> ()
-    | _ -> raise (Error (Invalid_markup, ""))
+    | Xml.Element (tag, _, _) -> raise (Error (Invalid_markup, (sprintf "Unknown tag %S" tag)))
   end xml;
   List.rev !cells
 ;;
@@ -515,7 +514,7 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
   analysis.print <- begin fun ~x ~y ?valign () ->
     let width = analysis.width in
     let old_text_color = Fpdf.text_color doc in
-    let old_bgcolor = Fpdf.fill_color doc in
+    let old_fill_color = Fpdf.fill_color doc in
     let old_draw_color = Fpdf.draw_color doc in
     let old_font_family = Fpdf.font_family doc in
     let old_font_size = Fpdf.font_size doc in
@@ -548,7 +547,7 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
     (*(match pre with Some f -> f analysis | _ -> ());*)
     print_text ~x ~y ~width ~padding ~analysis ?border_width doc;
     if Fpdf.text_color doc <> old_text_color then (let red, green, blue = old_text_color in Fpdf.set_text_color ~red ~green ~blue doc);
-    if Fpdf.fill_color doc <> old_bgcolor then (let red, green, blue = old_bgcolor in Fpdf.set_fill_color ~red ~green ~blue doc);
+    if Fpdf.fill_color doc <> old_fill_color then (let red, green, blue = old_fill_color in Fpdf.set_fill_color ~red ~green ~blue doc);
     if Fpdf.draw_color doc <> old_draw_color then (let red, green, blue = old_draw_color in Fpdf.set_draw_color ~red ~green ~blue doc);
     Fpdf.set_font ?family:old_font_family ~size:old_font_size ?scale:old_font_scale ~style:old_font_style doc;
     if Fpdf.line_width doc <> old_line_width then Fpdf.set_line_width old_line_width doc;

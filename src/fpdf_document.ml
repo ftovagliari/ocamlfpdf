@@ -23,7 +23,6 @@
 open Fpdf_types
 open Printf
 open Fpdf_util
-open Fpdf_images
 open Font
 
 type state = Begin_document | End_page | Begin_page | End_document
@@ -98,7 +97,6 @@ and annot = {
   mutable drawColor             : string;                   (* commands for drawing color *)
   mutable fillColor             : string;                   (* commands for filling color *)
   mutable textColor             : string;                   (* commands for text color *)
-  mutable colorFlag             : bool;                     (* indicates whether fill and text colors are different *)
   mutable ws                    : float;                    (* word spacing *)
   mutable auto_page_break       : bool;                     (* automatic page breaking *)
   mutable pageBreakTrigger      : float;                    (* threshold used to trigger page breaks *)
@@ -130,7 +128,7 @@ and annot = {
 
 let open_document doc = match doc.state with
   | End_document -> failwith "Fpdf.open_document: document already closed."
-  | _ -> doc.state <- End_page
+  | End_page | Begin_document | Begin_page -> doc.state <- End_page
 
 let n_pages doc = List.length doc.pages
 
@@ -161,7 +159,7 @@ let find_object n doc =
 let get_buffer ~create doc =
   match doc.state with
     | Begin_page -> (get_current_page doc).pg_buffer
-    | _ -> assert false
+    | End_page | Begin_document | End_document -> assert false
 
 let font_exists key doc =
   try ignore(List.assoc key doc.fonts); true
@@ -436,7 +434,7 @@ let print_xobject_dict doc =
   let i = ref 0 in
   Fpdf_images.Table.iter begin fun img ->
     incr i;
-    print doc "/I%d %d 0 R\n" !i img.image_obj;
+    print doc "/I%d %d 0 R\n" !i img.Fpdf_images.image_obj;
   end doc.images
 
 (** print_resource_dict *)

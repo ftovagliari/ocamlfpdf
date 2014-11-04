@@ -87,7 +87,6 @@ and t = {
   mutable drawColor : string;
   mutable fillColor : string;
   mutable textColor : string;
-  mutable colorFlag : bool;
   mutable ws : float;
   mutable auto_page_break : bool;
   mutable pageBreakTrigger : float;
