@@ -12,7 +12,7 @@ type t = {
   padding : float;
   mutable v_lines : (thickness option * int * int option * int) list;
   mutable h_lines : (thickness option * int * int option * int) list;
-  mutable page_breaks : (int * (unit -> unit)) list;
+  mutable page_breaks : (int * (unit -> float option)) list;
   debug : bool;
 }
 and cell = {
@@ -65,7 +65,7 @@ val add_vertical_line :
 val add_horizontal_line :
   ?line_width:thickness ->
   colstart:int -> ?colstop:int -> row:int -> t -> unit
-val add_page_break_before : int -> t -> (unit -> unit) -> unit
+val add_page_break_before : int -> t -> (unit -> float option) -> unit
 val line_intersection : 'a -> 'a -> 'b -> 'a -> 'b -> 'b -> 'a option
 val build_matrix : t -> cell option array array
 val iter_rows : cell option array array -> (int -> cell option array -> unit) -> unit

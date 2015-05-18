@@ -46,7 +46,7 @@ let main () = begin
       let font_size     = 9.0 in
       let small_font    = font_size -. 2.0 in
       let line_spacing  = 1.5 in
-      let margin        = 2. in
+      let margin        = 10. in
       let margin_top    = margin in
       let margin_right  = margin in
       let margin_bottom = margin in
@@ -164,11 +164,12 @@ let main () = begin
 
       let last_h = ref 0. in
       let count_table_pages = ref 0 in
+      let header_height = 30. in
       let y_max = margin_top +. height_avail in
       let current_table_height = ref (Fpdf_tabular.table_height table) in
 
       for i = 7 to 300 do
-        let origin = if !count_table_pages = 0 then y0 else margin_top in
+        let origin = if !count_table_pages = 0 then y0 else margin_top +. header_height in
         set i 0 (kprintf markup "%d" i);
         set i 1 (markup "A");
         set i 2 (markup "A");
@@ -191,7 +192,7 @@ let main () = begin
           (*Printf.printf "------------------------------------------\n%!" ;*)
           incr count_table_pages;
           last_h := !last_h +. cur_height_in_page -. current_row_height;
-          Fpdf_tabular.add_page_break_before i table (fun () -> ());
+          Fpdf_tabular.add_page_break_before i table (fun () -> Some (margin_top +. header_height));
         end
       done;
 

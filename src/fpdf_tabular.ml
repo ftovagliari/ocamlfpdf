@@ -38,7 +38,7 @@ type t = {
   padding                  : float;
   mutable v_lines          : (thickness option * int * int option * int) list; (* line_width, rowstart, rowstop, col *)
   mutable h_lines          : (thickness option * int * int option * int) list; (* line_width, colstart, colstop, row *)
-  mutable page_breaks      : (int * (unit -> unit)) list; (* Row indexes before whose a page break is inserted *)
+  mutable page_breaks      : (int * (unit -> float option)) list; (* Row indexes before whose a page break is inserted; callback optionally returns the new y *)
   debug                    : bool;
 }
 
@@ -212,6 +212,8 @@ let pack ?matrix t =
   let v_lines = ref [] in
   let current_lw = ref 0.0 in
   let page_start_row = ref 0 in
+  let margin_top, _, _, _ = Fpdf.margins t.doc in
+  let offset_top = ref margin_top in
   (* Print table border *)
   let print_table_border ~start ~stop () =
     match t.border_width with
@@ -219,10 +221,7 @@ let pack ?matrix t =
         Fpdf.push_graphics_state t.doc;
         Fpdf.set_line_width (size_of_thickness border_width) t.doc;
         let height = table_height_rows start stop in
-        let y = if !page_start_row = 0 then t.y0 else begin
-            let margin_top, _, _, _ = Fpdf.margins t.doc in
-            margin_top
-          end in
+        let y = if !page_start_row = 0 then t.y0 else !offset_top in
         Fpdf.rect ~x:t.x0 ~y ~width:table_width ~height(*:table_height*) t.doc;
         Fpdf.pop_graphics_state t.doc;
       | _ -> ()
@@ -256,10 +255,7 @@ let pack ?matrix t =
                       x, y1, y2;
                     | _ ->
                       let y_start =
-                        if !page_start_row = 0 then t.y0 else begin
-                          let margin_top, _, _, _ = Fpdf.margins t.doc in
-                          margin_top
-                        end
+                        if !page_start_row = 0 then t.y0 else !offset_top
                       in
                       let y2 = y_start +. (table_height_rows pstart pstop) -. line_disjoin in
                       x, y1, y2
@@ -332,10 +328,14 @@ let pack ?matrix t =
         print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
         v_lines := [];
         Fpdf.add_page t.doc;
-        let margin_top, _, _, _ = Fpdf.margins t.doc in
         page_start_row := i;
-        t.y <- margin_top;
-        callback ()
+        let restart_at_y = callback () in
+        t.y <-
+          match restart_at_y with
+            | Some y ->
+              offset_top := y;
+              y
+            | _ -> !offset_top;
       with Not_found -> ()
     end;
     (* Print rows *)
