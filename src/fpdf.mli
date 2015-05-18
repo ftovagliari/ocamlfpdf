@@ -68,7 +68,10 @@ val set_open_actions : action list -> t -> unit
 val set_author : string -> t -> unit
 val set_title : string -> t -> unit
 val set_subject : string -> t -> unit
+(** The name of the application that converted the document to PDF. *)
 val set_creator : string -> t -> unit
+(** The name of the application that created the original document. *)
+val set_producer : string -> t -> unit
 
 (** A date is an ASCII string of the form: [(D:YYYYMMDDHHmmSSOHH'mm')].
     See {i PDF Reference version 1.7, section 3.8.3} for more informations.
@@ -80,6 +83,7 @@ val author : t -> string
 val title : t -> string
 val subject : t -> string
 val creator : t -> string
+val producer : t -> string
 val creation_date : t -> string
 val keywords : t -> string list
 
@@ -88,6 +92,7 @@ val keywords : t -> string list
 
 val page_width : t -> float
 val page_height : t -> float
+val set_nb_pages_placeholder : string -> t -> unit
 
 (** Top, right, bottom and left margin. *)
 val margins : t -> float * float * float * float

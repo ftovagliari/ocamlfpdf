@@ -108,6 +108,7 @@ and annot = {
   mutable author                : string;                   (* author *)
   mutable keywords              : string list;              (* keywords *)
   mutable creator               : string;                   (* creator *)
+  mutable producer              : string;                   (* producer *)
   mutable creation_date         : string;                   (* creationDate *)
   mutable aliasNbPages          : string;                   (* alias for total number of pages *)
   mutable pdfVersionMajor       : int;                      (* PDF version number *)
@@ -195,7 +196,7 @@ let print_trailer doc =
   print doc "/ID [<%s><%s>]\n" id id
 
 let print_info doc =
-  print doc "/Producer %s" (pdf_string "OCaml-FPDF");
+  print doc "/Producer %s" (pdf_string doc.producer);
   if doc.title <> "" then
     print doc "/Title %s" (pdf_string doc.title);
   if doc.subject <> "" then

@@ -98,6 +98,7 @@ and t = {
   mutable author : string;
   mutable keywords : string list;
   mutable creator : string;
+  mutable producer : string;
   mutable creation_date : string;
   mutable aliasNbPages : string;
   mutable pdfVersionMajor : int;

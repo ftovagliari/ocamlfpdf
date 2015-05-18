@@ -37,6 +37,9 @@ let subject doc = doc.subject
 let set_creator x doc = doc.creator <- x
 let creator doc = doc.creator
 
+let set_producer x doc = doc.producer <- x
+let producer doc = doc.producer
+
 let set_creation_date x doc = doc.creation_date <- x
 let creation_date doc = doc.creation_date
 
@@ -150,7 +153,8 @@ let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
     subject               = "";
     author                = "";
     keywords              = [];
-    creator               = "";
+    creator               = "OCaml-FPDF";
+    producer              = "";
     creation_date         = "";
     aliasNbPages          = "{nb}";
     pdfVersionMajor       = 1;
@@ -181,6 +185,7 @@ let embed_font          = Fpdf_font.embed_font
 
 let add_page            = Fpdf_page.add_page
 let page_num            = Fpdf_page.page_num
+let set_nb_pages_placeholder = Fpdf_page.set_nb_pages_placeholder
 let page_count          = Fpdf_page.page_count
 let page_width          = Fpdf_page.page_width
 let page_height         = Fpdf_page.page_height

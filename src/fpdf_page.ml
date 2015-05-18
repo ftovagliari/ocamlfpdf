@@ -31,6 +31,9 @@ let page_num doc = doc.page
 
 let page_count = Fpdf_document.n_pages
 
+let set_nb_pages_placeholder placeholder doc =
+  doc.aliasNbPages <- placeholder
+
 let get_page n doc =
   try
     let len = List.length doc.pages in
