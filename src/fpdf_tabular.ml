@@ -38,7 +38,7 @@ type t = {
   padding                  : float;
   mutable v_lines          : (thickness option * int * int option * int) list; (* line_width, rowstart, rowstop, col *)
   mutable h_lines          : (thickness option * int * int option * int) list; (* line_width, colstart, colstop, row *)
-  mutable page_breaks      : (int * (unit -> float option)) list; (* Row indexes before whose a page break is inserted; callback optionally returns the new y *)
+  mutable page_breaks      : (int * (unit -> float option)) list; (* Row indexes before a page break is inserted; callback optionally returns the new y *)
   debug                    : bool;
 }
 
@@ -71,8 +71,8 @@ let create ~x ~y ?(padding=0.0) ?(border_width=`Medium) ~width ~colwidths ?(debu
     doc;
     x0               = x;
     y0               = y;
-    x               = x;
-    y               = y;
+    x                = x;
+    y                = y;
     rows             = 0;
     cols             = 0;
     cells            = [];
@@ -221,7 +221,7 @@ let pack ?matrix t =
         Fpdf.push_graphics_state t.doc;
         Fpdf.set_line_width (size_of_thickness border_width) t.doc;
         let height = table_height_rows start stop in
-        let y = if !page_start_row = 0 then t.y0 else !offset_top in
+        let y = if !page_start_row = 0 && not (List.mem_assoc 0 t.page_breaks) then t.y0 else !offset_top in
         Fpdf.rect ~x:t.x0 ~y ~width:table_width ~height(*:table_height*) t.doc;
         Fpdf.pop_graphics_state t.doc;
       | _ -> ()
@@ -323,19 +323,22 @@ let pack ?matrix t =
     begin
       try
         let callback = List.assoc i t.page_breaks in
-        print_table_border ~start:!page_start_row ~stop:(i - 1) ();
+        if i > 0 then print_table_border ~start:!page_start_row ~stop:(i - 1) ();
         print_vertical_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
         print_horizontal_lines ~pstart:!page_start_row ~pstop:(i - 1) ();
         v_lines := [];
         Fpdf.add_page t.doc;
         page_start_row := i;
         let restart_at_y = callback () in
-        t.y <-
-          match restart_at_y with
-            | Some y ->
-              offset_top := y;
-              y
-            | _ -> !offset_top;
+        begin
+          t.y <-
+            match restart_at_y with
+              | Some y ->
+                offset_top := y;
+                y
+              | _ -> !offset_top;
+        end;
+        (*if i = 0 then print_table_border ~start:!page_start_row ~stop:(i - 1) ();*)
       with Not_found -> ()
     end;
     (* Print rows *)

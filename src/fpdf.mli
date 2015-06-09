@@ -74,7 +74,7 @@ val set_creator : string -> t -> unit
 val set_producer : string -> t -> unit
 
 (** A date is an ASCII string of the form: [(D:YYYYMMDDHHmmSSOHH'mm')].
-    See {i PDF Reference version 1.7, section 3.8.3} for more informations.
+    See {i PDF Reference version 1.7, section 3.8.2} for more informations.
   *)
 val set_creation_date : string -> t -> unit
 val set_keywords : string list -> t -> unit
