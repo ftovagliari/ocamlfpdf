@@ -228,7 +228,6 @@ let pack ?matrix t =
   in
   (* Draw grid vertical lines *)
   let print_vertical_lines ~pstart ~pstop () =
-    Fpdf.push_graphics_state t.doc;
     List.iter begin fun (lw, rowstart, rowstop, col) ->
       try
         let rowstart =
@@ -260,19 +259,22 @@ let pack ?matrix t =
                       let y2 = y_start +. (table_height_rows pstart pstop) -. line_disjoin in
                       x, y1, y2
                 in
+                Fpdf.push_graphics_state t.doc;
                 let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
-                if lw <> !current_lw then begin
-                  current_lw := lw;
+                (*if lw <> !current_lw then begin
+                  current_lw := lw;*)
                   Fpdf.set_line_width lw t.doc;
-                end;
+                (*end;*)
                 v_lines := ((pstart, pstop), x, y1, x, y2) :: !v_lines;
                 Fpdf.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
+                (*Printf.printf "---------->V %d, %d -- %F -- %F (%F) (%F)\n%!" pstart pstop y1 y2 x (Fpdf.line_width t.doc);*)
+                Fpdf.pop_graphics_state t.doc;
               end;
             | _ -> ()
         end;
       with Exit -> ()
     end t.v_lines;
-    Fpdf.pop_graphics_state t.doc;
+    (*current_lw := 0.0;*)
   in
   (* Draw grid horizontal lines *)
   let print_horizontal_lines ~pstart ~pstop () =
@@ -280,7 +282,6 @@ let pack ?matrix t =
       if pstart <= row && row <= pstop then
         match matrix.(row).(colstart) with
           | Some c1 ->
-            Fpdf.push_graphics_state t.doc;
             let colstop = match colstop with Some x -> x | _ -> t.cols - 1 in
             let stop =
               match matrix.(row).(colstop) with
@@ -302,19 +303,21 @@ let pack ?matrix t =
                 end [] (List.sort (fun (_, x1, _, _, _) (_, x2, _, _, _) -> compare x1 x2) !v_lines));
             in
             let segments = List.combine (x1 :: i_points) (List.concat [i_points; [x2]]) in
-            if lw <> !current_lw then begin
-              current_lw := lw;
+            Fpdf.push_graphics_state t.doc;
+            (*if lw <> !current_lw then begin
+              current_lw := lw;*)
               Fpdf.set_line_width lw t.doc;
-            end;
+            (*end;*)
             List.iter begin fun (x1, x2) ->
               let x1 = x1 +. line_disjoin in
               let x2 = x2 -. line_disjoin in
               Fpdf.line ~x1 ~y1:y ~x2 ~y2:y t.doc;
-              (*Printf.printf "---------->H %d, %d -- %F -- %F (%F)\n%!" pstart pstop x1 x2 y;*)
+              (*Printf.printf "---------->H %d, %d -- %F -- %F (%F) (%F)\n%!" pstart pstop x1 x2 y (Fpdf.line_width t.doc);*)
             end segments;
             Fpdf.pop_graphics_state t.doc;
           | _ -> ();
     end t.h_lines;
+    (*current_lw := 0.0;*)
   in
   (* Print cell contents *)
   t.y <- t.y0;
