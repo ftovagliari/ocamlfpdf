@@ -263,7 +263,7 @@ let print_pages doc =
     (* Page content *)
     let p = Buffer.contents page.pg_buffer in
     page.pg_buffer <- Buffer.create 0;
-    let p = if doc.compress then gz_compress p else p in
+    let p = if doc.compress then Fpdf_gz.compress p else p in
     new_obj doc;
     print doc "<<%s/Length %d>>\n" filter (String.length p);
     print_stream p doc;
@@ -422,7 +422,7 @@ let print_images doc =
     if image.image_colorspace = "Indexed" then begin
       new_obj doc;
       let filter = if doc.compress then "/Filter /FlateDecode " else "" in
-      let pal = if doc.compress then gz_compress image.image_palette else image.image_palette in
+      let pal = if doc.compress then Fpdf_gz.compress image.image_palette else image.image_palette in
       print doc "<<%s/Length %d>>\n" filter (String.length pal);
       print_stream pal doc;
       print doc "endobj\n"

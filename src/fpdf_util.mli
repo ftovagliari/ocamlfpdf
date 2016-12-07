@@ -5,8 +5,6 @@ val fixpoint : ('a -> 'a) -> 'a -> 'a
 val rtrim_newline : string -> string
 val may : f:('a -> 'b) -> 'a option -> unit
 val remove_dupl : 'a list -> 'a list
-val gz_compress : string -> string
-val gz_uncompress : string -> string
 val escape : string -> string
 val rgb_of_hex : string -> int * int * int
 val hex_of_rgb : int * int * int -> string

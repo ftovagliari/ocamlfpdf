@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- OCamlEditor-1.13.2 XML Project -->
+<!-- OCamlEditor-1.13.4 XML Project -->
 <project>
   <ocaml_home></ocaml_home>
   <ocamllib></ocamllib>
@@ -14,7 +14,7 @@
   <targets>
     <target name="font" default="false" id="17" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
-      <byt>true</byt>
+      <byt>false</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
@@ -39,7 +39,7 @@
     </target>
     <target name="fpdf" default="true" id="0" sub_targets="8" is_fl_package="true" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr>Library for generating PDF documents.</descr>
-      <byt>true</byt>
+      <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
@@ -87,7 +87,7 @@
     </target>
     <target name="markup-editor" default="false" id="8" sub_targets="" is_fl_package="true" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr>Lablgtk widget for editing PDFMarkup.</descr>
-      <byt>true</byt>
+      <byt>false</byt>
       <opt>true</opt>
       <libs></libs>
       <other_objects></other_objects>
@@ -137,7 +137,7 @@
     </target>
     <target name="test" default="false" id="6" sub_targets="" is_fl_package="false" subsystem="" readonly="false" visible="true" node_collapsed="false">
       <descr></descr>
-      <byt>true</byt>
+      <byt>false</byt>
       <opt>true</opt>
       <libs>font</libs>
       <other_objects></other_objects>
@@ -189,11 +189,11 @@
       <descr></descr>
       <byt>false</byt>
       <opt>true</opt>
-      <libs>str</libs>
+      <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/testForm.ml</files>
-      <package>unix,xml-light</package>
-      <includes>tests</includes>
+      <package>str,unix,xml-light,zip</package>
+      <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
       <pp></pp>
@@ -317,7 +317,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>tests/test_metrics.ml</files>
-      <package>zip,str,unix,xml-light</package>
+      <package>str,unix,xml-light,zip</package>
       <includes>font tests</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>

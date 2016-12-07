@@ -258,7 +258,7 @@ module Png = struct
         end data;
         if color_space = "Indexed" && info.image_palette = "" then (raise (Error (Missing_palette, "")));
         if color_type >= 4 then begin
-          info.image_data <- Fpdf_util.gz_uncompress info.image_data;
+          info.image_data <- Fpdf_gz.uncompress info.image_data;
           let len = (if color_type = 4 then 2 else 4) * info.image_width in
           let color = Buffer.create 100 in
           let alpha = Buffer.create 100 in
@@ -276,8 +276,8 @@ module Png = struct
               incr j;
             done;
           done;
-          info.image_data <- Fpdf_util.gz_compress (Buffer.contents color);
-          info.image_smask <- Some (Fpdf_util.gz_compress (Buffer.contents alpha));
+          info.image_data <- Fpdf_gz.compress (Buffer.contents color);
+          info.image_smask <- Some (Fpdf_gz.compress (Buffer.contents alpha));
         end;
         info
 end

@@ -35,7 +35,7 @@ let main () = begin
       Fpdf.set_display_mode (`Custom_zoom 300.) doc;
       let margin = 20. in
       Fpdf.set_margins ~left:margin ~top:margin doc;
-      Fpdf.set_font ~family:`Helvetica ~size:40. doc;
+      Fpdf.set_font ~family:(`Helvetica : Font.family) ~size:40. doc;
       Fpdf.set_open_actions [
         (*`ResetForm;*)
         `GoTo {dest_page = 0; dest_display = `FitH None}
