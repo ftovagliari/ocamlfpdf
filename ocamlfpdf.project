@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- OCamlEditor-1.13.4 XML Project -->
+<!-- OCamlEditor-1.14.1 XML Project -->
 <project>
   <ocaml_home></ocaml_home>
   <ocamllib></ocamllib>
@@ -44,7 +44,7 @@
       <libs>font</libs>
       <other_objects></other_objects>
       <files>fpdf_javascript.ml fpdf_pack.ml fpdf_table.ml fpdf_barcode.ml fpdf_markup.ml fpdf_bookmark.ml fpdf_form.ml fpdf_tabular.ml</files>
-      <package>str,unix,xml-light,zip</package>
+      <package>str,unix,xml-light,zip,zlib</package>
       <includes>font</includes>
       <thread>false</thread>
       <vmthread>false</vmthread>
@@ -53,7 +53,7 @@
       <nodep>false</nodep>
       <dontlinkdep>false</dontlinkdep>
       <dontaddopt>false</dontaddopt>
-      <cflags>-w y -g</cflags>
+      <cflags>-y -g</cflags>
       <lflags>-g</lflags>
       <target_type>Library</target_type>
       <outname>fpdf</outname>

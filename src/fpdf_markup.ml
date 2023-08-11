@@ -84,7 +84,7 @@ let group_by f ll =
   end ll [];;
 
 let underline_of_string name =
-  let name = String.lowercase name in
+  let name = String.lowercase_ascii name in
   match name with
     | "none" -> `NONE
     | "single" -> `SINGLE
@@ -157,9 +157,9 @@ let markup_to_blocks ~markup ~line_spacing doc =
       cells := (cell ~text:" " ~attr:(attr doc) ~par:!current_par) :: !cells;
     | Xml.PCData text ->
       cells := (cell ~text ~attr:(attr doc) ~par:!current_par) :: !cells;
-    | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
+    | Xml.Element (tag, _, _) when (String.uppercase_ascii tag) = "BR" ->
       newline ()
-    | Xml.Element (tag, attrs, children) when (String.uppercase tag) = "SPAN" ->
+    | Xml.Element (tag, attrs, children) when (String.uppercase_ascii tag) = "SPAN" ->
       let attr     = {
         family       = (try Font.family_of_string (List.assoc "family" attrs) with Not_found -> default_family);
         style        = (try List.map Font.style_of_string (split_attrib (List.assoc "style" attrs)) with Not_found -> default_style);
@@ -183,7 +183,7 @@ let markup_to_blocks ~markup ~line_spacing doc =
               | Xml.PCData text ->
                 let cell = (cell ~text ~attr ~par:!current_par) in
                 cells := cell :: !cells;
-              | Xml.Element (tag, _, _) when (String.uppercase tag) = "BR" ->
+              | Xml.Element (tag, _, _) when (String.uppercase_ascii tag) = "BR" ->
                 newline ()
               | Xml.Element _ -> raise (Error (Invalid_markup, "Nested"))
             end children
@@ -464,7 +464,7 @@ let print_text ~x ~y ~width ~analysis ?(padding=(0., 0., 0., 0.)) ?(border_width
             else
               let metrics, max_size = line_max_font_size in
               !y +. line_height -. cell.cell_height +.
-                ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
+              ((get_descent cell cell.attr.size) -. (get_descent cell ~metrics max_size)) /. scale
           in
           (* Background *)
           let yy_rise = match cell.attr.rise with Some rise -> yy -. rise /. scale | _ -> yy in
@@ -537,11 +537,11 @@ let prepare ~width ~markup ?bgcolor ?border_width ?border_color ?border_radius ?
         | _ -> assert false
       in
       (match style with None -> () | Some style ->
-        let bw = match border_width with None -> 0. | Some x -> x in
-        Fpdf_util.may ~f:(fun (pattern, phase) -> Fpdf.set_line_dash pattern ~phase doc) border_dash;
-        Fpdf.rect ~x:(x +. bw /. 2.) ~y:(y +. bw /. 2.) ?radius:border_radius
-          ~width:(width -. bw)
-          ~height:(analysis.height -. bw) ~style doc);
+          let bw = match border_width with None -> 0. | Some x -> x in
+          Fpdf_util.may ~f:(fun (pattern, phase) -> Fpdf.set_line_dash pattern ~phase doc) border_dash;
+          Fpdf.rect ~x:(x +. bw /. 2.) ~y:(y +. bw /. 2.) ?radius:border_radius
+            ~width:(width -. bw)
+            ~height:(analysis.height -. bw) ~style doc);
     end;
     Fpdf_graphics_state.pop doc;
     (*(match pre with Some f -> f analysis | _ -> ());*)

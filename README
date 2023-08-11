@@ -13,7 +13,7 @@ COPYRIGHT:
 
 DEPENDENCIES:
 
-  * OCaml-4.00.0;
+  * OCaml-4.13.0;
   * Findlib-1.3.3;
   * Xml-light (installed with Findlib);
   * CamlZIP-1.05 (installed with Findlib);

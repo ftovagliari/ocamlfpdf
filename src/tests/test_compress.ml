@@ -26,6 +26,8 @@ let _ =
   for _i = 1 to len do
     Buffer.add_char text (Char.chr (32 + Random.int 95))
   done;
+  let text = Buffer.create len in
+  Buffer.add_string text "hello world!";
   let c = Fpdf_gz.compress (Buffer.contents text) in
   let d = Fpdf_gz.uncompress c in
   Printf.printf "%S\n%S\n%.2f\n%!" c d (float (String.length c) /. float (String.length d))

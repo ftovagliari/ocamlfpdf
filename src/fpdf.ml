@@ -54,7 +54,7 @@ let scale doc = doc.k
 let set_auto_page_break ?(margin=0.) auto doc =
   (* Set auto page break mode and triggering margin *)
   doc.auto_page_break <- auto;
-(*    b_margin <- margin;*)
+  (*    b_margin <- margin;*)
   doc.pageBreakTrigger <- (doc.h -. doc.b_margin)
 
 let set_display_mode ?(layout=`Continuous) zoom doc =
@@ -77,7 +77,7 @@ let y doc = doc.pos_y
 (** create *)
 let create ?(orientation=`Portrait) ?(m_unit=`Mm) ?(format=`A4) ~outchan () =
   if Hashtbl.length Font_loader.fonts = 0 then Font_loader.load_fonts();
-(*  //Some checks (LOCALE) $this->_dochecks();*)
+  (*  //Some checks (LOCALE) $this->_dochecks();*)
   (* Scale factor *)
   let scale = match m_unit with
     | `Pt -> 1.

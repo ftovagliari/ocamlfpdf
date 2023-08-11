@@ -106,7 +106,7 @@ let set_markup =
     for i = col to col + colspan - 1 do
       let colwidth =
         try table.colwidths.(i)
-        with Invalid_argument("index out of bounds") ->
+        with Invalid_argument _ ->
           Fpdf_error.error No_such_column "Fpdf_tabular: number of column widths is less than number of columns in the table"
       in
       width := !width +. colwidth
@@ -162,9 +162,9 @@ let crono ?(label="Time") f x =
   in
   let time = Unix.gettimeofday() in
   let result = try f x with e -> begin
-    finally time;
-    raise e
-  end in
+      finally time;
+      raise e
+    end in
   finally time;
   result
 
@@ -172,13 +172,13 @@ let pack ?matrix t =
   (* Structure cells as matrix for not having to search them *)
   let matrix = match matrix with Some x -> x | _ -> build_matrix t in
   (* Calculate table dimensions *)
-  let col_widths = Array.create t.cols 0.0 in
+  let col_widths = Array.make t.cols 0.0 in
   Array.iteri begin fun c _ ->
     for i = 0 to t.rows - 1 do
       col_widths.(c) <- max col_widths.(c) (match matrix.(i).(c) with Some c when c.colspan = 1 -> c.width | _ -> 0.0)
     done
   end col_widths;
-  let row_heights = Array.create t.rows 0.0 in
+  let row_heights = Array.make t.rows 0.0 in
   Array.iteri begin fun r _ ->
     for i = 0 to t.cols - 1 do
       row_heights.(r) <- max row_heights.(r) (match matrix.(r).(i) with Some c when c.rowspan = 1 -> c.height | _ -> 0.0)
@@ -263,7 +263,7 @@ let pack ?matrix t =
                 let lw = match lw with Some x -> size_of_thickness x | _ -> if rowstart = 0 then medium else thin in
                 (*if lw <> !current_lw then begin
                   current_lw := lw;*)
-                  Fpdf.set_line_width lw t.doc;
+                Fpdf.set_line_width lw t.doc;
                 (*end;*)
                 v_lines := ((pstart, pstop), x, y1, x, y2) :: !v_lines;
                 Fpdf.line ~x1:x ~y1 ~x2:x ~y2 t.doc;
@@ -306,7 +306,7 @@ let pack ?matrix t =
             Fpdf.push_graphics_state t.doc;
             (*if lw <> !current_lw then begin
               current_lw := lw;*)
-              Fpdf.set_line_width lw t.doc;
+            Fpdf.set_line_width lw t.doc;
             (*end;*)
             List.iter begin fun (x1, x2) ->
               let x1 = x1 +. line_disjoin in

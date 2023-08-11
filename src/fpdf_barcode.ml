@@ -78,7 +78,7 @@ struct
     let narrow = baseline /. 3. in
     let gap = narrow in
     let input_barcode = barcode in
-    let barcode = Printf.sprintf "*%s*" (String.uppercase barcode) in
+    let barcode = Printf.sprintf "*%s*" (String.uppercase_ascii barcode) in
     let margin = baseline *. 1. in (* margine sx *)
     begin
       match text with None -> () | Some size ->
@@ -119,27 +119,27 @@ struct
     let len' = String.length str in
     if len' > len then str (*String.sub str 0 len*)
     else
-      let result = String.make len ch in
+      let result = Bytes.make len ch in
       String.blit str 0 result (len - len') len';
-      result
+      result |> Bytes.to_string
 
   (** Convert digits to bars *)
   let codes = function
     | 'A' -> begin function
-      | '0' -> "0001101" | '1' -> "0011001" | '2' -> "0010011"
-      | '3' -> "0111101" | '4' -> "0100011" | '5' -> "0110001"
-      | '6' -> "0101111" | '7' -> "0111011" | '8' -> "0110111"
-      | '9' -> "0001011" | _ -> assert false end
+        | '0' -> "0001101" | '1' -> "0011001" | '2' -> "0010011"
+        | '3' -> "0111101" | '4' -> "0100011" | '5' -> "0110001"
+        | '6' -> "0101111" | '7' -> "0111011" | '8' -> "0110111"
+        | '9' -> "0001011" | _ -> assert false end
     | 'B' -> begin function
-      | '0' -> "0100111" | '1' -> "0110011" | '2' -> "0011011"
-      | '3' -> "0100001" | '4' -> "0011101" | '5' -> "0111001"
-      | '6' -> "0000101" | '7' -> "0010001" | '8' -> "0001001"
-      | '9' -> "0010111" | _ -> assert false end
+        | '0' -> "0100111" | '1' -> "0110011" | '2' -> "0011011"
+        | '3' -> "0100001" | '4' -> "0011101" | '5' -> "0111001"
+        | '6' -> "0000101" | '7' -> "0010001" | '8' -> "0001001"
+        | '9' -> "0010111" | _ -> assert false end
     | 'C' -> begin function
-      | '0' -> "1110010" | '1' -> "1100110" | '2' -> "1101100"
-      | '3' -> "1000010" | '4' -> "1011100" | '5' -> "1001110"
-      | '6' -> "1010000" | '7' -> "1000100" | '8' -> "1001000"
-      | '9' -> "1110100" | _ -> assert false end
+        | '0' -> "1110010" | '1' -> "1100110" | '2' -> "1101100"
+        | '3' -> "1000010" | '4' -> "1011100" | '5' -> "1001110"
+        | '6' -> "1010000" | '7' -> "1000100" | '8' -> "1001000"
+        | '9' -> "1110100" | _ -> assert false end
     | _ -> assert false
 
   let parities = function
@@ -160,17 +160,17 @@ struct
   let test_check_digit barcode =
     (* Test validity of check digit *)
     let sum = List.fold_left (fun acc i -> 3 * (int_of_digit barcode.[i]) + acc) 0
-      [1; 3; 5; 7; 9; 11] in
+        [1; 3; 5; 7; 9; 11] in
     let sum = List.fold_left (fun acc i -> (int_of_digit barcode.[i]) + acc) sum
-      [0; 2; 4; 6; 8; 10] in
+        [0; 2; 4; 6; 8; 10] in
     (sum + (int_of_digit barcode.[12])) mod 10 = 0
 
   let get_check_digit barcode =
     (* Compute the check digit *)
     let sum = List.fold_left (fun acc i -> 3 * (int_of_digit barcode.[i]) + acc) 0
-      [1; 3; 5; 7; 9; 11] in
+        [1; 3; 5; 7; 9; 11] in
     let sum = List.fold_left (fun acc i -> (int_of_digit barcode.[i]) + acc) sum
-      [0; 2; 4; 6; 8; 10] in
+        [0; 2; 4; 6; 8; 10] in
     let result = sum mod 10 in
     string_of_int (if result > 0 then 10 - result else result)
 
@@ -179,8 +179,8 @@ struct
     if v = v' then v else fixpoint f v'
 
   let write ~x ~y ?(height=16.) ?(width=0.35) ~barcode ?(upc_a=false) doc =
-(*    if upc_a && String.length barcode > 12 then invalid_arg (Printf.sprintf "Barcode too long (%s)" barcode)
-    else if not *)
+    (*    if upc_a && String.length barcode > 12 then invalid_arg (Printf.sprintf "Barcode too long (%s)" barcode)
+          else if not *)
     let len = if upc_a then 12 else 13 in
     let input_barcode = barcode in
     (* Padding: bisogna troncare o no? *)
@@ -221,9 +221,9 @@ struct
     let width' = 60. *. width in
     let scale = Fpdf.scale doc in
     let fsize = fixpoint begin fun size ->
-      let text_width = Fpdf_text.get_text_width font.Fpdf_document.font_metrics size None barcode in
-      if text_width /. scale < width' then size else (size -. 0.25)
-    end 30. in
+        let text_width = Fpdf_text.get_text_width font.Fpdf_document.font_metrics size None barcode in
+        if text_width /. scale < width' then size else (size -. 0.25)
+      end 30. in
     Fpdf.set_font ~family:`Helvetica ~style:[] ~size:fsize doc;
     let height_ext = height +. 5. *. width in
     let j = ref 0 in
@@ -261,167 +261,167 @@ end
 
 
 module Code128C =
-  struct
+struct
 
-    let encode = function
-      | 0 -> "212222"
-      | 1 -> "222122"
-      | 2 -> "222221"
-      | 3 -> "121223"
-      | 4 -> "121322"
-      | 5 -> "131222"
-      | 6 -> "122213"
-      | 7 -> "122312"
-      | 8 -> "132212"
-      | 9 -> "221213"
-      | 10 -> "221312"
-      | 11 -> "231212"
-      | 12 -> "112232"
-      | 13 -> "122132"
-      | 14 -> "122231"
-      | 15 -> "113222"
-      | 16 -> "123122"
-      | 17 -> "123221"
-      | 18 -> "223211"
-      | 19 -> "221132"
-      | 20 -> "221231"
-      | 21 -> "213212"
-      | 22 -> "223112"
-      | 23 -> "312131"
-      | 24 -> "311222"
-      | 25 -> "321122"
-      | 26 -> "321221"
-      | 27 -> "312212"
-      | 28 -> "322112"
-      | 29 -> "322211"
-      | 30 -> "212123"
-      | 31 -> "212321"
-      | 32 -> "232121"
-      | 33 -> "111323"
-      | 34 -> "131123"
-      | 35 -> "131321"
-      | 36 -> "112313"
-      | 37 -> "132113"
-      | 38 -> "132311"
-      | 39 -> "211313"
-      | 40 -> "231113"
-      | 41 -> "231311"
-      | 42 -> "112133"
-      | 43 -> "112331"
-      | 44 -> "132131"
-      | 45 -> "113123"
-      | 46 -> "113321"
-      | 47 -> "133121"
-      | 48 -> "313121"
-      | 49 -> "211331"
-      | 50 -> "231131"
-      | 51 -> "213113"
-      | 52 -> "213311"
-      | 53 -> "213131"
-      | 54 -> "311123"
-      | 55 -> "311321"
-      | 56 -> "331121"
-      | 57 -> "312113"
-      | 58 -> "312311"
-      | 59 -> "332111"
-      | 60 -> "314111"
-      | 61 -> "221411"
-      | 62 -> "431111"
-      | 63 -> "111224"
-      | 64 -> "111422"
-      | 65 -> "121124"
-      | 66 -> "121421"
-      | 67 -> "141122"
-      | 68 -> "141221"
-      | 69 -> "112214"
-      | 70 -> "112412"
-      | 71 -> "122114"
-      | 72 -> "122411"
-      | 73 -> "142112"
-      | 74 -> "142211"
-      | 75 -> "241211"
-      | 76 -> "221114"
-      | 77 -> "413111"
-      | 78 -> "241112"
-      | 79 -> "134111"
-      | 80 -> "111242"
-      | 81 -> "121142"
-      | 82 -> "121241"
-      | 83 -> "114212"
-      | 84 -> "124112"
-      | 85 -> "124211"
-      | 86 -> "411212"
-      | 87 -> "421112"
-      | 88 -> "421211"
-      | 89 -> "212141"
-      | 90 -> "214121"
-      | 91 -> "412121"
-      | 92 -> "111143"
-      | 93 -> "111341"
-      | 94 -> "131141"
-      | 95 -> "114113"
-      | 96 -> "114311"
-      | 97 -> "411113"
-      | 98 -> "411311"
-      | 99 -> "113141"
-      | 100 -> "114131" (* CODE B *)
-      | 101 -> "311141" (* CODE A *)
-      | 102 -> "411131" (* FNC1 *)
-      | 103 -> "211412" (* START A *)
-      | 104 -> "211214" (* START B *)
-      | 105 -> "211232" (* START C *)
-      | 106 -> "2331112" (* STOP *)
-      | _ -> invalid_arg "encode"
+  let encode = function
+    | 0 -> "212222"
+    | 1 -> "222122"
+    | 2 -> "222221"
+    | 3 -> "121223"
+    | 4 -> "121322"
+    | 5 -> "131222"
+    | 6 -> "122213"
+    | 7 -> "122312"
+    | 8 -> "132212"
+    | 9 -> "221213"
+    | 10 -> "221312"
+    | 11 -> "231212"
+    | 12 -> "112232"
+    | 13 -> "122132"
+    | 14 -> "122231"
+    | 15 -> "113222"
+    | 16 -> "123122"
+    | 17 -> "123221"
+    | 18 -> "223211"
+    | 19 -> "221132"
+    | 20 -> "221231"
+    | 21 -> "213212"
+    | 22 -> "223112"
+    | 23 -> "312131"
+    | 24 -> "311222"
+    | 25 -> "321122"
+    | 26 -> "321221"
+    | 27 -> "312212"
+    | 28 -> "322112"
+    | 29 -> "322211"
+    | 30 -> "212123"
+    | 31 -> "212321"
+    | 32 -> "232121"
+    | 33 -> "111323"
+    | 34 -> "131123"
+    | 35 -> "131321"
+    | 36 -> "112313"
+    | 37 -> "132113"
+    | 38 -> "132311"
+    | 39 -> "211313"
+    | 40 -> "231113"
+    | 41 -> "231311"
+    | 42 -> "112133"
+    | 43 -> "112331"
+    | 44 -> "132131"
+    | 45 -> "113123"
+    | 46 -> "113321"
+    | 47 -> "133121"
+    | 48 -> "313121"
+    | 49 -> "211331"
+    | 50 -> "231131"
+    | 51 -> "213113"
+    | 52 -> "213311"
+    | 53 -> "213131"
+    | 54 -> "311123"
+    | 55 -> "311321"
+    | 56 -> "331121"
+    | 57 -> "312113"
+    | 58 -> "312311"
+    | 59 -> "332111"
+    | 60 -> "314111"
+    | 61 -> "221411"
+    | 62 -> "431111"
+    | 63 -> "111224"
+    | 64 -> "111422"
+    | 65 -> "121124"
+    | 66 -> "121421"
+    | 67 -> "141122"
+    | 68 -> "141221"
+    | 69 -> "112214"
+    | 70 -> "112412"
+    | 71 -> "122114"
+    | 72 -> "122411"
+    | 73 -> "142112"
+    | 74 -> "142211"
+    | 75 -> "241211"
+    | 76 -> "221114"
+    | 77 -> "413111"
+    | 78 -> "241112"
+    | 79 -> "134111"
+    | 80 -> "111242"
+    | 81 -> "121142"
+    | 82 -> "121241"
+    | 83 -> "114212"
+    | 84 -> "124112"
+    | 85 -> "124211"
+    | 86 -> "411212"
+    | 87 -> "421112"
+    | 88 -> "421211"
+    | 89 -> "212141"
+    | 90 -> "214121"
+    | 91 -> "412121"
+    | 92 -> "111143"
+    | 93 -> "111341"
+    | 94 -> "131141"
+    | 95 -> "114113"
+    | 96 -> "114311"
+    | 97 -> "411113"
+    | 98 -> "411311"
+    | 99 -> "113141"
+    | 100 -> "114131" (* CODE B *)
+    | 101 -> "311141" (* CODE A *)
+    | 102 -> "411131" (* FNC1 *)
+    | 103 -> "211412" (* START A *)
+    | 104 -> "211214" (* START B *)
+    | 105 -> "211232" (* START C *)
+    | 106 -> "2331112" (* STOP *)
+    | _ -> invalid_arg "encode"
 
-    let check_symbol values =
-      let values = List.rev values in
-      let sum = List.hd values in
-      let i = ref 0 in
-      let sum = List.fold_left (fun acc v -> incr i; acc + v * !i) sum (List.tl values) in
-      sum mod 103
+  let check_symbol values =
+    let values = List.rev values in
+    let sum = List.hd values in
+    let i = ref 0 in
+    let sum = List.fold_left (fun acc v -> incr i; acc + v * !i) sum (List.tl values) in
+    sum mod 103
 
-    let get_width ~barcode = (String.length barcode / 2 + 4) * 11 + 13
+  let get_width ~barcode = (String.length barcode / 2 + 4) * 11 + 13
 
-    let write ~x ~y ?(height=16.) ?(width=0.35) ?(set=(`C : [`A | `B | `C])) ?text ~barcode doc =
-      match set with `A | `B -> invalid_arg "write"
-        | `C when String.length barcode mod 2 <> 0 ->
-          invalid_arg (sprintf "Fpdf_barcode.Code128-C: barcode length must be even (%s)." barcode)
-        | `C ->
-          let value_of_c str =
-            if String.length str <> 2 then invalid_arg "value_of_c" else
-              (try int_of_string str with Failure "int_of_string" -> invalid_arg "Fpdf_barcode.Code128-C: accepts only numeric data.")
-          in
-          let i = ref 0 in
-          let len = String.length barcode in
-          let values = ref [105] in (* 105 = START C *)
-          while !i < len do
-            values := (value_of_c (String.sub barcode !i 2)) :: !values;
-            i := !i + 2;
-          done;
-          values := 106 :: (check_symbol !values) :: !values; (* 106 = STOP *)
-          let code = String.concat "" (List.rev_map encode !values) in
-          (* Draw bars *)
-          let baseline = width in
-          let margin = baseline *. 11. in
-          let pos = ref (x +. margin) in
-          for i = 0 to String.length code - 1 do
-            let width = baseline *. (float_of_string (String.sub code i 1)) in
-            if i mod 2 = 0 then (Fpdf.rect ~x:!pos ~y ~width ~height ~style:`Fill doc);
-            pos := !pos +. width
-          done;
-          match text with None -> () | Some size ->
-            Fpdf.set_font ~size doc;
-            let text = Printf.sprintf "%s" barcode (*(check_symbol !values)*) in
-            let font =
-              match doc.Fpdf_document.current_font with
-                | Some font -> font.Fpdf_document.font_metrics
-                | _ -> failwith "No current font"
-            in
-            let text_width = Fpdf.get_text_width font size None text /. Fpdf.scale doc in
-            let barcode_width = float (get_width ~barcode) *. baseline in
-            let x = x +. (barcode_width -. text_width) /. 2. in
-            Fpdf.text ~x ~y:(y +. height +. (size -. 1.) /. Fpdf.scale doc) ~text doc
-  end
+  let write ~x ~y ?(height=16.) ?(width=0.35) ?(set=(`C : [`A | `B | `C])) ?text ~barcode doc =
+    match set with `A | `B -> invalid_arg "write"
+                 | `C when String.length barcode mod 2 <> 0 ->
+                   invalid_arg (sprintf "Fpdf_barcode.Code128-C: barcode length must be even (%s)." barcode)
+                 | `C ->
+                   let value_of_c str =
+                     if String.length str <> 2 then invalid_arg "value_of_c" else
+                       (match int_of_string_opt str with Some x -> x | _ -> invalid_arg "Fpdf_barcode.Code128-C: accepts only numeric data.")
+                   in
+                   let i = ref 0 in
+                   let len = String.length barcode in
+                   let values = ref [105] in (* 105 = START C *)
+                   while !i < len do
+                     values := (value_of_c (String.sub barcode !i 2)) :: !values;
+                     i := !i + 2;
+                   done;
+                   values := 106 :: (check_symbol !values) :: !values; (* 106 = STOP *)
+                   let code = String.concat "" (List.rev_map encode !values) in
+                   (* Draw bars *)
+                   let baseline = width in
+                   let margin = baseline *. 11. in
+                   let pos = ref (x +. margin) in
+                   for i = 0 to String.length code - 1 do
+                     let width = baseline *. (float_of_string (String.sub code i 1)) in
+                     if i mod 2 = 0 then (Fpdf.rect ~x:!pos ~y ~width ~height ~style:`Fill doc);
+                     pos := !pos +. width
+                   done;
+                   match text with None -> () | Some size ->
+                     Fpdf.set_font ~size doc;
+                     let text = Printf.sprintf "%s" barcode (*(check_symbol !values)*) in
+                     let font =
+                       match doc.Fpdf_document.current_font with
+                         | Some font -> font.Fpdf_document.font_metrics
+                         | _ -> failwith "No current font"
+                     in
+                     let text_width = Fpdf.get_text_width font size None text /. Fpdf.scale doc in
+                     let barcode_width = float (get_width ~barcode) *. baseline in
+                     let x = x +. (barcode_width -. text_width) /. 2. in
+                     Fpdf.text ~x ~y:(y +. height +. (size -. 1.) /. Fpdf.scale doc) ~text doc
+end
 
 
 

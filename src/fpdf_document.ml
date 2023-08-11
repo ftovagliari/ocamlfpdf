@@ -52,80 +52,80 @@ and annot = {
   mutable annot_obj  : int list;
   mutable annot_func : (int -> int) list
 } and t = {
-  mutable page                  : int;
-  mutable current_object_number : int;
-  mutable objects               : obj list;
-  mutable pages                 : page list;                (* array containing pages *)
-  mutable state                 : state;                    (* current document state *)
-  mutable compress              : bool;                     (* compression flag *)
-  mutable def_orientation       : orientation;              (* default orientation *)
-  mutable cur_orientation       : orientation;              (* current orientation *)
-  mutable k                     : float;                    (* scale factor (number of points in user unit) *)
-  mutable fw_pt                 : float;
-  mutable fh_pt                 : float;                    (* dimensions of page format in points *)
-  mutable fw                    : float;
-  mutable fh                    : float;                    (* dimensions of page format in user unit *)
-  mutable w_pt                  : float;
-  mutable h_pt                  : float;                    (* current dimensions of page in points *)
-  mutable w                     : float;
-  mutable h                     : float;                    (* current dimensions of page in user unit *)
-  mutable l_margin              : float;                    (* left margin*)
-  mutable t_margin              : float;                    (* top margin*)
-  mutable r_margin              : float;                    (* right margin*)
-  mutable b_margin              : float;                    (* page break margin *)
-  mutable c_margin              : float;                    (* cell margin *)
-  mutable pos_x                 : float;
-  mutable pos_y                 : float;                    (* current position in user unit for cell positioning *)
-  mutable lasth                 : float;                    (* height of last cell printed *)
-  mutable line_width            : float; (*0.1 /. scale*)   (* line width in user unit (0.567 = 0.2 mm) *)
-  mutable line_cap              : line_cap_style;           (*  *)
-  mutable line_join             : line_join_style;          (*  *)
-  mutable line_dash             : (int list * int);         (*  *)
-  mutable fonts                 : (Font.key * font_obj) list;   (* array of used fonts [(key, font) list] *)
-  mutable font_embed            : font_embed list;           (* array of font files *)
-  mutable diffs                 : string list;              (* array of encoding differences *)
-  mutable images                : Fpdf_images.Table.t;         (* array of used images *)
-  mutable links                 : (int * float) list;       (* array of internal links *)
-  mutable font_family           : Font.family option;       (* current font family *)
-  mutable font_style            : Font.style list;          (* current font style *)
-  mutable underline             : bool;                     (* underlining flag *)
-  mutable current_font          : font_obj option;          (* current font info *)
-  mutable font_size_pt          : float;                    (* current font size in points *)
-  mutable font_size             : float;                    (* current font size in user unit *)
-  mutable font_scale            : int option;               (* current font scale *)
-  mutable font_char_space       : float option;             (* current char space *)
-  mutable drawColor             : string;                   (* commands for drawing color *)
-  mutable fillColor             : string;                   (* commands for filling color *)
-  mutable textColor             : string;                   (* commands for text color *)
-  mutable ws                    : float;                    (* word spacing *)
-  mutable auto_page_break       : bool;                     (* automatic page breaking *)
-  mutable pageBreakTrigger      : float;                    (* threshold used to trigger page breaks *)
-  mutable inFooter              : bool;                     (* flag set when processing footer *)
-  mutable zoomMode              : zoom;                     (* zoom display mode *)
-  mutable layoutMode            : layout;                   (* layout display mode *)
-  mutable title                 : string;                   (* title *)
-  mutable subject               : string;                   (* subject *)
-  mutable author                : string;                   (* author *)
-  mutable keywords              : string list;              (* keywords *)
-  mutable creator               : string;                   (* creator *)
-  mutable producer              : string;                   (* producer *)
-  mutable creation_date         : string;                   (* creationDate *)
-  mutable aliasNbPages          : string;                   (* alias for total number of pages *)
-  mutable pdfVersionMajor       : int;                      (* PDF version number *)
-  mutable pdfVersionMinor       : int;                      (* PDF version number *)
-  mutable header                : (unit -> unit);
-  mutable footer                : (unit -> unit);
-  mutable double_sided          : bool;
-  mutable current_length        : int;
-  mutable outchan               : out_channel;
-  mutable print_resources       : (unit -> unit) list;
-  mutable print_catalog         : (unit -> unit) list;
-  mutable text_color_rgb        : int * int * int;
-  mutable fill_color_rgb        : int * int * int;
-  mutable draw_color_rgb        : int * int * int;
-  mutable open_action_obj       : int option;
-  mutable open_actions          : action list;
-}
+    mutable page                  : int;
+    mutable current_object_number : int;
+    mutable objects               : obj list;
+    mutable pages                 : page list;                (* array containing pages *)
+    mutable state                 : state;                    (* current document state *)
+    mutable compress              : bool;                     (* compression flag *)
+    mutable def_orientation       : orientation;              (* default orientation *)
+    mutable cur_orientation       : orientation;              (* current orientation *)
+    mutable k                     : float;                    (* scale factor (number of points in user unit) *)
+    mutable fw_pt                 : float;
+    mutable fh_pt                 : float;                    (* dimensions of page format in points *)
+    mutable fw                    : float;
+    mutable fh                    : float;                    (* dimensions of page format in user unit *)
+    mutable w_pt                  : float;
+    mutable h_pt                  : float;                    (* current dimensions of page in points *)
+    mutable w                     : float;
+    mutable h                     : float;                    (* current dimensions of page in user unit *)
+    mutable l_margin              : float;                    (* left margin*)
+    mutable t_margin              : float;                    (* top margin*)
+    mutable r_margin              : float;                    (* right margin*)
+    mutable b_margin              : float;                    (* page break margin *)
+    mutable c_margin              : float;                    (* cell margin *)
+    mutable pos_x                 : float;
+    mutable pos_y                 : float;                    (* current position in user unit for cell positioning *)
+    mutable lasth                 : float;                    (* height of last cell printed *)
+    mutable line_width            : float; (*0.1 /. scale*)   (* line width in user unit (0.567 = 0.2 mm) *)
+    mutable line_cap              : line_cap_style;           (*  *)
+    mutable line_join             : line_join_style;          (*  *)
+    mutable line_dash             : (int list * int);         (*  *)
+    mutable fonts                 : (Font.key * font_obj) list;   (* array of used fonts [(key, font) list] *)
+    mutable font_embed            : font_embed list;           (* array of font files *)
+    mutable diffs                 : string list;              (* array of encoding differences *)
+    mutable images                : Fpdf_images.Table.t;         (* array of used images *)
+    mutable links                 : (int * float) list;       (* array of internal links *)
+    mutable font_family           : Font.family option;       (* current font family *)
+    mutable font_style            : Font.style list;          (* current font style *)
+    mutable underline             : bool;                     (* underlining flag *)
+    mutable current_font          : font_obj option;          (* current font info *)
+    mutable font_size_pt          : float;                    (* current font size in points *)
+    mutable font_size             : float;                    (* current font size in user unit *)
+    mutable font_scale            : int option;               (* current font scale *)
+    mutable font_char_space       : float option;             (* current char space *)
+    mutable drawColor             : string;                   (* commands for drawing color *)
+    mutable fillColor             : string;                   (* commands for filling color *)
+    mutable textColor             : string;                   (* commands for text color *)
+    mutable ws                    : float;                    (* word spacing *)
+    mutable auto_page_break       : bool;                     (* automatic page breaking *)
+    mutable pageBreakTrigger      : float;                    (* threshold used to trigger page breaks *)
+    mutable inFooter              : bool;                     (* flag set when processing footer *)
+    mutable zoomMode              : zoom;                     (* zoom display mode *)
+    mutable layoutMode            : layout;                   (* layout display mode *)
+    mutable title                 : string;                   (* title *)
+    mutable subject               : string;                   (* subject *)
+    mutable author                : string;                   (* author *)
+    mutable keywords              : string list;              (* keywords *)
+    mutable creator               : string;                   (* creator *)
+    mutable producer              : string;                   (* producer *)
+    mutable creation_date         : string;                   (* creationDate *)
+    mutable aliasNbPages          : string;                   (* alias for total number of pages *)
+    mutable pdfVersionMajor       : int;                      (* PDF version number *)
+    mutable pdfVersionMinor       : int;                      (* PDF version number *)
+    mutable header                : (unit -> unit);
+    mutable footer                : (unit -> unit);
+    mutable double_sided          : bool;
+    mutable current_length        : int;
+    mutable outchan               : out_channel;
+    mutable print_resources       : (unit -> unit) list;
+    mutable print_catalog         : (unit -> unit) list;
+    mutable text_color_rgb        : int * int * int;
+    mutable fill_color_rgb        : int * int * int;
+    mutable draw_color_rgb        : int * int * int;
+    mutable open_action_obj       : int option;
+    mutable open_actions          : action list;
+  }
 
 let open_document doc = match doc.state with
   | End_document -> failwith "Fpdf.open_document: document already closed."
@@ -147,15 +147,17 @@ let get_current_page doc =
   let len = List.length doc.pages in
   try
     List.nth doc.pages (len - doc.page - 1)
-  with Failure "nth" -> kprintf failwith "get_current_page (%d, %d)" len doc.page
+  with Failure _ -> kprintf failwith "get_current_page (%d, %d)" len doc.page
 
 let get_link index doc =
-  try List.nth doc.links index
-  with Invalid_argument "List.nth" -> failwith ("get_link (" ^ (string_of_int index) ^ ")")
+  match List.nth_opt doc.links index with
+    | Some x -> x
+    | _ -> failwith ("get_link (" ^ (string_of_int index) ^ ")")
 
 let find_object n doc =
-  try List.nth doc.objects ((List.length doc.objects) - n)
-  with _ -> failwith ("find_object (" ^ (string_of_int n) ^ ")")
+  match List.nth_opt doc.objects ((List.length doc.objects) - n) with
+    | Some x -> x
+    | _ -> failwith ("find_object (" ^ (string_of_int n) ^ ")")
 
 let get_buffer ~create doc =
   match doc.state with
@@ -225,10 +227,10 @@ let print_catalog doc =
 
 (** Begin a new object *)
 let new_obj doc =
-   doc.current_object_number <- doc.current_object_number + 1;
-   let obj = {obj_offset = doc.current_length} in
-   doc.objects <- obj :: doc.objects;
-   print doc "%d 0 obj" doc.current_object_number
+  doc.current_object_number <- doc.current_object_number + 1;
+  let obj = {obj_offset = doc.current_length} in
+  doc.objects <- obj :: doc.objects;
+  print doc "%d 0 obj" doc.current_object_number
 
 (** Print pages *)
 let print_pages doc =
@@ -348,14 +350,14 @@ let print_fonts doc =
         (match metrics.stemV with Some x -> print doc "/StemV %d " x | _ -> ());
         (match metrics.missingWidth with Some x -> print doc "/MissingWidth %d " x | _ -> ());
         (match metrics.fontFile with
-            | Some _ ->
-              let fe =
-                try List.find (fun fe -> fe.fe_metrics.fontName = name) doc.font_embed
-                with Not_found ->
-                  kprintf failwith "Cannot embed font %s" name
-              in
-              print doc "/FontFile%s %d 0 R " (match typ with `Type1 -> "" | _ -> "2") fe.fe_obj
-            | _ -> ());
+          | Some _ ->
+            let fe =
+              try List.find (fun fe -> fe.fe_metrics.fontName = name) doc.font_embed
+              with Not_found ->
+                kprintf failwith "Cannot embed font %s" name
+            in
+            print doc "/FontFile%s %d 0 R " (match typ with `Type1 -> "" | _ -> "2") fe.fe_obj
+          | _ -> ());
         print doc ">>endobj\n";
       | `Additional atyp -> failwith ("print_font (Additional " ^ atyp ^ ")")
   end doc.fonts
@@ -364,7 +366,7 @@ let print_fonts doc =
 let print_images doc =
   let open Fpdf_images in
   (* reset($this->images);
-  while(list($file,$info)=each($this->images)) *)
+     while(list($file,$info)=each($this->images)) *)
   let rec print_image image =
     new_obj doc;
     image.image_obj <- doc.current_object_number;
@@ -486,13 +488,13 @@ let print_open_actions doc =
           begin
             match dest_display with
               | `XYZ (left, top, zoom) -> print doc "/XYZ %s %s %f]"
-                (match left with Some x -> string_of_float x | _ -> "null")
-                (match top with Some x -> string_of_float x | _ -> "null") zoom
+                                            (match left with Some x -> string_of_float x | _ -> "null")
+                                            (match top with Some x -> string_of_float x | _ -> "null") zoom
               | `Fit -> print doc "/Fit]"
               | `FitH top -> print doc "/FitH %s]"
-                (match top with Some x -> string_of_float x | _ -> "null")
+                               (match top with Some x -> string_of_float x | _ -> "null")
               | `FitV left -> print doc "/FitV %s]"
-                (match left with Some x -> string_of_float x | _ -> "null")
+                                (match left with Some x -> string_of_float x | _ -> "null")
           end;
         | `ResetForm -> print doc "/S/ResetForm";
     end;
@@ -540,9 +542,9 @@ let begin_page ?orientation doc =
         doc.h_pt <- doc.fw_pt;
         doc.w <- doc.fh;
         doc.h <- doc.fw
-      end;
-      doc.pageBreakTrigger <- doc.h -. doc.b_margin;
-      doc.cur_orientation <- orientation
+    end;
+    doc.pageBreakTrigger <- doc.h -. doc.b_margin;
+    doc.cur_orientation <- orientation
   end
 
 let end_page doc = doc.state <- End_page

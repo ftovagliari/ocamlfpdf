@@ -73,7 +73,7 @@ let header_columns columns nodes =
   in f nodes;;
 
 let header_width col_group =
-    (List.fold_left (fun acc c -> acc +. c.col_width) 0.0) col_group;;
+  (List.fold_left (fun acc c -> acc +. c.col_width) 0.0) col_group;;
 
 let with_line_width doc lw f x =
   let old = Fpdf.line_width doc in
@@ -117,32 +117,32 @@ let header_draw ~columns ~nodes ~x ~y ~padding ?align ~line_disjoin ~border_widt
           | `Func f -> (f ~x:(x +. padding) ~y:(y +. padding) ~width) +. padding;
       in
       (*Fpdf.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
-      Fpdf.rect ~x ~y ~width ~height ~style:`Both doc;*)
+        Fpdf.rect ~x ~y ~width ~height ~style:`Both doc;*)
       let x = ref x in
       let y = y +. height in
       Fpdf.line ~x1:(!x +. line_disjoin) ~y1:y ~x2:(!x +. width +. 2. *. padding -. line_disjoin) ~y2:y doc;
       let widths_heights = List.map begin fun node ->
-        let width, height = draw_node (level + 1) !x y node in
-        x := !x +. width;
-        width, height
-      end node.h_children in
+          let width, height = draw_node (level + 1) !x y node in
+          x := !x +. width;
+          width, height
+        end node.h_children in
       let _, heights = List.split widths_heights in
       let height = height +. (List.fold_left max 0.0 heights) in
       width +. 2. *. padding, height
   in
   let widths_heights = List.map begin fun node ->
-    let width, height = draw_node 0 !x y0 node in
-    x := !x +. width;
-    width, height
-  end nodes in
+      let width, height = draw_node 0 !x y0 node in
+      x := !x +. width;
+      width, height
+    end nodes in
   let widths, heights = List.split widths_heights in
   let width = List.fold_left (+.) 0.0 widths in
   let height = List.fold_left max 0.0 heights in
   let points = Fpdf_util.group_by (fun (x, _, _) -> x) !points in
   let points = List.map begin fun (x, g) ->
-    let yw = List.fold_left (fun (ya, wa) (_, y, w) -> min ya y, max wa w) (max_float, 0.) g in
-    x, yw
-  end points in
+      let yw = List.fold_left (fun (ya, wa) (_, y, w) -> min ya y, max wa w) (max_float, 0.) g in
+      x, yw
+    end points in
   (* Draw vertical lines between column headers *)
   with_line_width doc 0.0 begin fun () ->
     let border_width = size_of_thickness border_width in
@@ -165,14 +165,14 @@ let rec list_pos ?(pos=0) ll x = match ll with
   | a :: b -> if a = x then pos else 1 + (list_pos ~pos b x)
 
 let default_cell_func ~index ~row ~col = Cell_properties {
-  prop_text       = (match row col with None -> "" | Some x -> x);
-  prop_align      = `Center;
-  prop_font_style = [];
-  prop_font_size  = None;
-  prop_image      = None;
-  prop_bg_color   = None;
-  prop_fg_color   = None;
-}
+    prop_text       = (match row col with None -> "" | Some x -> x);
+    prop_align      = `Center;
+    prop_font_style = [];
+    prop_font_size  = None;
+    prop_image      = None;
+    prop_bg_color   = None;
+    prop_fg_color   = None;
+  }
 
 let print
     ~x
@@ -214,7 +214,7 @@ let print
   in
   List.iter (fun (_, col) -> col.col_width <- (perc col.col_width)) columns;
   let header_layout = match header_layout with Some hl -> hl
-    | None -> List.map (fun (id, _) -> `Leaf id) columns
+                                             | None -> List.map (fun (id, _) -> `Leaf id) columns
   in
   (**  *)
   let set_default_draw_color doc = Fpdf.set_draw_color ~red:0 ~green:0 ~blue:0 doc in
@@ -227,7 +227,7 @@ let print
     let x0, y0 = !x, !y in
     Fpdf.set_font ~style:[] doc;
     let height, points = header_draw ~columns ~nodes:header_layout ~x:!x ~y:!y
-      ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
+        ~padding:cellpadding ~align:`Center ~line_disjoin ~border_width doc in
     x := x0;
     y := !y +. height;
     begin
@@ -279,7 +279,7 @@ let print
           end
         end !vlines_points;
       end ()
-    | _ -> ()
+                        | _ -> ()
   in
   (** Print rows *)
   let tags = fst (List.split columns) in
@@ -289,45 +289,45 @@ let print
   let line_height = (Fpdf.font_size doc) /. Fpdf.scale doc *. line_spacing in
   List.iter begin fun row ->
     x := !left;
-    let row_content  = Array.create (Array.length row) (Cell_properties {
-      prop_text       = "";
-      prop_align      = `Left;
-      prop_font_style = [];
-      prop_font_size  = None;
-      prop_image      = None;
-      prop_bg_color   = None;
-      prop_fg_color   = None;
-    }) in
+    let row_content  = Array.make (Array.length row) (Cell_properties {
+        prop_text       = "";
+        prop_align      = `Left;
+        prop_font_style = [];
+        prop_font_size  = None;
+        prop_image      = None;
+        prop_bg_color   = None;
+        prop_fg_color   = None;
+      }) in
     let i = ref 0 in
     let heights = List.map begin fun (tag, col) ->
-      try
-        let row tag = row.(!! tag) in
-        let cell = cell_func ~index:!index ~row ~col:tag in
-        let maxh =
-          match cell with
-            | Cell_properties properties ->
-              begin
-                match properties.prop_image with
-                  | None ->
-                    let font =
-                      match doc.Fpdf_document.current_font with
-                        | Some font -> font.Fpdf_document.font_metrics
-                        | _ -> failwith "No current font"
-                    in
-                    let text_width = Fpdf.get_text_width font (Fpdf.font_size doc) (Fpdf.font_scale doc) properties.prop_text in (* Works only with regular font *)
-                    let line_height = match properties.prop_font_size with None -> line_height | Some x -> Fpdf.font_size doc /. Fpdf.scale doc *. line_spacing in
-                    if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
-                  | Some image ->
-                    let asp = (float image.img_width) /. (float image.img_height) in
-                    if col.col_width > 0.0 then col.col_width /. asp else 0.0
-              end;
-            | Cell_draw (height, _) -> height
-        in
-        row_content.(!i) <- cell;
-        incr i;
-        maxh
-      with Not_found -> failwith "Fpdf_table: no such column"
-    end columns in
+        try
+          let row tag = row.(!! tag) in
+          let cell = cell_func ~index:!index ~row ~col:tag in
+          let maxh =
+            match cell with
+              | Cell_properties properties ->
+                begin
+                  match properties.prop_image with
+                    | None ->
+                      let font =
+                        match doc.Fpdf_document.current_font with
+                          | Some font -> font.Fpdf_document.font_metrics
+                          | _ -> failwith "No current font"
+                      in
+                      let text_width = Fpdf.get_text_width font (Fpdf.font_size doc) (Fpdf.font_scale doc) properties.prop_text in (* Works only with regular font *)
+                      let line_height = match properties.prop_font_size with None -> line_height | Some x -> Fpdf.font_size doc /. Fpdf.scale doc *. line_spacing in
+                      if col.col_width > 0.0 then (ceil (text_width /. col.col_width)) *. line_height else 0.0
+                    | Some image ->
+                      let asp = (float image.img_width) /. (float image.img_height) in
+                      if col.col_width > 0.0 then col.col_width /. asp else 0.0
+                end;
+              | Cell_draw (height, _) -> height
+          in
+          row_content.(!i) <- cell;
+          incr i;
+          maxh
+        with Not_found -> failwith "Fpdf_table: no such column"
+      end columns in
     let row_height = List.fold_left max 0.0 heights +. 2. *. cellpadding in
     (* Salto pagina se necessario. Se una riga sconfina su più righe e l'altezza totale
      * supera lo spazio restante a fine pagina allora viene forzato un salto pagina (invece
@@ -349,53 +349,53 @@ let print
       x := !left;
     end;
     let ys = List.map begin fun (tag, col) ->
-      let width = col.col_width in
-      if width > 0. then begin
-        begin
-          match row_content.(!! tag) with
-            | Cell_properties properties ->
-              let old_size = Fpdf.font_size doc in
-              let old_style = Fpdf.font_style doc in
-              Fpdf.set_font ~style:properties.prop_font_style ?size:properties.prop_font_size doc;
-              Fpdf.set ~x:!x ~y:(!y +. cellpadding) doc;
-              let line_height = match properties.prop_font_size with None -> line_height | Some x -> Fpdf.font_size doc /. Fpdf.scale doc *. line_spacing in
-              begin
-                match properties.prop_image with
-                  | None ->
-                    let x = Fpdf.x doc in
-                    let y = Fpdf.y doc +. cellpadding in
-                    begin
-                      match properties.prop_bg_color with None -> ()
-                      | Some (red, green, blue) ->
-                        Fpdf.set_fill_color ~red ~green ~blue doc;
-                        Fpdf.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
-                    end;
-                    if use_markup then begin
-                      let markup = Fpdf_markup.prepare ~width:(width -. 2. *. cellpadding)
-                          ~line_spacing ~markup:properties.prop_text doc in
-                      markup.Fpdf_markup.print ~x:(x +. cellpadding) ~y ()
-                    end else begin
-                      Fpdf.multi_cell ~width:(width -. 2. *. cellpadding)
-                        ~line_height ~align:properties.prop_align ~text:properties.prop_text doc;
-                    end
-                  | Some image ->
-                    let asp = (float image.img_width) /. (float image.img_height) in
-                    Fpdf.image
-                      ~name:image.img_name
-                      ~data:image.img_data
-                      ~x:!x ~y:!y ~width doc;
-                    Fpdf.set ~y:(Fpdf.y doc +. width /. asp) doc
-              end;
-              Fpdf.set_font ~style:old_style ~size:old_size doc;
-            | Cell_draw (height, func) ->
-              let width = width -. 2. *. cellpadding in
-              func ~x:(!x +. cellpadding) ~y:(!y +. cellpadding) ~width ~height;
-              Fpdf.set ~y:(!y +. height) doc
+        let width = col.col_width in
+        if width > 0. then begin
+          begin
+            match row_content.(!! tag) with
+              | Cell_properties properties ->
+                let old_size = Fpdf.font_size doc in
+                let old_style = Fpdf.font_style doc in
+                Fpdf.set_font ~style:properties.prop_font_style ?size:properties.prop_font_size doc;
+                Fpdf.set ~x:!x ~y:(!y +. cellpadding) doc;
+                let line_height = match properties.prop_font_size with None -> line_height | Some x -> Fpdf.font_size doc /. Fpdf.scale doc *. line_spacing in
+                begin
+                  match properties.prop_image with
+                    | None ->
+                      let x = Fpdf.x doc in
+                      let y = Fpdf.y doc +. cellpadding in
+                      begin
+                        match properties.prop_bg_color with None -> ()
+                                                          | Some (red, green, blue) ->
+                                                            Fpdf.set_fill_color ~red ~green ~blue doc;
+                                                            Fpdf.rect ~x ~y ~width ~height:line_height ~style:`Fill doc;
+                      end;
+                      if use_markup then begin
+                        let markup = Fpdf_markup.prepare ~width:(width -. 2. *. cellpadding)
+                            ~line_spacing ~markup:properties.prop_text doc in
+                        markup.Fpdf_markup.print ~x:(x +. cellpadding) ~y ()
+                      end else begin
+                        Fpdf.multi_cell ~width:(width -. 2. *. cellpadding)
+                          ~line_height ~align:properties.prop_align ~text:properties.prop_text doc;
+                      end
+                    | Some image ->
+                      let asp = (float image.img_width) /. (float image.img_height) in
+                      Fpdf.image
+                        ~name:image.img_name
+                        ~data:image.img_data
+                        ~x:!x ~y:!y ~width doc;
+                      Fpdf.set ~y:(Fpdf.y doc +. width /. asp) doc
+                end;
+                Fpdf.set_font ~style:old_style ~size:old_size doc;
+              | Cell_draw (height, func) ->
+                let width = width -. 2. *. cellpadding in
+                func ~x:(!x +. cellpadding) ~y:(!y +. cellpadding) ~width ~height;
+                Fpdf.set ~y:(!y +. height) doc
+          end;
+          x := !x +. width;
         end;
-        x := !x +. width;
-      end;
-      Fpdf.y doc +. cellpadding +. rowspacing
-    end columns in
+        Fpdf.y doc +. cellpadding +. rowspacing
+      end columns in
     y := List.fold_left max 0.0 ys;
     (** Horizontal line between rows. *)
     begin

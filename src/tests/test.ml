@@ -39,7 +39,7 @@ let is_fib n =
   in f 0
 
 let markup = "<SPAN align='0.5' style='bold' size='16'>Purgatorio, CANTO I</SPAN><BR/><BR/><BR/>\
-<SPAN>Per correr </SPAN><SPAN underline='single'>miglior</SPAN><SPAN> </SPAN><SPAN underline='low'>acque</SPAN><SPAN> alza le vele
+              <SPAN>Per correr </SPAN><SPAN underline='single'>miglior</SPAN><SPAN> </SPAN><SPAN underline='low'>acque</SPAN><SPAN> alza le vele
 omai la navicella del mio ingegno,
 che lascia dietro a s\xE9 mar s\xEC crudele;</SPAN> <SPAN color='#0000FF' size='7' rise='5'>3</SPAN>
 
@@ -181,7 +181,7 @@ let main () = begin
       let width = width_avail *. 0.85 in
       let x = x +. (width_avail -. width) /. 2. in
       let markup = Fpdf_markup.prepare ~width ~padding:(30., 30., 30., 30.) ~markup
-        ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_dash:([2; 3], 0) ~border_radius:radius doc in
+          ~bgcolor:"#fffff0" ~border_width:0.2 ~border_color:"#ff0000" ~border_dash:([2; 3], 0) ~border_radius:radius doc in
       markup.Fpdf_markup.print ~x ~y ~valign:(height_avail, 0.5) ();
 
       (** Markup and wrap char *)
@@ -193,14 +193,14 @@ let main () = begin
       let markup = "WRAP CHARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" in
       Fpdf.set_font ~family:`Times ~size:12. doc;
       let markup = Fpdf_markup.prepare ~width:(width/.2.) (*~line_height*) (*~padding:(5.,5.,5.,5.)*) ~markup
-        ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
+          ~bgcolor:"#fff0f0" ~border_width:5. ~border_color:"#f00000" (*~border_radius:3.*) doc in
       markup.Fpdf_markup.print ~x ~y ();
       (*  *)
       let y = y +. markup.Fpdf_markup.height +. 30. in
       let markup = "<SPAN align='0.5'>\128</SPAN><SPAN style='bold' size='55' bgcolor='#ffff00'>123</SPAN><SPAN style='bold' rise='15' bgcolor='#ffff00'>,</SPAN><SPAN style='bold' rise='15' underline='single' bgcolor='#ffff00'>99</SPAN><SPAN>Test</SPAN>" in
       Fpdf.set_font ~family:`Helvetica ~size:34. doc;
       let markup = Fpdf_markup.prepare ~width ~markup
-        ~bgcolor:"#fff0f0" ~border_width:1. ~border_color:"#f00000" (*~border_radius:3.*) doc in
+          ~bgcolor:"#fff0f0" ~border_width:1. ~border_color:"#f00000" (*~border_radius:3.*) doc in
       markup.Fpdf_markup.print ~x ~y ();
 
       (** Lorem Ipsum *)
@@ -212,7 +212,7 @@ let main () = begin
       Fpdf.set_fill_color ~red:255 ~green:200 ~blue:255 doc;
       let width = (*width_avail*) Fpdf.page_width doc -. margin in
       let markup = Fpdf_markup.prepare ~width ~markup:lorem_ipsum ~padding:(10.,10.,10.,10.)
-        (*~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc
+          (*~bgcolor:"#fff0f0" ~border_width:0.5 ~border_color:"#f00000" ~border_radius:3.*) doc
       in
       markup.Fpdf_markup.print ~x ~y ();
 
@@ -261,7 +261,7 @@ let main () = begin
       vbox#pack();
 
       (* Test line break in multi_cell with scaled font. *)
-      let mktext s = String.concat "" (Array.to_list (Array.create 4 s)) in
+      let mktext s = String.concat "" (Array.to_list (Array.make 4 s)) in
       let align = `Center (*`Justified*) in
       let y = margin +. height_header +. 100. in
       Fpdf.rect ~x ~y ~width ~height:30. doc;
@@ -296,10 +296,10 @@ let main () = begin
               | Some x -> x | _ -> assert false
           in
           let size = Fpdf_util.fixpoint begin fun size ->
-            let text_width = Fpdf.get_text_width font.Fpdf_document.font_metrics size None text in
-            let text_width = text_width /. (Fpdf.scale doc) in
-            if text_width < child_inner_width then size else (size -. 0.25)
-          end 30. in
+              let text_width = Fpdf.get_text_width font.Fpdf_document.font_metrics size None text in
+              let text_width = text_width /. (Fpdf.scale doc) in
+              if text_width < child_inner_width then size else (size -. 0.25)
+            end 30. in
           Fpdf.set_font ~family ~size doc;
           Fpdf.set ~x ~y doc;
           let line_height = size /. Fpdf.scale doc +. 0.5 in
@@ -390,37 +390,37 @@ let main () = begin
       let line_height = (Fpdf.font_size doc) /. Fpdf.scale doc +. 0.5 in
       let cell_func ~index ~row ~col =
         let prop = {Fpdf_table.
-          prop_text       = (match row col with None -> "" | Some x -> x);
-          prop_align      = `Center;
-          prop_font_style = (if is_fib index then [`Bold] else []);
-          prop_font_size  = None;
-          prop_image      = None;
-          prop_bg_color   = (if is_fib index then Some (220, 220, 255) else None);
-          prop_fg_color   = None;
-        } in
+                     prop_text       = (match row col with None -> "" | Some x -> x);
+                     prop_align      = `Center;
+                     prop_font_style = (if is_fib index then [`Bold] else []);
+                     prop_font_size  = None;
+                     prop_image      = None;
+                     prop_bg_color   = (if is_fib index then Some (220, 220, 255) else None);
+                     prop_fg_color   = None;
+                   } in
         if col = `B && index = 3 then Cell_draw (10., begin fun ~x ~y ~width ~height ->
-          let overlap = 2. in
-          let w1 = width *. 0.4 in
-          let h1 = height *. 0.5 in
-          let x1 = x +. w1 -. overlap in
-          let y1 = y +. h1 -. overlap in
-          Fpdf.set_fill_color ~red:255 ~green:212 ~blue:0 doc;
-          Fpdf.rect ~x:x1 ~y:y1 ~width:overlap ~height:overlap ~style:`Fill doc;
-          Fpdf.rect ~x ~y ~width:w1 ~height:h1 ~style:`Outline doc;
-          let w2 = width *. 0.6 +. overlap in
-          let h2 = height *. 0.5 +. overlap in
-          Fpdf.rect ~x:x1 ~y:y1 ~width:w2 ~height:h2 ~style:`Outline doc;
-          let text = match row col with None -> "" | Some x -> x in
-          let markup = sprintf "<SPAN color='#ff0000' align='0.5'>%s</SPAN>" text in
-          let w3 = w2 -. overlap in
-          ignore (Fpdf_markup.print ~x:(x1 +. overlap) ~y:(y1 +. overlap) ~width:w3 ~markup doc)
-        end) else if col = `B then Cell_properties {prop with Fpdf_table.
-          prop_text       = (match row col with None -> "-" | Some x -> x);
-          prop_align      = `Left;
-          prop_font_style = prop.Fpdf_table.prop_font_style @ [`Italic];
-        } else Cell_properties prop
+            let overlap = 2. in
+            let w1 = width *. 0.4 in
+            let h1 = height *. 0.5 in
+            let x1 = x +. w1 -. overlap in
+            let y1 = y +. h1 -. overlap in
+            Fpdf.set_fill_color ~red:255 ~green:212 ~blue:0 doc;
+            Fpdf.rect ~x:x1 ~y:y1 ~width:overlap ~height:overlap ~style:`Fill doc;
+            Fpdf.rect ~x ~y ~width:w1 ~height:h1 ~style:`Outline doc;
+            let w2 = width *. 0.6 +. overlap in
+            let h2 = height *. 0.5 +. overlap in
+            Fpdf.rect ~x:x1 ~y:y1 ~width:w2 ~height:h2 ~style:`Outline doc;
+            let text = match row col with None -> "" | Some x -> x in
+            let markup = sprintf "<SPAN color='#ff0000' align='0.5'>%s</SPAN>" text in
+            let w3 = w2 -. overlap in
+            ignore (Fpdf_markup.print ~x:(x1 +. overlap) ~y:(y1 +. overlap) ~width:w3 ~markup doc)
+          end) else if col = `B then Cell_properties {prop with Fpdf_table.
+                                                             prop_text       = (match row col with None -> "-" | Some x -> x);
+                                                             prop_align      = `Left;
+                                                             prop_font_style = prop.Fpdf_table.prop_font_style @ [`Italic];
+                                                     } else Cell_properties prop
       in
-      let rows = Array.create 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
+      let rows = Array.make 300 [|Some "Text"; Some "text"; Some "Text"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|] in
       let rows = Array.to_list rows in
       let print_title text =
         `Func begin fun ~x ~y ~width ->
@@ -445,8 +445,8 @@ let main () = begin
           h_draw = print_title "ABC";
           h_children = [
             `Node {
-               h_draw                = print_title "AB";
-               h_children            = [`Leaf `A; `Leaf `B];
+              h_draw                = print_title "AB";
+              h_children            = [`Leaf `A; `Leaf `B];
             };
             `Leaf `C;
           ]
@@ -480,10 +480,10 @@ let main () = begin
         ~grid_lines:`Vertical
         ~columns
         ~rows:([
-          [|Some "a"; Some "M"; Some "\128"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
-          [|Some "1"; None; Some "3"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
-          [|Some "A"; None; Some "B"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
-        ] @ rows)
+            [|Some "a"; Some "M"; Some "\128"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
+            [|Some "1"; None; Some "3"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
+            [|Some "A"; None; Some "B"; Some "a"; Some "a"; Some "a"; Some "a"; Some "a"|];
+          ] @ rows)
         ~page_break_func:begin fun () ->
           Fpdf.add_page doc;
           Fpdf.set ~x ~y:(Fpdf.y doc +. 2.) doc;
@@ -506,9 +506,9 @@ let main () = begin
       Fpdf.close_document doc;
       close_file();
     with ex -> begin
-      close_file();
-      raise ex
-    end
+        close_file();
+        raise ex
+      end
   end;
   Printf.printf "
   +-----------------------------------------------------------------------------

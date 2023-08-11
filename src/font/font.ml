@@ -24,20 +24,20 @@
 open Fpdf_types
 
 type key =
-    | Courier | Courier_Oblique | Courier_Bold | Courier_BoldOblique
-    | Helvetica | Helvetica_Oblique | Helvetica_Bold | Helvetica_BoldOblique
-    | Times_Roman | Times_Bold | Times_Italic | Times_BoldItalic
-    | ZapfDingbats
-    | Symbol
-    | CenturySchoolbook | CenturySchoolbook_Italic | CenturySchoolbook_Bold | CenturySchoolbook_BoldItalic
-    | CMUSerif | CMUSerif_Bold | CMUSerif_Italic | CMUSerif_BoldItalic
-    | CMUSansSerif | CMUSansSerif_Bold | CMUSansSerif_Oblique | CMUSansSerif_BoldOblique
-    | CMUSerif_BoldNonextended
-    | CMUSansSerif_DemiCondensed
+  | Courier | Courier_Oblique | Courier_Bold | Courier_BoldOblique
+  | Helvetica | Helvetica_Oblique | Helvetica_Bold | Helvetica_BoldOblique
+  | Times_Roman | Times_Bold | Times_Italic | Times_BoldItalic
+  | ZapfDingbats
+  | Symbol
+  | CenturySchoolbook | CenturySchoolbook_Italic | CenturySchoolbook_Bold | CenturySchoolbook_BoldItalic
+  | CMUSerif | CMUSerif_Bold | CMUSerif_Italic | CMUSerif_BoldItalic
+  | CMUSansSerif | CMUSansSerif_Bold | CMUSansSerif_Oblique | CMUSansSerif_BoldOblique
+  | CMUSerif_BoldNonextended
+  | CMUSansSerif_DemiCondensed
 
 type family = [
-    | `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook
-    | `CMUSerif | `CMUSansSerif | `CMUSansSerif_DemiCondensed | `CMUSerif_BoldNonextended
+  | `Courier | `Helvetica | `Times | `Symbol | `ZapfDingbats | `CenturySchoolbook
+  | `CMUSerif | `CMUSansSerif | `CMUSansSerif_DemiCondensed | `CMUSerif_BoldNonextended
 ]
 
 type style = [ `Underline | `Italic | `Bold ]
@@ -92,7 +92,7 @@ let string_of_family : family -> string = function
 
 (** style_of_string *)
 let style_of_string : string -> style = function name ->
-  match String.lowercase name with
+match String.lowercase_ascii name with
   | "underline" -> `Underline
   | "italic" -> `Italic
   | "bold" -> `Bold
@@ -107,43 +107,43 @@ let string_of_style : style -> string = function
 (** key_of_font *)
 let key_of_font : style list -> family -> key =
   fun style ->
-    let bold = List.mem `Bold style in
-    let italic = List.mem `Italic style in
-    function
-      | `Times when bold && italic -> Times_BoldItalic
-      | `Times when bold -> Times_Bold
-      | `Times when italic -> Times_Italic
-      | `Times -> Times_Roman
-      | `Helvetica when bold && italic -> Helvetica_BoldOblique
-      | `Helvetica when bold -> Helvetica_Bold
-      | `Helvetica when italic -> Helvetica_Oblique
-      | `Helvetica -> Helvetica
-      | `Courier when bold && italic -> Courier_BoldOblique
-      | `Courier when bold -> Courier_Bold
-      | `Courier when italic -> Courier_Oblique
-      | `Courier -> Courier
-      | `Symbol -> Symbol
-      | `ZapfDingbats -> ZapfDingbats
-      | `CenturySchoolbook when bold && italic -> CenturySchoolbook_BoldItalic
-      | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
-      | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
-      | `CenturySchoolbook -> CenturySchoolbook
-      | `CMUSerif when bold && italic -> CMUSerif_BoldItalic
-      | `CMUSerif when bold -> CMUSerif_Bold
-      | `CMUSerif when italic -> CMUSerif_Italic
-      | `CMUSerif -> CMUSerif
-      | `CMUSansSerif when bold && italic -> CMUSansSerif_BoldOblique
-      | `CMUSansSerif when italic -> CMUSansSerif_Oblique
-      | `CMUSansSerif when bold -> CMUSansSerif_Bold
-      | `CMUSansSerif -> CMUSansSerif
-      | `CMUSansSerif_DemiCondensed -> CMUSansSerif_DemiCondensed
-      | `CMUSerif_BoldNonextended -> CMUSerif_BoldNonextended
+  let bold = List.mem `Bold style in
+  let italic = List.mem `Italic style in
+  function
+    | `Times when bold && italic -> Times_BoldItalic
+    | `Times when bold -> Times_Bold
+    | `Times when italic -> Times_Italic
+    | `Times -> Times_Roman
+    | `Helvetica when bold && italic -> Helvetica_BoldOblique
+    | `Helvetica when bold -> Helvetica_Bold
+    | `Helvetica when italic -> Helvetica_Oblique
+    | `Helvetica -> Helvetica
+    | `Courier when bold && italic -> Courier_BoldOblique
+    | `Courier when bold -> Courier_Bold
+    | `Courier when italic -> Courier_Oblique
+    | `Courier -> Courier
+    | `Symbol -> Symbol
+    | `ZapfDingbats -> ZapfDingbats
+    | `CenturySchoolbook when bold && italic -> CenturySchoolbook_BoldItalic
+    | `CenturySchoolbook when italic -> CenturySchoolbook_Italic
+    | `CenturySchoolbook when bold -> CenturySchoolbook_Bold
+    | `CenturySchoolbook -> CenturySchoolbook
+    | `CMUSerif when bold && italic -> CMUSerif_BoldItalic
+    | `CMUSerif when bold -> CMUSerif_Bold
+    | `CMUSerif when italic -> CMUSerif_Italic
+    | `CMUSerif -> CMUSerif
+    | `CMUSansSerif when bold && italic -> CMUSansSerif_BoldOblique
+    | `CMUSansSerif when italic -> CMUSansSerif_Oblique
+    | `CMUSansSerif when bold -> CMUSansSerif_Bold
+    | `CMUSansSerif -> CMUSansSerif
+    | `CMUSansSerif_DemiCondensed -> CMUSansSerif_DemiCondensed
+    | `CMUSerif_BoldNonextended -> CMUSerif_BoldNonextended
 
 (** ascent *)
 let ascent font =
   match font.ascent with
-      | Some x -> x
-      | _ -> let _, _, _, ruy = font.fontBBox in ruy
+    | Some x -> x
+    | _ -> let _, _, _, ruy = font.fontBBox in ruy
 
 (** descent *)
 let descent font =

@@ -35,10 +35,10 @@ let set_nb_pages_placeholder placeholder doc =
   doc.aliasNbPages <- placeholder
 
 let get_page n doc =
-  try
-    let len = List.length doc.pages in
-    List.nth doc.pages (len - n - 1)
-  with Invalid_argument "List.nth" -> failwith ("get_page (" ^ (string_of_int n) ^ ")")
+  let len = List.length doc.pages in
+  match List.nth_opt doc.pages (len - n - 1) with
+    | Some x -> x
+    | _ -> failwith ("get_page (" ^ (string_of_int n) ^ ")")
 
 let page_width doc = doc.w
 let page_height doc = doc.h
@@ -59,7 +59,7 @@ let add_page ?orientation doc =
   if doc.state = Begin_document then open_document doc;
   let family = doc.font_family in
   let style = if doc.underline then `Underline :: doc.font_style else doc.font_style in
-(*  let style = (string_of_style font_style) ^ (if underline then "U" else "") in*)
+  (*  let style = (string_of_style font_style) ^ (if underline then "U" else "") in*)
   let size = doc.font_size_pt in
   let save () = doc.line_width, doc.drawColor, doc.fillColor, doc.textColor(*, doc.colorFlag*) in
   let restore (lw, dc, fc, tc(*, cf*)) =
